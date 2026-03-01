@@ -1,0 +1,161 @@
+# -*- coding: utf-8 -*-
+"""
+Terminal utilities - shell command execution and system resources.
+
+Combined utilities for:
+- Async/sync shell command execution
+- RAM and CPU usage monitoring
+"""
+
+import os
+import asyncio
+from typing import Optional, Tuple, Union
+
+
+# ============================================================================
+# SHELL EXECUTION
+# ============================================================================
+
+async def shell_exec(
+    command: str,
+    executable: Optional[str] = None,
+    timeout: Optional[Union[int, float]] = None,
+    stdout=asyncio.subprocess.PIPE,
+    stderr=asyncio.subprocess.PIPE,
+) -> Tuple[int, str, str]:
+    """
+    Execute shell command asynchronously.
+    
+    Args:
+        command: Command to execute
+        executable: Path to shell (e.g., /bin/bash)
+        timeout: Maximum wait time in seconds
+        stdout: Stream for stdout (default PIPE)
+        stderr: Stream for stderr (default PIPE)
+    
+    Returns:
+        tuple: (return_code, stdout, stderr)
+    
+    Raises:
+        asyncio.TimeoutError: When timeout exceeded
+    
+    Example:
+        code, out, err = await shell_exec("ls -la")
+        code, out, err = await shell_exec("ping localhost", timeout=5)
+    """
+    process = await asyncio.create_subprocess_shell(
+        cmd=command,
+        stdout=stdout,
+        stderr=stderr,
+        shell=True,
+        executable=executable
+    )
+    
+    try:
+        stdout_data, stderr_data = await asyncio.wait_for(
+            process.communicate(),
+            timeout=timeout
+        )
+    except asyncio.TimeoutError:
+        process.kill()
+        raise
+    
+    return (
+        process.returncode or 0,
+        stdout_data.decode() if stdout_data else "",
+        stderr_data.decode() if stderr_data else ""
+    )
+
+
+def shell_exec_sync(
+    command: str,
+    timeout: Optional[Union[int, float]] = None,
+) -> Tuple[int, str, str]:
+    """
+    Synchronous version of shell_exec.
+    
+    Args:
+        command: Command to execute
+        timeout: Maximum wait time in seconds
+    
+    Returns:
+        tuple: (return_code, stdout, stderr)
+    
+    Example:
+        code, out, err = shell_exec_sync("ls -la")
+    """
+    import subprocess
+    
+    try:
+        result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            timeout=timeout,
+            text=True
+        )
+        return result.returncode, result.stdout, result.stderr
+    except subprocess.TimeoutExpired as e:
+        return -1, "", f"Timeout: {e}"
+
+
+# ============================================================================
+# SYSTEM RESOURCES
+# ============================================================================
+
+def get_ram_usage() -> float:
+    """
+    Get RAM usage by current process in MB.
+    
+    Includes child processes.
+    
+    Returns:
+        float: RAM usage in MB rounded to one decimal place
+        
+    Example:
+        usage = get_ram_usage()
+        print(f"RAM: {usage} MB")
+    """
+    try:
+        import psutil
+        current_process = psutil.Process(os.getpid())
+        mem = current_process.memory_info()[0] / 2.0 ** 20
+        for child in current_process.children(recursive=True):
+            mem += child.memory_info()[0] / 2.0 ** 20
+        return round(mem, 1)
+    except Exception:
+        return 0.0
+
+
+def get_cpu_usage() -> float:
+    """
+    Get CPU usage by current process in %.
+    
+    Includes child processes.
+    
+    Returns:
+        float: CPU usage in percent rounded to one decimal place
+        
+    Example:
+        usage = get_cpu_usage()
+        print(f"CPU: {usage}%")
+    """
+    try:
+        import psutil
+        current_process = psutil.Process(os.getpid())
+        cpu = current_process.cpu_percent()
+        for child in current_process.children(recursive=True):
+            cpu += child.cpu_percent()
+        return round(cpu, 1)
+    except Exception:
+        return 0.0
+
+
+__all__ = [
+    # Shell
+    "shell_exec",
+    "shell_exec_sync",
+    # System resources
+    "get_ram_usage",
+    "get_cpu_usage",
+]
