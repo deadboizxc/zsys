@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: zsys_core
+Description: zsys pure C core library
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lzsys_core
+Cflags: -I${includedir}

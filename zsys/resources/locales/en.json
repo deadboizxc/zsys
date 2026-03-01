@@ -1,0 +1,751 @@
+{
+    "language_module": {
+        "system": {
+            "language_changed": "🌐 Language changed to {language}",
+            "current_language": "🌐 Current language: {language}",
+            "available_languages": "🌐 Available languages: {languages}",
+            "translations_reloaded": "🔄 Language files reloaded"
+        },
+        "errors": {
+            "specify_language": "❌ Please specify a language. Available: {languages}",
+            "invalid_language": "❌ Invalid language. Available: {languages}"
+        },
+        "help": {
+            "setlang": "Set the bot's global language",
+            "getlang": "Show the current language",
+            "listlang": "List all available languages",
+            "reloadlang": "Reload language files"
+        }
+    },
+    
+    "user_info": {
+        "loading": {
+            "user": "Loading user information...",
+            "chat": "Loading chat information..."
+        },
+        "none": "None",
+        "title": "User Info",
+        "full_title": "Full User Info",
+        "chat_title": "Chat Info",
+        "id": "ID",
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "username": "Username",
+        "phone": "Phone",
+        "bio": "Bio",
+        "bot": "Bot",
+        "scam": "Scam",
+        "restricted": "Restricted",
+        "verified": "Verified",
+        "premium": "Premium",
+        "contact": "Contact",
+        "can_pin": "Can Pin Messages",
+        "mutual_contact": "Mutual Contact",
+        "phone_calls_available": "Phone Calls Available",
+        "phone_calls_private": "Phone Calls Private",
+        "blocked": "Blocked",
+        "type": "Type",
+        "has_photo": "Has Photo",
+        "is_channel": "Is Channel",
+        "is_group": "Is Group",
+        "help": {
+            "inf": "Get basic user info",
+            "inffull": "Get full user info",
+            "chatinf": "Get chat info"
+        }
+    },
+    
+    "url": {
+        "errors": {
+            "no_url": "Please specify URL or reply to message with link",
+            "download_failed": "Download error: {error}",
+            "upload_failed": "Upload error",
+            "file_too_large": "Files larger than {max_size}MB are not supported",
+            "file_not_found": "File not found"
+        },
+        "status": {
+            "downloading": "Downloading...",
+            "uploading": "Uploading..."
+        },
+        "success": {
+            "shortened": "Shortened URL: {url}",
+            "uploaded": "Your link: {url}\nFile will be stored for {days} days"
+        },
+        "help": {
+            "short": "Shorten URL",
+            "urldl": "Download content from URL",
+            "upload": "Upload file to internet"
+        }
+    },
+    
+    "updater": {
+        "status": {
+            "updating": "Updating...",
+            "downloading_release": "Downloading new release...",
+            "updating_pip": "Updating pip...",
+            "git_operations": "Performing git operations...",
+            "updating_deps": "Updating dependencies...",
+            "restarting": "Restarting...",
+            "reloading": "Reloading modules...",
+            "switching_branch": "Switching to branch {branch}..."
+        },
+        "success": {
+            "updated": "Update completed! Restarting...",
+            "requirements_updated": "Requirements updated successfully!",
+            "branch_switched": "Switched to branch {branch} successfully!",
+            "restarted": "Restarting...",
+            "reloaded": "Modules reloaded!"
+        },
+        "errors": {
+            "update_failed": "Update failed! Check logs for details.",
+            "deps_failed": "Failed to update requirements: {error}",
+            "branch_failed": "Failed to switch branch: {error}",
+            "no_branch": "Specify branch name: /switchbranch <branch_name>"
+        },
+        "help": {
+            "update": "Update the userbot. If new core modules are available, they will be installed",
+            "updatereqs": "Update only dependencies (requirements.txt or android_requirements.txt + additional modules)",
+            "restart": "Restart userbot",
+            "switchbranch": "Switch to a different branch before updating",
+            "reload": "Reload the modules of the userbot without restarting it"
+        }
+    },
+    
+    "switch": {
+        "errors": {
+            "no_text": "Text to switch not found"
+        },
+        "help": {
+            "switch": "Useful when you forgot to change the keyboard layout"
+        }
+    },
+    
+    "support": {
+        "title": "zxc-userbot",
+        "github": "GitHub",
+        "license": "License",
+        "license_type": "NGC",
+        "modules_repo": "Modules repository",
+        "modules_repo_path": "deadboizxc/custom_modules",
+        "main_devs": "Main developers",
+        "modules_count": "Modules count",
+        "commands_count": "Commands count",
+        "branch": "Branch",
+        "version": {
+            "title": "zxc-userbot",
+            "version": "Version",
+            "branch": "Branch",
+            "latest_branch_commit": "Latest commit on branch",
+            "latest_head_commit": "Latest commit on HEAD",
+            "commit": "Commit",
+            "commit_time": "Commit time",
+            "unknown": "Unknown"
+        },
+        "help": {
+            "support": "Information about userbot",
+            "version": "Check userbot version"
+        }
+    },
+    
+    "stickers": {
+        "status": {
+            "wait": "Please wait...",
+            "downloading": "Downloading..."
+        },
+        "errors": {
+            "no_args": "No arguments provided\nUsage: {prefix}kang [pack]* [emoji]",
+            "animated": "Animated packs aren't supported",
+            "no_pack": "Stickerpack doesn't exist. Create it using @Stickers bot (via /newpack command)",
+            "no_media": "Replied message doesn't contain any downloadable media",
+            "generic": "Something went wrong. Check history with @stickers"
+        },
+        "success": {
+            "added": "Sticker added to pack {pack}"
+        },
+        "help": {
+            "kang": "Add sticker to defined pack",
+            "stp": "Convert replied sticker to PNG",
+            "resize": "Resize replied image to 512xN (or SIZExSIZE2) format"
+        }
+    },
+    
+    "status": {
+        "info": {
+            "title": "System Usage",
+            "ram": "RAM: {usage} MB",
+            "cpu": "CPU: {usage}%"
+        },
+        "help": {
+            "usage": "Show RAM and CPU usage information"
+        }
+    },
+    
+    "squotes": {
+        "status": {
+            "generating": "Generating quote...",
+            "sending": "Sending..."
+        },
+        "errors": {
+            "api_error": "Quotes API error",
+            "empty_text": "Fake quote text is empty",
+            "rpc_error": "Telegram error"
+        },
+        "media_types": {
+            "photo": "Photo",
+            "location": "Location",
+            "contact": "Contact",
+            "gif": "GIF",
+            "audio": "Music",
+            "video": "Video",
+            "video_note": "Video message",
+            "voice": "Voice message",
+            "sticker": "Sticker",
+            "document": "File {name}",
+            "game": "Game",
+            "game_score": "New record",
+            "unsupported": "Unsupported message type"
+        },
+        "poll": {
+            "regular": "Poll",
+            "quiz": "Quiz",
+            "anonymous": "Anonymous {type}",
+            "closed": " (closed)",
+            "option": "- {text}{votes}",
+            "total": "Total: {count} voted"
+        },
+        "chat_events": {
+            "joined": "joined the group",
+            "invited": "invited {name} to the group",
+            "left": "left the group",
+            "removed": "removed {name}",
+            "chat_title": "New title: {title}",
+            "photo_changed": "changed chat photo",
+            "photo_removed": "removed chat photo",
+            "pinned": "pinned a message",
+            "video_started": "started video chat",
+            "video_ended": "ended video chat",
+            "video_invited": "invited to video chat",
+            "group_created": "created the group",
+            "channel_created": "created the channel"
+        },
+        "help": {
+            "quote": "Generate a quote. Options: !png - send as PNG, !me - send to saved messages, !noreply - without reply",
+            "fakequote": "Generate fake quote"
+        }
+    },
+    
+    "spam": {
+        "errors": {
+            "missing_amount": "Please specify the amount of messages to send",
+            "invalid_amount": "Amount must be a number",
+            "amount_too_small": "Amount must be at least 1",
+            "amount_too_large": "Amount must be 100 or less (safety limit)",
+            "missing_text": "Please specify text to spam",
+            "rpc_error": "Error occurred: {error}"
+        },
+        "help": {
+            "spam": "Normal spam (0.1s delay between messages)",
+            "statspam": "Send and immediately delete messages",
+            "fastspam": "Send messages as fast as possible",
+            "slowspam": "Slow spam (0.9s delay between messages)"
+        }
+    },
+    
+    "shell": {
+        "errors": {
+            "no_command": "Specify the command to execute",
+            "timeout": "Timeout expired (60 seconds)", 
+            "execution_failed": "Command execution failed"
+        },
+        "status": {
+            "running": "Running...",
+            "completed": "Completed in {duration} seconds with code {code}"
+        },
+        "output": {
+            "stdout": "Output",
+            "stderr": "Error"
+        },
+        "help": {
+            "sh": "Execute command in shell (cross-platform)",
+            "shell": "Alias for sh command"
+        }
+    },
+    
+    "sessionkiller": {
+        "status": {
+            "enabled": "Sessionkiller enabled!",
+            "disabled": "Sessionkiller disabled!",
+            "enabled_status": "Sessionkiller status: enabled\nYou can disable it with {prefix}sessionkiller disable",
+            "disabled_status": "Sessionkiller status: disabled\nYou can enable it with {prefix}sessionkiller enable"
+        },
+        "report": {
+            "action_required": "!!! ACTION REQUIRED !!!",
+            "success": "Someone tried to log in to your account. Since you have enabled this feature, I deleted the attacker's session from your account. You should change your 2FA password (if enabled), or set it.",
+            "failed": "Someone tried to log in to your account. You can see this report because you turned on this feature. But I couldn't terminate attacker's session and you must reset it manually. You should change your 2FA password (if enabled), or set it.",
+            "attacker_info": "Below is the information about the attacker that I got",
+            "hash": "Unique authorization hash",
+            "hash_note": "(not valid anymore)",
+            "device": "Device model",
+            "platform": "Platform",
+            "api_id": "API ID",
+            "app_name": "App name",
+            "app_version": "App version",
+            "login_time": "Logined at",
+            "ip": "IP",
+            "country": "Country",
+            "official_app": "Official app",
+            "self_check": "It is you? Type {prefix}sk off and try logging in again"
+        },
+        "datetime_format": "%d-%m-%Y %H-%M-%S UTC",
+        "usage": "Usage: {prefix}sessionkiller [enable|disable]",
+        "help": {
+            "description": "When enabled, every new session will be terminated. Useful for additional protection for your account"
+        }
+    },
+    
+    "sendmod": {
+        "errors": {
+            "no_module": "Module name to send is not provided",
+            "module_not_found": "Module {name} not found!"
+        },
+        "status": {
+            "dispatching": "Dispatching..."
+        },
+        "help": {
+            "description": "Send module to interlocutor"
+        }
+    },
+
+    "secret_media": {
+        "caption": "Secret {media_type} from {sender}",
+        "error": "Failed to save secret media"
+    },
+    
+    "say": {
+        "errors": {
+            "no_text": "Please provide text to send"
+        },
+        "help": {
+            "basic": "Send text that won't be interpreted by userbot",
+            "reply_mode": "Send text as reply to another message"
+        }
+    },
+
+    "python": {
+        "errors": {
+            "no_code": "No Python code provided",
+            "eval_failed": "Failed to evaluate expression",
+            "exec_failed": "Failed to execute code"
+        },
+        "status": {
+            "executing": "Executing Python code...",
+            "evaluating": "Evaluating expression..."
+        },
+        "result": {
+            "code": "Code",
+            "output": "Output",
+            "result": "Result",
+            "expression": "Expression"
+        },
+        "help": {
+            "exec": "Execute Python code",
+            "exec_noedit": "Execute Python code and return result with reply",
+            "eval": "Evaluate Python expression"
+        }
+    },
+
+    "purge": {
+        "errors": {
+            "delete_failed": "Failed to delete messages: {error}",
+            "purge_failed": "Failed to purge messages: {error}"
+        },
+        "status": {
+            "starting": "Starting message purge...",
+            "progress": "Purged {count} messages so far...",
+            "completed": "Successfully purged {count} messages!"
+        },
+        "help": {
+            "purge": "Purge (delete all messages) chat from replied message to last",
+            "del": "Delete replied message"
+        }
+    },
+
+    "prefix": {
+        "errors": {
+            "empty": "The prefix must not be empty!",
+            "too_long": "Prefix must be 5 characters or less!",
+            "contains_spaces": "Prefix cannot contain spaces!",
+            "set_failed_header": "Failed to set prefix",
+            "unexpected_header": "Unexpected error"
+        },
+        "success": {
+            "message": "Prefix is set",
+            "prefix_format": "[{prefix}]"
+        },
+        "help": {
+            "setprefix": "Set custom command prefix",
+            "setprefix_zxc": "Set custom command prefix (alias)"
+        }
+    },
+
+    "ping": {
+        "success": "Pong! {latency}s",
+        "error": "Ping failed: {error}",
+        "help": {
+            "description": "Check latency to Telegram servers",
+            "alias": "Alias for ping command"
+        },
+        "temp_marker": "Measuring ping..."
+    },
+    
+    "loader": {
+        "errors": {
+            "specify_source": "Specify module URL or module name",
+            "not_py_file": "The replied file must be a .py file",
+            "module_exists": "Module {name} already exists",
+            "download_failed": "Failed to download module from {url}",
+            "module_not_found": "Module {name} not found",
+            "specify_module": "Specify module to unload",
+            "no_modules": "No custom modules found",
+            "builtin_restrict": "It is forbidden to remove built-in modules",
+            "fetch_error": "Error fetching module list: {error}",
+            "load_failed": "Failed to load module {name}"
+        },
+        "success": {
+            "loaded": "Module {name} loaded successfully",
+            "unloaded": "Module {name} unloaded successfully",
+            "loaded_all": "Successfully loaded new modules: {modules}",
+            "unloaded_all": "All custom modules have been unloaded and removed",
+            "updated_all": "Successfully updated {count} modules",
+            "all_loaded": "All modules already loaded",
+            "usage_header": "Usage"
+        },
+        "status": {
+            "downloading": "Downloading module...",
+            "installing": "Installing module...",
+            "updating": "Updating modules...",
+            "fetching": "Fetching info...",
+            "loading_all": "Loading new modules (it may take a lot of time): {modules}"
+        },
+        "help": {
+            "loadmod": "Download module",
+            "unloadmod": "Delete module",
+            "unloadall": "Unload and remove all custom modules",
+            "loadall": "Load all custom modules (use it at your own risk)",
+            "updateall": "Update all loaded custom modules"
+        }
+    },
+    
+    "help": {
+        "header": "Help for",
+        "bot_name": "deadboizxc",
+        "subheader": "For more help on how to use a command, type {prefix}help [module]",
+        "available_modules": "Available Modules:",
+        "modules_count": "Number of modules: {count}",
+        "command_header": "Help for command {prefix}{command}",
+        "command_module": "Module: {module} ({prefix}help {module})",
+        "not_found": "Module or command '{query}' not found",
+        "help_command_desc": "Get common/module/command help"
+    },
+    "afk": {
+        "afk_response": "I'm AFK {afk_time}\nReason:",
+        "going_afk": "I'm going AFK.\nReason:",
+        "not_afk_anymore": "I'm not AFK anymore.\nI was afk {afk_time}",
+        "was_not_afk": "You weren't afk",
+        "no_reason": "None",
+        "help": {
+            "afk": "Go to afk",
+            "unafk": "Get out of AFK"
+        }
+    },
+
+    "antipm": {
+        "status_enabled": "Anti-PM status: enabled\nDisable: <code>{prefix}antipm disable</code>",
+        "status_disabled": "Anti-PM status: disabled\nEnable: <code>{prefix}antipm enable</code>",
+        "enabled": "Anti-PM enabled!",
+        "disabled": "Anti-PM disabled!",
+        "usage": "Usage: {prefix}antipm [enable|disable]",
+
+        "report_enabled": "Spam reporting enabled.\nDisable: <code>{prefix}antipm_report disable</code>",
+        "report_disabled": "Spam reporting disabled.\nEnable: <code>{prefix}antipm_report enable</code>",
+        "report_on": "Spam reporting enabled!",
+        "report_off": "Spam reporting disabled!",
+        "report_usage": "Usage: {prefix}antipm_report [enable|disable]",
+
+        "block_enabled": "User blocking enabled.\nDisable: <code>{prefix}antipm_block disable</code>",
+        "block_disabled": "User blocking disabled.\nEnable: <code>{prefix}antipm_block enable</code>",
+        "block_on": "User blocking enabled!",
+        "block_off": "User blocking disabled!",
+        "block_usage": "Usage: {prefix}antipm_block [enable|disable]",
+
+        "help": {
+            "antipm": "Enable/disable Anti-PM (deletes messages from non-contacts)",
+            "antipm_report": "Enable/disable automatic spam reporting",
+            "antipm_block": "Enable/disable user blocking"
+        }
+    },
+
+    "filters": {
+        "errors": {
+            "usage": "Usage: {prefix}filter [name] (Reply required)",
+            "usage_del": "Usage: {prefix}fdel [name]",
+            "usage_search": "Usage: {prefix}fsearch [name]",
+            "exists": "Filter {name} already exists",
+            "not_exists": "Filter {name} doesn't exist",
+            "reply_required": "Reply to message is required",
+            "forward_restricted": "Forwarding messages is restricted by chat admins"
+        },
+        "success": {
+            "added": "Filter {name} has been added",
+            "deleted": "Filter {name} has been deleted"
+        },
+        "messages": {
+            "no_filters": "No filters in this chat",
+            "list_title": "Your filters in current chat",
+            "filter_details": "Filter details",
+            "trigger": "Trigger",
+            "chat_id": "Chat ID",
+            "message_id": "Message ID",
+            "media_group": "Media group",
+            "group_description": "Don't touch this group, please"
+        },
+        "help": {
+            "filter": "Create filter (Reply required)",
+            "filters": "List of all triggers",
+            "fdel": "Delete filter by name",
+            "fsearch": "Info filter by name"
+        }
+    },
+    
+    "admintool": {
+        "errors": {
+            "no_rights": "❌ No rights",
+            "user_not_found": "❌ User is not found",
+            "invalid_user_type": "❌ Invalid user type",
+            "unsupported": "❌ Unsupported chat type",
+            "reply_on_user_msg": "❌ Reply on user message",
+            "not_on_yourself": "❌ Cannot perform action on yourself",
+            "antich_usage": "❌ Usage: {prefix}antich [enable|disable]"
+        },
+        "success": {
+            "banned": "<b>{name}</b> <code>banned!</code>\n{cause}",
+            "unbanned": "<b>{name}</b> <code>unbanned!</code>\n{cause}",
+            "kicked": "<b>{name}</b> <code>kicked!</code>\n{cause}",
+            "muted": "<b>{name}</b> <code>was muted for {time}</code>\n{cause}",
+            "muted_indefinitely": "<b>{name}</b> <code>was muted indefinitely</code>\n{cause}",
+            "unmuted": "<b>{name}</b> <code>unmuted!</code>\n{cause}",
+            "promoted": "<b>{name}</b> <code>promoted!</code>\n{prefix}",
+            "demoted": "<b>{name}</b> <code>demoted!</code>\n{cause}",
+            "tmute": "<b>{name}</b> <code>in tmute</code>\n{cause}",
+            "tunmute": "<b>{name}</b> <code>tunmuted</code>\n{cause}",
+            "already_tmute": "<b>{name}</b> <code>already in tmute</code>",
+            "not_tmute": "<b>{name}</b> <code>not in tmute</code>",
+            "history_deleted": "<code>History from </code><b>{name}</b><code> was deleted!</code>\n{cause}",
+            "reported": "<b>Message from {name} was reported</b>",
+            "pinned": "<b>Pinned!</b>",
+            "unpinned": "<b>Unpinned!</b>",
+            "ro_enabled": "<b>Read-only mode activated!</b>\nTurn off with: <code>{prefix}unro</code>",
+            "ro_disabled": "<b>Read-only mode disabled!</b>",
+            "antiraid_enabled": "<b>Anti-raid mode enabled!</b>\nDisable with: <code>{prefix}antiraid off</code>",
+            "antiraid_disabled": "<b>Anti-raid mode disabled</b>",
+            "welcome_enabled": "<b>Welcome enabled in this chat</b>\nText: <code>{text}</code>",
+            "welcome_disabled": "<b>Welcome disabled in this chat</b>",
+            "kickdel_success": "<b>Successfully kicked {count} deleted account(s)</b>",
+            "no_tmute_users": "<b>No users in tmute</b>",
+            "tmute_users_list": "<b>All users</b> <code>{chat_title}</code> <b>who are now in tmute</b>\n\n{users}\n<b>Total users in tmute</b> {count}"
+        },
+        "status": {
+            "antich_enabled": "<b>Blocking channels in this chat is enabled.</b>\nDisable with: <code>{prefix}antich disable</code>",
+            "antich_disabled": "<b>Blocking channels in this chat is disabled.</b>\nEnable with: <code>{prefix}antich enable</code>",
+            "kickdel_running": "<b>Kicking deleted accounts...</b>"
+        },
+        "help": {
+            "ban": "Ban user in chat",
+            "unban": "Unban user in chat",
+            "kick": "Kick user out of chat",
+            "mute": "Mute user in chat",
+            "unmute": "Unmute user in chat",
+            "promote": "Promote user in chat",
+            "demote": "Demote user in chat",
+            "tmute": "Delete all new messages from user in chat",
+            "tunmute": "Stop deleting all messages from user in chat",
+            "tmute_users": "List of tmuted (.tmute) users",
+            "antich": "Turn on/off blocking channels in this chat",
+            "delete_history": "Delete history from member in chat",
+            "report_spam": "Report spam message in chat",
+            "pin": "Pin replied message",
+            "unpin": "Unpin replied message",
+            "ro": "Enable read-only mode",
+            "unro": "Disable read-only mode",
+            "antiraid": "When enabled, anyone who writes a message will be blocked. Useful in raids. Running without arguments toggles state",
+            "welcome": "Enable auto-welcome to new users in groups. Running without text disables it",
+            "kickdel": "Kick all deleted accounts"
+        }
+    },
+    
+    "ytdlp_mod": {
+        "errors": {
+            "no_link": "❌ Please provide a valid link",
+            "unsupported_audio": "❌ Unsupported audio link",
+            "unsupported_video": "❌ Unsupported video link",
+            "ffmpeg_not_found": "❌ FFmpeg not found!",
+            "file_missing": "❌ Downloaded file is missing or empty",
+            "download_failed": "❌ Download failed: {error}"
+        },
+        "status": {
+            "downloading": "⏳ Downloading..."
+        },
+        "success": {
+            "file_sent": "✅ File sent successfully"
+        },
+        "help": {
+            "a": "Download audio from YouTube or SoundCloud",
+            "v": "Download video from YouTube"
+        }
+    },
+    
+    "weather": {
+        "errors": {
+            "no_city": "❌ City name isn't provided",
+            "unauthorized": "❌ Unauthorized: Check your API key",
+            "not_found": "❌ City not found"
+        },
+        "status": {
+            "processing": "⏳ Processing city {city}..."
+        },
+        "success": {
+            "weather_info": "🌍 **City**: {city}\n🗓 **Date**: {date}\n⏱ **Time**: {time}\n\n{emoji} **Weather**: {weather} - {description}\n🌡️ **Average Temperature**: {sign_temp}{temp}°C\n🌡️ **Feels Like**: {sign_feels_like}{feels_like}°C\n💧 **Humidity**: {humidity}%\n💨 **Wind**: {wind}m/s\n☁️ **Clouds**: {clouds}%\n🌅 **Sunrise**: {sunrise}\n🌇 **Sunset**: {sunset}",
+            "city_set": "✅ City {city} set!"
+        },
+        "help": {
+            "weather": "Get weather for the selected city",
+            "set_weather_city": "Set the default city for the weather command"
+        },
+        "weather_conditions": {
+            "thunderstorm": "Thunderstorm",
+            "drizzle": "Drizzle",
+            "rain": "Rain",
+            "snow": "Snow",
+            "clear": "Clear",
+            "tornado": "Tornado",
+            "clouds": "Clouds",
+            "light_rain": "Light rain",
+            "moderate_rain": "Moderate rain",
+            "heavy_rain": "Heavy rain",
+            "light_snow": "Light snow",
+            "broken_clouds": "Broken clouds",
+            "scattered_clouds": "Scattered clouds",
+            "few_clouds": "Few clouds",
+            "overcast_clouds": "Overcast clouds"
+        }
+    },
+    
+    "waifu": {
+        "errors": {
+            "no_type": "<b>Waifu type isn't provided</b>\n\n<b>Usage:</b> <b>{prefix}waifu [sfw/nsfw]* [query]* [pic/doc]*</b>\n<b>Example:</b> <code>{prefix}waifu sfw waifu pic</code>\n<b>You can get available waifu types with</b> <code>{prefix}waifu_types</code>",
+            "no_spam_type": "<b>Waifuspam type isn't provided</b>\n\n<b>Usage:</b> <code>{prefix}waifuspam [sfw/nsfw]* [query]* [amount]* [pic/doc]*</code>\n<b>Example:</b> <code>{prefix}waifuspam sfw waifu 5 pic</code>\n<b>You can get available waifu types with</b> <code>{prefix}waifu_types</code>",
+            "invalid_category": "❌ Invalid category. Use 'sfw' or 'nsfw'.",
+            "type_not_found": "❌ Waifu type '{query}' not found in category '{category}'.",
+            "fetch_failed": "❌ Failed to fetch image from API.",
+            "image_failed": "❌ Failed to fetch or invalid image URL.",
+            "invalid_type": "❌ Invalid type. Use 'pic' or 'doc'.",
+            "invalid_amount": "❌ Invalid amount. Please provide a valid number.",
+            "send_failed": "❌ Failed to send image: {error}"
+        },
+        "status": {
+            "loading": "⏳ Loading..."
+        },
+        "categories": {
+            "sfw": "SFW Categories:",
+            "nsfw": "NSFW Categories:"
+        },
+        "help": {
+            "waifu": "Get waifu media",
+            "waifu_types": "List available waifu types",
+            "waifu_spam": "Spam with waifu media"
+        }
+    },
+    
+    "video_note": {
+        "errors": {
+            "ffmpeg_not_found": "❌ FFmpeg not found!",
+            "no_media": "❌ Message should contain media!",
+            "unsupported_media": "❌ Only video and GIF are supported!",
+            "download_failed": "❌ Failed to download media!",
+            "download_error": "❌ Download error: {error}",
+            "conversion_failed": "❌ Conversion failed: {error}",
+            "forbidden": "❌ Voice messages are forbidden in this chat.",
+            "send_error": "❌ Sending error: {error}"
+        },
+        "status": {
+            "converting": "⏳ Converting video..."
+        },
+        "help": {
+            "vnote": "Convert video or GIF to a video note"
+        }
+    },
+    
+    "type": {
+        "errors": {
+            "no_text": "❌ Please provide text to type!",
+            "floodwait": "❌ Typing error, possibly due to floodwait: {error}"
+        },
+        "help": {
+            "type": "Emulate typing effect. Avoid using too many characters to prevent floodwaits!"
+        }
+    },
+    
+    "tts": {
+        "errors": {
+            "invalid_usage": "❌ Invalid usage! Use: <b>{prefix}tts [lang]* [text]*</b>\nExample: <code>{prefix}tts en Hello, world!</code>",
+            "no_text": "❌ Please provide text to synthesize!",
+            "synthesis_failed": "❌ Speech synthesis failed: {error}"
+        },
+        "status": {
+            "synthesizing": "⏳ Speech synthesis..."
+        },
+        "success": {
+            "sent": "✅ Text-to-speech audio sent"
+        },
+        "help": {
+            "tts": "Convert text to speech in the specified language"
+        }
+    },
+    
+    "translator": {
+        "errors": {
+            "invalid_usage": "❌ Invalid usage! Use: <b>{prefix}tr [lang]* [text]*</b> or reply to a message with <b>{prefix}tr [lang]*</b>\nExample: <code>{prefix}tr en Hello, world!</code>",
+            "no_lang_reply": "❌ No target language provided! Reply to a message with: <b>{prefix}tr [lang]*</b>\nExample: <code>{prefix}tr en</code>",
+            "invalid_usage_short": "❌ Invalid usage! Use: <b>{prefix}transdl [lang]* [text]*</b>\nExample: <code>{prefix}transdl en Hello, world!</code>",
+            "translation_failed": "❌ Translation failed: {error}"
+        },
+        "status": {
+            "translating": "⏳ Translating text..."
+        },
+        "success": {
+            "translated": "<b>Translated from <code>{from_lang}</code> to <code>{to_lang}</code></b>:\n\n<code>{translated_text}</code>"
+        },
+        "help": {
+            "tr": "Translate text or a replied message to the specified language",
+            "transdl": "Short translation of provided text to the specified language"
+        }
+    },
+    
+    "tiktok": {
+        "errors": {
+            "no_links": "❌ Links aren't provided",
+            "file_not_found": "❌ Downloaded file not found",
+            "download_failed": "❌ Error with {link}: {error}"
+        },
+        "status": {
+            "downloading": "⏳ Downloading..."
+        },
+        "success": {
+            "caption": "Downloaded from TikTok: {link}",
+            "all_processed": "✅ All videos processed successfully!"
+        },
+        "help": {
+            "tt": "Download multiple videos from TikTok"
+        }
+    }
+}

@@ -1,0 +1,32 @@
+[flake8]
+ignore =
+    E261,
+    E302,
+    E303,
+    E305,
+    E501,
+    W292,
+    C901,
+    F841,
+    E203,
+    F541,
+    E266,
+    E402,
+    W503,
+    E741,
+    E712,
+    E731,
+    W504
+
+max-line-length = 120
+max-complexity = 15
+
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    dist,
+    build,
+    migrations,
+    tests

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-shield-lock me-2"></i> Security</h2>
+    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#securityScanModal">
+        <i class="bi bi-shield-check me-1"></i> Run Security Scan
+    </button>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Security Status</div>
+            <div class="card-body">
+                <div class="alert alert-success d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <strong>System is secure</strong>
+                        <div class="small">No critical vulnerabilities detected</div>
+                    </div>
+                </div>
+
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-check-circle text-success me-2"></i> Firewall</span>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-check-circle text-success me-2"></i> Brute-force protection</span>
+                            <span class="badge bg-success">Enabled</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-exclamation-triangle text-warning me-2"></i> Password policy</span>
+                            <span class="badge bg-warning">Medium</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-check-circle text-success me-2"></i> HTTPS</span>
+                            <span class="badge bg-success">Enabled</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-check-circle text-success me-2"></i> 2FA</span>
+                            <span class="badge bg-success">Optional</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Recent Security Events</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-shield-lock text-primary me-2"></i> Password changed</span>
+                            <small class="text-muted">2 hours ago</small>
+                        </div>
+                        <small class="text-muted">User: admin</small>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-door-closed text-warning me-2"></i> Failed login attempt</span>
+                            <small class="text-muted">1 day ago</small>
+                        </div>
+                        <small class="text-muted">IP: 192.168.1.45</small>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-gear text-info me-2"></i> Security settings updated</span>
+                            <small class="text-muted">2 days ago</small>
+                        </div>
+                        <small class="text-muted">User: admin</small>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-shield-check text-success me-2"></i> Security scan completed</span>
+                            <small class="text-muted">3 days ago</small>
+                        </div>
+                        <small class="text-muted">No issues found</small>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <span><i class="bi bi-person-plus text-primary me-2"></i> New admin user added</span>
+                            <small class="text-muted">1 week ago</small>
+                        </div>
+                        <small class="text-muted">User: moderator</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Access Control</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">IP Whitelist</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>IP Address</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>192.168.1.1</td>
+                                        <td>Main server</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>10.0.0.15</td>
+                                        <td>Admin workstation</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <form class="mt-3">
+                            <div class="row g-2">
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" placeholder="IP Address">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control" placeholder="Description">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-plus"></i> Add
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Password Policy</h5>
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Minimum length</label>
+                                <input type="number" class="form-control" value="8">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Complexity requirements</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireUpper" checked>
+                                    <label class="form-check-label" for="requireUpper">Uppercase letters</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireLower" checked>
+                                    <label class="form-check-label" for="requireLower">Lowercase letters</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireNumbers" checked>
+                                    <label class="form-check-label" for="requireNumbers">Numbers</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireSpecial">
+                                    <label class="form-check-label" for="requireSpecial">Special characters</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Policy</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Scan Modal -->
+<div class="modal fade" id="securityScanModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: var(--bs-card-bg);">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-shield-check me-2"></i>Security Scan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Running a security scan will check your system for vulnerabilities and misconfigurations.</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i> This process may take several minutes.
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="fullScan">
+                    <label class="form-check-label" for="fullScan">Perform full deep scan</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Run Scan</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
