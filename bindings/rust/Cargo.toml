@@ -1,0 +1,14 @@
+[package]
+name    = "zsys-bindings"
+version = "1.0.0"
+edition = "2021"
+description = "Rust FFI bindings for the zsys C shared library"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69"
+
+[lib]
+name      = "zsys_bindings"
+crate-type = ["cdylib", "rlib"]
