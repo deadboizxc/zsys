@@ -146,6 +146,81 @@ char *zsys_build_help_text(const char *module_name,
                            const char **cmds, /* name, desc, name, desc, NULL */
                            const char *prefix);
 
+/* ── router ──────────────────────────────────────────────────────────────── */
+
+typedef struct ZsysRouter ZsysRouter;
+
+/* Create a new router (open-addressing hash table, trigger → handler_id). */
+ZsysRouter *zsys_router_new(void);
+void        zsys_router_free(ZsysRouter *r);
+
+/* Add or update a trigger→handler_id mapping. Returns 0 on success, -1 on error. */
+int         zsys_router_add(ZsysRouter *r, const char *trigger, int handler_id);
+
+/* Remove a trigger. Returns 0 on success, -1 if not found. */
+int         zsys_router_remove(ZsysRouter *r, const char *trigger);
+
+/* Returns handler_id, or -1 if trigger not found. Lookup is case-insensitive. */
+int         zsys_router_lookup(ZsysRouter *r, const char *trigger);
+
+size_t      zsys_router_count(ZsysRouter *r);
+void        zsys_router_clear(ZsysRouter *r);
+
+
+/* ── registry ────────────────────────────────────────────────────────────── */
+
+typedef struct ZsysRegistry ZsysRegistry;
+
+/* Create a new registry (dynamic array of name→handler_id entries). */
+ZsysRegistry *zsys_registry_new(void);
+void          zsys_registry_free(ZsysRegistry *reg);
+
+/* Register a handler. description and category may be NULL. Returns 0 / -1. */
+int           zsys_registry_register(ZsysRegistry *reg, const char *name,
+                                      int handler_id,
+                                      const char *description,
+                                      const char *category);
+
+/* Unregister by name. Returns 0 / -1. */
+int           zsys_registry_unregister(ZsysRegistry *reg, const char *name);
+
+/* Returns handler_id, or -1 if not found. */
+int           zsys_registry_get(ZsysRegistry *reg, const char *name);
+
+/* Fill out_desc / out_cat buffers (either may be NULL). Returns 0 / -1. */
+int           zsys_registry_info(ZsysRegistry *reg, const char *name,
+                                  char *out_desc, size_t desc_len,
+                                  char *out_cat,  size_t cat_len);
+
+size_t        zsys_registry_count(ZsysRegistry *reg);
+
+/* Returns pointer to internal name string at index i, or NULL. */
+const char   *zsys_registry_name_at(ZsysRegistry *reg, size_t i);
+
+
+/* ── i18n ────────────────────────────────────────────────────────────────── */
+
+typedef struct ZsysI18n ZsysI18n;
+
+/* Create a new i18n context (supports multiple languages). */
+ZsysI18n   *zsys_i18n_new(void);
+void        zsys_i18n_free(ZsysI18n *i);
+
+/* Load a flat JSON file {"key":"value",...} for lang_code. Returns 0 / -1. */
+int         zsys_i18n_load_json(ZsysI18n *i, const char *lang_code,
+                                 const char *json_path);
+
+/* Set the active language for zsys_i18n_get(). */
+void        zsys_i18n_set_lang(ZsysI18n *i, const char *lang_code);
+
+/* Lookup key in active language. Returns internal pointer (no alloc) or key. */
+const char *zsys_i18n_get(ZsysI18n *i, const char *key);
+
+/* Lookup key in a specific language. Returns internal pointer or key. */
+const char *zsys_i18n_get_lang(ZsysI18n *i, const char *lang_code,
+                                const char *key);
+
+
 #ifdef __cplusplus
 }
 #endif
