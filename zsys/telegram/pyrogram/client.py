@@ -48,6 +48,7 @@ from zsys.core.config import BaseConfig
 from zsys.core.interfaces.client import IClient
 from zsys.core.logging import get_logger
 from zsys.core.exceptions import ClientError
+from zsys.log import printer
 
 
 # =============================================================================
@@ -265,45 +266,70 @@ class PyrogramClient(Client):
         core_path   = Path(cfg.core_modules_dir)
         custom_path = Path(cfg.custom_modules_dir)
 
-        def _on_load(info):
-            if info.module is not None:
-                # Инжектируем client для модулей которые используют app/client напрямую
-                info.module.app    = self  # type: ignore[attr-defined]
-                info.module.client = self  # type: ignore[attr-defined]
-                # Регистрируем старый стиль @Client.on_message — хендлеры хранятся
-                # в func.handlers после декорирования на уровне класса (не инстанса)
-                for obj in vars(info.module).values():
-                    if callable(obj) and hasattr(obj, "handlers"):
-                        for handler, group in obj.handlers:
-                            self.add_handler(handler, group)
-            self._loaded_modules[info.name] = info.module
+        core_loaded:   List[str] = []
+        core_failed:   List[str] = []
+        custom_loaded: List[str] = []
+        custom_failed: List[str] = []
 
-        def _on_error(info, exc):
-            self._failed_modules.append(info.name)
-            self._logger.error(f"Модуль {info.name}: {exc}")
+        def _make_on_load(loaded_list: List[str]):
+            def _on_load(info):
+                if info.module is not None:
+                    info.module.app    = self  # type: ignore[attr-defined]
+                    info.module.client = self  # type: ignore[attr-defined]
+                    handlers_count = 0
+                    for obj in vars(info.module).values():
+                        if callable(obj) and hasattr(obj, "handlers") and isinstance(obj.handlers, (list, tuple)):
+                            for handler, group in obj.handlers:
+                                self.add_handler(handler, group)
+                                handlers_count += 1
+                    printer.info(f"Модуль {info.name} загружен ({handlers_count} handlers)")
+                self._loaded_modules[info.name] = info.module
+                loaded_list.append(info.name)
+            return _on_load
+
+        def _make_on_error(failed_list: List[str]):
+            def _on_error(info, exc):
+                self._failed_modules.append(info.name)
+                failed_list.append(info.name)
+                printer.error(f"Ошибка загрузки модуля {info.name}: {exc}")
+            return _on_error
 
         loaders = []
         if core_path.exists():
-            loaders.append(ModuleLoader(core_path, on_load=_on_load, on_error=_on_error))
+            loaders.append((
+                ModuleLoader(
+                    core_path,
+                    on_load=_make_on_load(core_loaded),
+                    on_error=_make_on_error(core_failed),
+                ),
+                "core",
+            ))
         if custom_path.exists():
-            loaders.append(ModuleLoader(custom_path, on_load=_on_load, on_error=_on_error))
+            loaders.append((
+                ModuleLoader(
+                    custom_path,
+                    on_load=_make_on_load(custom_loaded),
+                    on_error=_make_on_error(custom_failed),
+                ),
+                "custom",
+            ))
 
-        total = sum(len(l.discover()) for l in loaders)
-        self._logger.info(f"Загрузка модулей: {total} найдено...")
+        core_count   = len(loaders[0][0].discover()) if loaders and loaders[0][1] == "core" else 0
+        custom_count = len(loaders[-1][0].discover()) if len(loaders) > 1 else 0
+        printer.info(f"Загрузка {core_count} core и {custom_count} custom модулей...")
 
-        for loader in loaders:
+        for loader, _ in loaders:
             for name in loader.discover():
                 loader.load(name)
 
         # Подключаем @command() хендлеры (новый стиль) к pyrogram клиенту.
-        # Старый стиль (@Client.on_message) уже зарегистрирован при импорте модуля.
         router = get_default_router()
         attach_router(router, self, prefix=cfg.prefix)
 
-        self._logger.info(
-            f"Готово: {len(self._loaded_modules)} загружено, "
-            f"{len(self._failed_modules)} ошибок"
-        )
+        if core_loaded or custom_loaded:
+            printer.info("Loaded modules:\n" + self._format_modules(core_loaded, custom_loaded))
+        if core_failed or custom_failed:
+            printer.warning("Failed modules:\n" + self._format_modules(core_failed, custom_failed))
 
     @property
     def loaded_modules(self) -> Dict[str, Any]:
@@ -312,6 +338,22 @@ class PyrogramClient(Client):
     @property
     def failed_modules(self) -> List[str]:
         return self._failed_modules.copy()
+
+    @staticmethod
+    def _format_modules(core: List[str], custom: List[str]) -> str:
+        """Красивая таблица core | custom модулей (как в оригинале)."""
+        max_len: int = max((len(m) for m in core + custom), default=0)
+        lines: List[str] = [
+            f"{'Core'.ljust(max_len)} | Custom",
+            "-" * (max_len + 3) + "-" * 7,
+        ]
+        for c, cu in zip(core, custom):
+            lines.append(f"{c.ljust(max_len)} | {cu}")
+        if len(core) > len(custom):
+            lines.extend(f"{c.ljust(max_len)} |" for c in core[len(custom):])
+        else:
+            lines.extend(f"{' ' * max_len} | {cu}" for cu in custom[len(core):])
+        return "\n".join(lines)
 
     # -------------------------------------------------------------------------
     # Интеграции (API сервер, admin bot)
