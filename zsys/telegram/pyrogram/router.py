@@ -34,6 +34,7 @@ def attach_router(
         prefix: Command prefix(es)
         owner_only: If True, only handle messages from self
     """
+    # RU: Подключить zsys Router к Pyrogram-клиенту с динамическим поиском команд.
     from pyrogram import filters
     from pyrogram.handlers import MessageHandler
     from zsys.telegram.pyrogram.context import PyrogramContext
@@ -42,16 +43,45 @@ def attach_router(
     router._prefixes = prefixes
     router._attached_clients.append(client)
 
-    # Набор триггеров перестраивается при горячей перезагрузке
+    # The trigger set is rebuilt automatically on hot reload
+    # RU: Набор триггеров перестраивается при горячей перезагрузке
     def _get_trigger_set():
+        """Return the current set of registered trigger names.
+
+        Returns:
+            Set of trigger name strings from the router's trigger map.
+        """
+        # RU: Вернуть текущий набор зарегистрированных триггеров.
         return set(router._trigger_map.keys())
 
     if _C_AVAILABLE:
         def dynamic_command_filter(_, __, message):
+            """Filter messages that match a known command prefix and trigger (C-accelerated).
+
+            Args:
+                _: Unused filter argument.
+                __: Unused client argument.
+                message: Incoming Pyrogram message.
+
+            Returns:
+                True if the message matches a registered command.
+            """
+            # RU: Фильтр сообщений, соответствующих известному префиксу и триггеру (C-ускорение).
             text = message.text or message.caption or ""
             return _c_match_prefix(text, prefixes, _get_trigger_set())
     else:
         def dynamic_command_filter(_, __, message):
+            """Filter messages that match a known command prefix and trigger (Python fallback).
+
+            Args:
+                _: Unused filter argument.
+                __: Unused client argument.
+                message: Incoming Pyrogram message.
+
+            Returns:
+                True if the message matches a registered command.
+            """
+            # RU: Фильтр сообщений, соответствующих известному префиксу и триггеру (Python-резерв).
             text = message.text or message.caption or ""
             if not text:
                 return False
@@ -75,6 +105,13 @@ def attach_router(
         base_filter = base_filter & filters.me
 
     async def _pyrogram_handler(client, message):
+        """Handle an incoming Pyrogram message and dispatch it to the matching command.
+
+        Args:
+            client: Pyrogram Client instance.
+            message: Incoming Pyrogram Message object.
+        """
+        # RU: Обработать входящее сообщение Pyrogram и передать его нужной команде.
         text = message.text or message.caption or ""
         if not text:
             return

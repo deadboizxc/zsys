@@ -1,10 +1,23 @@
-/*
- * zsys_i18n.c — lightweight i18n: flat JSON loader + hash-table key→value store.
+/**
+ * @file zsys_i18n.c
+ * @brief Lightweight internationalization: flat JSON loader + hash-table key→value store.
  *
- * Supports multiple language codes. Only parses flat {"key":"value"} JSON
- * (no nesting, no arrays) for maximum speed.
- * No external dependencies (only libc).
+ * Architecture:
+ *   - ZsysI18n holds a singly-linked list of LangTable nodes, one per language code.
+ *   - Each LangTable is an open-addressing hash table mapping "module.key" → translated string.
+ *   - JSON parsing is intentionally minimal: only flat {"key":"value"} objects are supported
+ *     (no nesting, no arrays). Nested keys use dot-notation ("alive.title").
+ *   - No external dependencies — only libc (stdlib, string, stdio, ctype).
+ *
+ * Typical flow:
+ *   1. zsys_i18n_new()          — allocate instance
+ *   2. zsys_i18n_load_json()    — load language file
+ *   3. zsys_i18n_set_lang()     — activate a language
+ *   4. zsys_i18n_get()          — translate a key
+ *   5. zsys_i18n_free()         — release all memory
  */
+// RU: Лёгкая i18n: загрузка плоского JSON + хэш-таблица ключ→значение.
+// RU: Поддерживает несколько языков. Зависит только от libc.
 
 #define _POSIX_C_SOURCE 200809L /* for strdup */
 
@@ -14,42 +27,73 @@
 #include <ctype.h>
 #include "zsys_core.h"
 
+/** Initial hash table capacity for each language (must be a power of two). */
+// RU: Начальная ёмкость хэш-таблицы каждого языка (степень двойки).
 #define I18N_INIT_CAP 256
 
-/* Single key→value entry in an open-addressing hash table. */
+/**
+ * @brief Single slot in a per-language open-addressing hash table.
+ */
+// RU: Один слот хэш-таблицы языка: ключ, значение, флаг занятости.
 typedef struct I18nEntry {
-    char *key;
-    char *value;
-    int   used; /* 1 = occupied, 0 = empty */
+    char *key;   /**< Translation key (heap-allocated). */
+    char *value; /**< Translated string (heap-allocated). */
+    int   used;  /**< 1 = occupied, 0 = empty. */
 } I18nEntry;
 
-/* Per-language hash table. */
+/**
+ * @brief Per-language hash table node in a singly-linked list.
+ */
+// RU: Узел связного списка языков. Каждый узел — отдельная хэш-таблица.
 typedef struct LangTable {
-    char      lang_code[32];
-    I18nEntry *ht;
-    size_t     ht_cap;
-    size_t     count;
-    struct LangTable *next; /* singly-linked list of languages */
+    char      lang_code[32]; /**< ISO language code e.g. "ru", "en". */
+    I18nEntry *ht;           /**< Hash table slots array (heap-allocated). */
+    size_t     ht_cap;       /**< Capacity of ht. */
+    size_t     count;        /**< Number of occupied slots. */
+    struct LangTable *next;  /**< Next language in the linked list. */
 } LangTable;
 
+/**
+ * @brief Top-level i18n container — owns the language list and active lang state.
+ */
+// RU: Контейнер i18n: список языков + активный язык.
 struct ZsysI18n {
-    LangTable *langs;
-    char       active_lang[32];
+    LangTable *langs;          /**< Head of the language linked list. */
+    char       active_lang[32];/**< Currently active language code. */
 };
 
-/* FNV-1a 32-bit hash */
+/**
+ * @brief FNV-1a 32-bit hash, masked to [0, cap-1].
+ * @param s   NUL-terminated key string.
+ * @param cap Table capacity (power of two).
+ * @return    Slot index in range [0, cap-1].
+ */
+// RU: FNV-1a хэш, усечённый до [0, cap-1].
 static size_t i18n_hash(const char *s, size_t cap) {
     size_t h = 2166136261u;
     while (*s) { h ^= (unsigned char)*s++; h *= 16777619u; }
     return h & (cap - 1);
 }
 
+/**
+ * @brief Find a language table by ISO code.
+ * @param i    ZsysI18n instance.
+ * @param code Language code to find.
+ * @return Pointer to LangTable, or NULL if not loaded.
+ */
+// RU: Находит языковую таблицу по коду языка.
 static LangTable *lang_find(ZsysI18n *i, const char *code) {
     for (LangTable *l = i->langs; l; l = l->next)
         if (strcmp(l->lang_code, code) == 0) return l;
     return NULL;
 }
 
+/**
+ * @brief Allocate and initialize a new LangTable for the given language code.
+ * @param code ISO language code (max 31 chars).
+ * @return New LangTable, or NULL on allocation failure.
+ */
+// RU: Создаёт новую языковую таблицу с начальной ёмкостью I18N_INIT_CAP.
 static LangTable *lang_new(const char *code) {
     LangTable *l = (LangTable *)calloc(1, sizeof(LangTable));
     if (!l) return NULL;
@@ -60,6 +104,11 @@ static LangTable *lang_new(const char *code) {
     return l;
 }
 
+/**
+ * @brief Free a LangTable and all its heap-allocated key/value strings.
+ * @param l LangTable to free (must not be NULL).
+ */
+// RU: Освобождает языковую таблицу и все строки внутри неё.
 static void lang_free(LangTable *l) {
     for (size_t i = 0; i < l->ht_cap; i++) {
         if (l->ht[i].used) {
@@ -71,9 +120,20 @@ static void lang_free(LangTable *l) {
     free(l);
 }
 
-/* Insert or update key→value in a LangTable. */
+/**
+ * @brief Insert or update a key→value pair in a LangTable.
+ *
+ * The table is automatically doubled when the load factor exceeds 70%.
+ * Both key and value are strdup-ed; the caller retains ownership of its strings.
+ * @param l     Target language table.
+ * @param key   Translation key (NUL-terminated).
+ * @param value Translated string (NUL-terminated).
+ * @return 0 on success, -1 on allocation failure.
+ */
+// RU: Вставляет или обновляет пару ключ→значение. Таблица растёт при load > 70%.
 static int lang_set(LangTable *l, const char *key, const char *value) {
-    /* Grow when load > 70% */
+    /* Grow when load factor > 70%. */
+    // RU: Увеличиваем таблицу при превышении load factor 70%.
     if (l->count * 10 >= l->ht_cap * 7) {
         size_t     new_cap = l->ht_cap * 2;
         I18nEntry *nt      = (I18nEntry *)calloc(new_cap, sizeof(I18nEntry));
@@ -107,22 +167,31 @@ static int lang_set(LangTable *l, const char *key, const char *value) {
     return -1;
 }
 
-/* Returns pointer to internal value string, or NULL if not found. */
+/**
+ * @brief Look up a translation key in a LangTable.
+ * @param l   Language table to search.
+ * @param key Translation key.
+ * @return Pointer to the internal value string, or NULL if not found.
+ *         The pointer is valid for the lifetime of the LangTable.
+ */
+// RU: Ищет ключ в хэш-таблице языка. Возвращает указатель на значение или NULL.
 static const char *lang_get(LangTable *l, const char *key) {
     size_t pos = i18n_hash(key, l->ht_cap);
     for (size_t i = 0; i < l->ht_cap; i++) {
         size_t p = (pos + i) & (l->ht_cap - 1);
-        if (!l->ht[p].used) return NULL; /* empty slot → not present */
+        if (!l->ht[p].used) return NULL; /* empty slot — key not present */
+        // RU: Пустой слот означает, что ключа нет в таблице.
         if (strcmp(l->ht[p].key, key) == 0) return l->ht[p].value;
     }
     return NULL;
 }
 
-/* ── minimal flat JSON parser ─────────────────────────────────────────────
- * Handles only: {"key":"value", ...}
- * Supports basic escape sequences: \n \t \r \" \\ and any \X → X.
- * Skips non-string values (numbers, booleans, null).
+/* ═══════════════════════ Minimal flat JSON parser ═══════════════════════════
+ * Handles only top-level: {"key": "value", ...}
+ * Supports escape sequences: \n \t \r \" \\ and any other \X → X.
+ * Skips non-string values (numbers, booleans, null) silently.
  */
+// RU: Минимальный парсер плоского JSON. Только {"ключ":"значение"}.
 static int parse_flat_json(LangTable *lt, const char *json_path) {
     FILE *f = fopen(json_path, "rb");
     if (!f) return -1;
@@ -137,7 +206,8 @@ static int parse_flat_json(LangTable *lt, const char *json_path) {
     buf[sz] = '\0';
 
     const char *p = buf;
-    /* Skip to opening '{' */
+    /* Advance to the opening '{'. */
+    // RU: Пропускаем всё до открывающей '{'.
     while (*p && *p != '{') p++;
     if (!*p) { free(buf); return -1; }
     p++; /* skip '{' */
@@ -146,12 +216,14 @@ static int parse_flat_json(LangTable *lt, const char *json_path) {
     char val[8192];
 
     while (*p) {
-        /* skip whitespace and commas */
+        /* Skip whitespace and comma separators. */
+        // RU: Пропускаем пробелы и запятые.
         while (*p && (isspace((unsigned char)*p) || *p == ',')) p++;
         if (*p == '}' || !*p) break;
         if (*p != '"') { p++; continue; } /* unexpected token, skip */
 
-        /* read key string */
+        /* Read the key string character by character, handling backslash escapes. */
+        // RU: Читаем строку ключа, обрабатывая escape-последовательности.
         p++;
         int ki = 0;
         while (*p && *p != '"' && ki < (int)sizeof(key) - 1) {
@@ -165,13 +237,15 @@ static int parse_flat_json(LangTable *lt, const char *json_path) {
         key[ki] = '\0';
         if (*p == '"') p++;
 
-        /* skip to ':' */
+        /* Skip whitespace then colon separator. */
+        // RU: Пропускаем пробелы и двоеточие между ключом и значением.
         while (*p && isspace((unsigned char)*p)) p++;
         if (*p != ':') continue;
         p++;
         while (*p && isspace((unsigned char)*p)) p++;
 
-        /* only handle string values */
+        /* Skip non-string values (numbers, booleans, null). */
+        // RU: Пропускаем не-строковые значения (числа, boolean, null).
         if (*p != '"') {
             while (*p && *p != ',' && *p != '}') p++;
             continue;
@@ -202,12 +276,22 @@ static int parse_flat_json(LangTable *lt, const char *json_path) {
     return 0;
 }
 
-/* ── public API ───────────────────────────────────────────────────────────── */
+/* ═══════════════════════════ Public API ═════════════════════════════════════ */
 
+/**
+ * @brief Allocate a new, empty ZsysI18n instance.
+ * @return Pointer to ZsysI18n, or NULL on allocation failure.
+ */
+// RU: Создаёт пустой экземпляр i18n. NULL при ошибке выделения памяти.
 ZsysI18n *zsys_i18n_new(void) {
     return (ZsysI18n *)calloc(1, sizeof(ZsysI18n));
 }
 
+/**
+ * @brief Free a ZsysI18n instance and all owned language tables.
+ * @param i ZsysI18n instance (NULL-safe).
+ */
+// RU: Освобождает экземпляр i18n и все языковые таблицы.
 void zsys_i18n_free(ZsysI18n *i) {
     if (!i) return;
     LangTable *l = i->langs;
@@ -219,6 +303,17 @@ void zsys_i18n_free(ZsysI18n *i) {
     free(i);
 }
 
+/**
+ * @brief Load (or merge) a flat JSON file into the table for lang_code.
+ *
+ * If the language was already loaded, new keys are merged in; existing keys
+ * are overwritten with the new values.
+ * @param i         ZsysI18n instance.
+ * @param lang_code ISO language code (e.g. "ru", "en").
+ * @param json_path Path to the flat JSON translation file.
+ * @return 0 on success, -1 on NULL args, file not found, or parse error.
+ */
+// RU: Загружает плоский JSON-файл переводов в указанный язык (мерджит если уже загружен).
 int zsys_i18n_load_json(ZsysI18n *i, const char *lang_code,
                          const char *json_path) {
     if (!i || !lang_code || !json_path) return -1;
@@ -232,17 +327,40 @@ int zsys_i18n_load_json(ZsysI18n *i, const char *lang_code,
     return parse_flat_json(lt, json_path);
 }
 
+/**
+ * @brief Set the active language for lookups.
+ * @param i         ZsysI18n instance.
+ * @param lang_code Language code to activate (e.g. "ru").
+ */
+// RU: Устанавливает активный язык для последующих вызовов zsys_i18n_get().
 void zsys_i18n_set_lang(ZsysI18n *i, const char *lang_code) {
     if (!i || !lang_code) return;
     strncpy(i->active_lang, lang_code, sizeof(i->active_lang) - 1);
     i->active_lang[sizeof(i->active_lang) - 1] = '\0';
 }
 
-/* Returns translated string or falls back to key (no allocation). */
+/**
+ * @brief Translate a key using the active language.
+ *
+ * Falls back to returning the key itself when no translation is found,
+ * so the call is always safe and never returns NULL (unless key is NULL).
+ * @param i   ZsysI18n instance.
+ * @param key Translation key.
+ * @return Translated string, or key on miss; no allocation is performed.
+ */
+// RU: Переводит ключ активным языком. При отсутствии перевода возвращает сам ключ.
 const char *zsys_i18n_get(ZsysI18n *i, const char *key) {
     return zsys_i18n_get_lang(i, i->active_lang, key);
 }
 
+/**
+ * @brief Translate a key using an explicitly specified language.
+ * @param i         ZsysI18n instance.
+ * @param lang_code Language code to use for lookup.
+ * @param key       Translation key.
+ * @return Translated string, or key on miss; NULL if key is NULL.
+ */
+// RU: Переводит ключ указанным языком; при промахе возвращает исходный ключ.
 const char *zsys_i18n_get_lang(ZsysI18n *i, const char *lang_code,
                                 const char *key) {
     if (!i || !key) return key;

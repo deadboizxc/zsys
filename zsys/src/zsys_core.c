@@ -1,10 +1,16 @@
-/*
- * zsys_core.c  —  zsys pure C core (no Python.h)
+/**
+ * @file zsys_core.c
+ * @brief Pure-C core library for zsys — no Python.h dependency.
  *
- * Implements the API declared in zsys/include/zsys_core.h.
+ * Implements text formatting, HTML escaping/stripping, duration parsing,
+ * argument splitting, terminal box/progress rendering, prefix matching,
+ * meta comment extraction, and help-text generation.
+ *
  * Compiled into libzsys_core (via CMakeLists.txt).
- * Python binding in _zsys_core.c wraps these functions.
+ * Python bindings are provided by _zsys_core.c.
  */
+// RU: Чистая C-библиотека zsys без зависимости от Python.h.
+//     Текстовые утилиты, форматирование, парсинг длительности, терминальные утилиты.
 
 #include "../include/zsys_core.h"
 #include <stdlib.h>
@@ -13,7 +19,7 @@
 #include <ctype.h>
 #include <stdint.h>
 
-/* ════════════════════════════ internal helpers ═════════════════════════════ */
+/* ════════ Internal Helpers ════════ */
 
 typedef struct {
     char   *data;
@@ -21,6 +27,13 @@ typedef struct {
     size_t  cap;
 } Buf;
 
+/**
+ * @brief Initialise a dynamic byte buffer.
+ * @param b       Pointer to the Buf struct to initialise.
+ * @param initial Initial capacity in bytes.
+ * @return 1 on success, 0 on allocation failure.
+ */
+// RU: Инициализировать динамический буфер заданной ёмкости.
 static int
 buf_init(Buf *b, size_t initial)
 {
@@ -30,6 +43,14 @@ buf_init(Buf *b, size_t initial)
     return b->data != NULL;
 }
 
+/**
+ * @brief Append n bytes from s to the buffer, growing it as needed.
+ * @param b Pointer to the buffer.
+ * @param s Source data.
+ * @param n Number of bytes to append.
+ * @return 1 on success, 0 on allocation failure.
+ */
+// RU: Дописать n байт из s в буфер, расширяя при необходимости.
 static int
 buf_write(Buf *b, const char *s, size_t n)
 {
@@ -46,19 +67,51 @@ buf_write(Buf *b, const char *s, size_t n)
     return 1;
 }
 
+/**
+ * @brief Append a single character to the buffer.
+ * @param b Pointer to the buffer.
+ * @param c Character to append.
+ * @return 1 on success, 0 on allocation failure.
+ */
+// RU: Добавить один символ в буфер.
+/**
+ * @brief Append a NUL-terminated string to the buffer.
+ * @param b Pointer to the buffer.
+ * @param s NUL-terminated string to append.
+ * @return 1 on success, 0 on allocation failure.
+ */
+// RU: Добавить C-строку (с нулём) в буфер.
 static int buf_writec(Buf *b, char c)        { return buf_write(b, &c, 1); }
 static int buf_writes(Buf *b, const char *s) { return buf_write(b, s, strlen(s)); }
 
+/**
+ * @brief Detach and return the buffer's internal string, transferring ownership.
+ * @param b Pointer to the buffer (invalidated after this call).
+ * @return Heap-allocated NUL-terminated string; caller must free().
+ */
+// RU: Извлечь строку из буфера, передав владение вызывающей стороне.
 static char *
 buf_finish(Buf *b)
 {
     char *r = b->data;
     b->data = NULL;
     return r;   /* caller must free() */
+    // RU: вызывающая сторона обязана освободить память через free()
 }
 
+/**
+ * @brief Release memory held by a buffer without transferring ownership.
+ * @param b Pointer to the buffer to free.
+ */
+// RU: Освободить память буфера без передачи владения.
 static void buf_free(Buf *b) { free(b->data); b->data = NULL; }
 
+/**
+ * @brief Advance pointer past leading spaces and tabs.
+ * @param p Pointer into a C string.
+ * @return Pointer to the first non-whitespace character.
+ */
+// RU: Пропустить ведущие пробелы и символы табуляции.
 static const char *
 skip_ws(const char *p)
 {
@@ -66,12 +119,24 @@ skip_ws(const char *p)
     return p;
 }
 
-/* ════════════════════════════ memory ═══════════════════════════════════════ */
+/* ════════ Memory ════════ */
 
+/**
+ * @brief Free a heap pointer returned by any zsys_* function.
+ * @param ptr Pointer to free (may be NULL).
+ */
+// RU: Освободить указатель, возвращённый любой функцией zsys_*.
 void zsys_free(char *ptr) { free(ptr); }
 
-/* ════════════════════════════ text / HTML ══════════════════════════════════ */
+/* ════════ Text / HTML ════════ */
 
+/**
+ * @brief Escape special HTML characters in a byte string.
+ * @param text Input byte string (need not be NUL-terminated).
+ * @param len  Number of bytes in text.
+ * @return Heap-allocated escaped string, or NULL on allocation failure.
+ */
+// RU: Экранировать спецсимволы HTML (&, <, >, ").
 char *
 zsys_escape_html(const char *text, size_t len)
 {
@@ -89,6 +154,13 @@ zsys_escape_html(const char *text, size_t len)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Strip HTML tags and unescape basic HTML entities from a byte string.
+ * @param text Input byte string.
+ * @param len  Number of bytes in text.
+ * @return Heap-allocated plain-text string, or NULL on allocation failure.
+ */
+// RU: Удалить HTML-теги и раскодировать базовые HTML-сущности.
 char *
 zsys_strip_html(const char *text, size_t len)
 {
@@ -102,6 +174,7 @@ zsys_strip_html(const char *text, size_t len)
             in_tag = 0;
         } else if (!in_tag) {
             /* simple entity unescape */
+            // RU: Простое раскодирование HTML-сущностей.
             if (text[i] == '&') {
                 if (strncmp(text + i, "&amp;",  5) == 0) { buf_writec(&b, '&'); i += 4; }
                 else if (strncmp(text + i, "&lt;",   4) == 0) { buf_writec(&b, '<'); i += 3; }
@@ -116,10 +189,20 @@ zsys_strip_html(const char *text, size_t len)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Truncate text to at most max_chars UTF-8 codepoints, appending suffix if cut.
+ * @param text      Input byte string.
+ * @param len       Byte length of text.
+ * @param max_chars Maximum number of Unicode codepoints to keep.
+ * @param suffix    String appended when truncation occurs (may be NULL).
+ * @return Heap-allocated result string, or NULL on allocation failure.
+ */
+// RU: Усечь текст до max_chars кодовых точек UTF-8, добавив суффикс при необходимости.
 char *
 zsys_truncate_text(const char *text, size_t len, size_t max_chars, const char *suffix)
 {
     /* count UTF-8 codepoints */
+    // RU: Подсчёт кодовых точек UTF-8.
     size_t chars = 0;
     size_t i = 0;
     size_t cut = len;
@@ -148,11 +231,20 @@ zsys_truncate_text(const char *text, size_t len, size_t max_chars, const char *s
     return r;
 }
 
+/**
+ * @brief Split text into chunks of at most max_chars UTF-8 codepoints each.
+ * @param text      Input byte string.
+ * @param len       Byte length of text.
+ * @param max_chars Maximum codepoints per chunk (0 defaults to 4096).
+ * @return NULL-terminated array of heap-allocated chunk strings, or NULL on failure.
+ */
+// RU: Разбить текст на части по max_chars кодовых точек UTF-8.
 char **
 zsys_split_text(const char *text, size_t len, size_t max_chars)
 {
     if (max_chars == 0) max_chars = 4096;
     /* worst case: len/1 + 1 chunks */
+    // RU: В худшем случае: len/1 + 1 фрагментов.
     size_t cap = len / max_chars + 2;
     char **chunks = calloc(cap + 1, sizeof(char *));
     if (!chunks) return NULL;
@@ -186,6 +278,11 @@ zsys_split_text(const char *text, size_t len, size_t max_chars)
     return chunks;
 }
 
+/**
+ * @brief Free a NULL-terminated array of strings produced by zsys_split_text or zsys_get_args.
+ * @param chunks NULL-terminated array to free (may be NULL).
+ */
+// RU: Освободить NULL-terminated массив строк от zsys_split_text / zsys_get_args.
 void
 zsys_split_free(char **chunks)
 {
@@ -194,10 +291,19 @@ zsys_split_free(char **chunks)
     free(chunks);
 }
 
+/**
+ * @brief Extract positional arguments from a command string, skipping the first word.
+ * @param text      Full command string (e.g. "/cmd arg1 arg2").
+ * @param len       Byte length of text.
+ * @param max_split Maximum number of splits (-1 for unlimited).
+ * @return NULL-terminated array of heap-allocated argument strings, or NULL on failure.
+ */
+// RU: Извлечь позиционные аргументы из строки команды, пропустив первое слово.
 char **
 zsys_get_args(const char *text, size_t len, int max_split)
 {
     /* skip first word */
+    // RU: Пропустить первое слово (имя команды).
     size_t i = 0;
     while (i < len && text[i] != ' ') i++;
     while (i < len && text[i] == ' ') i++;
@@ -214,6 +320,7 @@ zsys_get_args(const char *text, size_t len, int max_split)
         if (j >= rlen) break;
         if (max_split >= 0 && (int)n >= max_split) {
             /* rest as single arg */
+            // RU: Оставшийся текст — один аргумент целиком.
             size_t alen = rlen - j;
             char *a = malloc(alen + 1);
             if (!a) { zsys_split_free(args); return NULL; }
@@ -237,6 +344,12 @@ zsys_get_args(const char *text, size_t len, int max_split)
     return args;
 }
 
+/**
+ * @brief Format a byte count as a human-readable string (B, KB, MB, …).
+ * @param size Signed byte count.
+ * @return Heap-allocated formatted string, or NULL on allocation failure.
+ */
+// RU: Форматировать размер в байтах в читаемый вид (Б, КБ, МБ, …).
 char *
 zsys_format_bytes(int64_t size)
 {
@@ -255,6 +368,12 @@ zsys_format_bytes(int64_t size)
     return r;
 }
 
+/**
+ * @brief Format a duration in seconds as "Xh Xm Xs".
+ * @param seconds Duration in seconds (floating-point).
+ * @return Heap-allocated formatted string, or NULL on allocation failure.
+ */
+// RU: Форматировать длительность в секундах в вид «Xч Xмин Xсек».
 char *
 zsys_format_duration(double seconds)
 {
@@ -270,6 +389,13 @@ zsys_format_duration(double seconds)
     return r;
 }
 
+/**
+ * @brief Format a duration in seconds as a human-readable Russian string.
+ * @param seconds   Duration in whole seconds.
+ * @param short_fmt Non-zero for abbreviated form, 0 for full word form.
+ * @return Heap-allocated formatted string, or NULL on allocation failure.
+ */
+// RU: Форматировать длительность в секундах в читаемый русский текст.
 char *
 zsys_human_time(long seconds, int short_fmt)
 {
@@ -291,6 +417,12 @@ zsys_human_time(long seconds, int short_fmt)
     return r;
 }
 
+/**
+ * @brief Parse a human duration string such as "1d2h3m4s" into total seconds.
+ * @param text NUL-terminated duration string.
+ * @return Total seconds, or -1 on parse error.
+ */
+// RU: Разобрать строку вида «1d2h3m4s» в общее количество секунд.
 long
 zsys_parse_duration(const char *text)
 {
@@ -311,12 +443,23 @@ zsys_parse_duration(const char *text)
         }
         p++;
     }
-    total += cur; /* bare number = seconds */
+    total += cur; /* bare number treated as seconds */
+    // RU: Число без суффикса считается секундами.
     return total;
 }
 
-/* ════════════════════════════ HTML formatters ══════════════════════════════ */
+/* ════════ HTML Formatters ════════ */
 
+/**
+ * @brief Wrap text between an opening and a closing HTML tag.
+ * @param tag_open  Opening tag string (e.g. "<b>").
+ * @param tag_close Closing tag string (e.g. "</b>").
+ * @param text      Content to wrap.
+ * @param len       Byte length of text.
+ * @param escape    Non-zero to HTML-escape text before wrapping.
+ * @return Heap-allocated wrapped string, or NULL on allocation failure.
+ */
+// RU: Обернуть текст в открывающий и закрывающий HTML-теги.
 static char *
 wrap_tag(const char *tag_open, const char *tag_close,
          const char *text, size_t len, int escape)
@@ -336,21 +479,82 @@ wrap_tag(const char *tag_open, const char *tag_close,
     return buf_finish(&b);
 }
 
+/**
+ * @brief Wrap text in HTML bold tags (<b>…</b>).
+ * @param text   Content text.
+ * @param len    Byte length of text.
+ * @param escape Non-zero to HTML-escape the content.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <b>…</b>.
 char *zsys_format_bold(const char *text, size_t len, int escape)
     { return wrap_tag("<b>", "</b>", text, len, escape); }
+/**
+ * @brief Wrap text in HTML italic tags (<i>…</i>).
+ * @param text   Content text.
+ * @param len    Byte length of text.
+ * @param escape Non-zero to HTML-escape the content.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <i>…</i>.
 char *zsys_format_italic(const char *text, size_t len, int escape)
     { return wrap_tag("<i>", "</i>", text, len, escape); }
+/**
+ * @brief Wrap text in HTML inline-code tags (<code>…</code>).
+ * @param text   Content text.
+ * @param len    Byte length of text.
+ * @param escape Non-zero to HTML-escape the content.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <code>…</code>.
 char *zsys_format_code(const char *text, size_t len, int escape)
     { return wrap_tag("<code>", "</code>", text, len, escape); }
+/**
+ * @brief Wrap text in HTML underline tags (<u>…</u>).
+ * @param text Content text.
+ * @param len  Byte length of text.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <u>…</u>.
 char *zsys_format_underline(const char *text, size_t len)
     { return wrap_tag("<u>", "</u>", text, len, 0); }
+/**
+ * @brief Wrap text in HTML strikethrough tags (<s>…</s>).
+ * @param text Content text.
+ * @param len  Byte length of text.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <s>…</s> (зачёркнутый).
 char *zsys_format_strikethrough(const char *text, size_t len)
     { return wrap_tag("<s>", "</s>", text, len, 0); }
+/**
+ * @brief Wrap text in spoiler tags (<spoiler>…</spoiler>).
+ * @param text Content text.
+ * @param len  Byte length of text.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <spoiler>…</spoiler>.
 char *zsys_format_spoiler(const char *text, size_t len)
     { return wrap_tag("<spoiler>", "</spoiler>", text, len, 0); }
+/**
+ * @brief Wrap text in HTML blockquote tags (<blockquote>…</blockquote>).
+ * @param text Content text.
+ * @param len  Byte length of text.
+ * @return Heap-allocated string, or NULL on failure.
+ */
+// RU: Обернуть текст в <blockquote>…</blockquote>.
 char *zsys_format_quote(const char *text, size_t len)
     { return wrap_tag("<blockquote>", "</blockquote>", text, len, 0); }
 
+/**
+ * @brief Wrap text in a <pre> block, optionally with a language class.
+ * @param text   Content text.
+ * @param len    Byte length of text.
+ * @param lang   Language identifier for syntax highlighting (may be NULL or "").
+ * @param escape Non-zero to HTML-escape the content.
+ * @return Heap-allocated HTML string, or NULL on allocation failure.
+ */
+// RU: Обернуть текст в <pre> (с указанием языка для подсветки синтаксиса).
 char *
 zsys_format_pre(const char *text, size_t len, const char *lang, int escape)
 {
@@ -376,6 +580,16 @@ zsys_format_pre(const char *text, size_t len, const char *lang, int escape)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Build an HTML hyperlink <a href="url">text</a>.
+ * @param text   Link label text.
+ * @param tlen   Byte length of text.
+ * @param url    Target URL.
+ * @param ulen   Byte length of url.
+ * @param escape Non-zero to HTML-escape the label text.
+ * @return Heap-allocated HTML anchor string, or NULL on allocation failure.
+ */
+// RU: Создать HTML-ссылку <a href="url">text</a>.
 char *
 zsys_format_link(const char *text, size_t tlen,
                  const char *url,  size_t ulen, int escape)
@@ -397,6 +611,15 @@ zsys_format_link(const char *text, size_t tlen,
     return buf_finish(&b);
 }
 
+/**
+ * @brief Build an inline Telegram mention link for a user ID.
+ * @param text    Display name of the user.
+ * @param len     Byte length of text.
+ * @param user_id Telegram user ID.
+ * @param escape  Non-zero to HTML-escape the display name.
+ * @return Heap-allocated HTML anchor string, or NULL on allocation failure.
+ */
+// RU: Создать inline-упоминание пользователя Telegram по user_id.
 char *
 zsys_format_mention(const char *text, size_t len, int64_t user_id, int escape)
 {
@@ -405,8 +628,24 @@ zsys_format_mention(const char *text, size_t len, int64_t user_id, int escape)
     return zsys_format_link(text, len, url, strlen(url), escape);
 }
 
-/* ════════════════════════════ error formatting ═════════════════════════════ */
+/* ════════ Error Formatting ════════ */
 
+/**
+ * @brief Format an exception (and optional cause) as an HTML string.
+ * @param error_type  Exception class name.
+ * @param et_len      Byte length of error_type.
+ * @param error_text  Exception message.
+ * @param etx_len     Byte length of error_text.
+ * @param cause_type  Cause exception class name (may be NULL).
+ * @param ct_len      Byte length of cause_type.
+ * @param cause_text  Cause exception message (may be NULL).
+ * @param ctx_len     Byte length of cause_text.
+ * @param suffix      Additional text appended after the error (may be NULL).
+ * @param sf_len      Byte length of suffix.
+ * @param max_length  If non-zero, truncate result to this many bytes.
+ * @return Heap-allocated HTML string, or NULL on allocation failure.
+ */
+// RU: Форматировать исключение (и его причину) в HTML-строку для вывода.
 char *
 zsys_format_exc_html(
     const char *error_type, size_t et_len,
@@ -451,8 +690,15 @@ zsys_format_exc_html(
     return result;
 }
 
-/* ════════════════════════════ logging / terminal ═══════════════════════════ */
+/* ════════ Logging / Terminal ════════ */
 
+/**
+ * @brief Wrap text with ANSI escape codes for terminal colour.
+ * @param text The string to colour.
+ * @param code ANSI colour/attribute code (e.g. "31" for red).
+ * @return Heap-allocated ANSI-coloured string, or NULL on allocation failure.
+ */
+// RU: Обернуть текст ANSI-последовательностями для цветного вывода в терминале.
 char *
 zsys_ansi_color(const char *text, const char *code)
 {
@@ -468,6 +714,14 @@ zsys_ansi_color(const char *text, const char *code)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Produce a single-line JSON log entry with level, message, and timestamp.
+ * @param level   Log level string (e.g. "INFO").
+ * @param message Log message (special JSON characters are escaped).
+ * @param ts      ISO-8601 timestamp string.
+ * @return Heap-allocated JSON string, or NULL on allocation failure.
+ */
+// RU: Сформировать однострочную JSON-запись лога с уровнем, сообщением и временем.
 char *
 zsys_format_json_log(const char *level, const char *message, const char *ts)
 {
@@ -476,7 +730,8 @@ zsys_format_json_log(const char *level, const char *message, const char *ts)
     buf_writes(&b, "{\"level\":\"");
     buf_writes(&b, level   ? level   : "");
     buf_writes(&b, "\",\"message\":\"");
-    /* escape message */
+    /* escape message for JSON */
+    // RU: Экранировать специальные символы сообщения для JSON.
     const char *p = message ? message : "";
     while (*p) {
         if      (*p == '"')  buf_writes(&b, "\\\"");
@@ -492,6 +747,13 @@ zsys_format_json_log(const char *level, const char *message, const char *ts)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Render a Unicode box around a single-line text string.
+ * @param text    Text to enclose.
+ * @param padding Number of space characters inserted on each side of the text.
+ * @return Heap-allocated multi-line box string, or NULL on allocation failure.
+ */
+// RU: Нарисовать Unicode-рамку вокруг однострочного текста.
 char *
 zsys_print_box_str(const char *text, int padding)
 {
@@ -499,7 +761,8 @@ zsys_print_box_str(const char *text, int padding)
     size_t width = tlen + padding * 2 + 2;
     Buf b;
     if (!buf_init(&b, width * 4 + 32)) return NULL;
-    /* top */
+    /* top border */
+    // RU: Верхняя граница рамки.
     buf_writes(&b, "╔");
     for (size_t i = 0; i < width; i++) buf_writes(&b, "═");
     buf_writes(&b, "╗\n║");
@@ -512,6 +775,13 @@ zsys_print_box_str(const char *text, int padding)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Build a separator string by repeating a character (or multi-byte sequence) n times.
+ * @param ch     Repeated character or UTF-8 sequence.
+ * @param length Number of repetitions.
+ * @return Heap-allocated separator string, or NULL on allocation failure.
+ */
+// RU: Создать разделитель повторением символа (или UTF-8 последовательности) n раз.
 char *
 zsys_print_separator_str(const char *ch, int length)
 {
@@ -523,6 +793,15 @@ zsys_print_separator_str(const char *ch, int length)
     return r;
 }
 
+/**
+ * @brief Render a text progress bar as a string.
+ * @param current    Current progress value.
+ * @param total      Total (100%) value.
+ * @param prefix     Optional label printed before the bar (may be NULL or "").
+ * @param bar_length Number of characters in the bar body.
+ * @return Heap-allocated progress string "[###---] N/M (X%)", or NULL on failure.
+ */
+// RU: Отрисовать текстовый прогресс-бар «[###---] N/M (X%)».
 char *
 zsys_print_progress_str(int current, int total,
                         const char *prefix, int bar_length)
@@ -547,8 +826,18 @@ zsys_print_progress_str(int current, int total,
     return buf_finish(&b);
 }
 
-/* ════════════════════════════ routing ══════════════════════════════════════ */
+/* ════════ Routing ════════ */
 
+/**
+ * @brief Test whether text starts with any of the given prefixes followed by any trigger word.
+ * @param text        Input message text.
+ * @param prefixes    Array of prefix strings (e.g. {"/", "!"}).
+ * @param n_prefixes  Length of the prefixes array.
+ * @param triggers    Array of trigger/command words to match after the prefix.
+ * @param n_triggers  Length of the triggers array.
+ * @return 1 if a match is found, 0 otherwise.
+ */
+// RU: Проверить, начинается ли текст с любого из префиксов, за которым следует слово-триггер.
 int
 zsys_match_prefix(const char *text,
                   const char **prefixes, int n_prefixes,
@@ -562,6 +851,7 @@ zsys_match_prefix(const char *text,
         if (tlen <= plen) continue;
         if (strncmp(text, pfx, plen) != 0) continue;
         /* match trigger after prefix (case-insensitive) */
+        // RU: Сопоставить слово-триггер после префикса без учёта регистра.
         const char *rest = text + plen;
         for (int ti = 0; ti < n_triggers; ti++) {
             const char *trg = triggers[ti];
@@ -582,8 +872,22 @@ zsys_match_prefix(const char *text,
     return 0;
 }
 
-/* ════════════════════════════ meta comment parser ══════════════════════════ */
+/* ════════ Meta Comment Parser ════════ */
 
+/**
+ * @brief Extract key–value metadata from Python-style comment lines in source text.
+ *
+ * Recognises lines of the form:
+ *   # @key: value
+ *   # key: value
+ *   ## @key: value
+ *
+ * @param source Source text to scan.
+ * @param len    Byte length of source.
+ * @return NULL-terminated flat array [key0, val0, key1, val1, …, NULL],
+ *         or NULL on allocation failure.
+ */
+// RU: Извлечь пары ключ–значение из строк комментариев в исходном тексте.
 char **
 zsys_parse_meta_comments(const char *source, size_t len)
 {
@@ -597,19 +901,23 @@ zsys_parse_meta_comments(const char *source, size_t len)
 
     while (p < end) {
         /* find start of line */
+        // RU: Найти начало строки.
         const char *line = p;
         while (p < end && *p != '\n') p++;
         size_t llen = (size_t)(p - line);
-        if (p < end) p++; /* skip \n */
+        if (p < end) p++; /* skip newline character */
+        // RU: Пропустить символ новой строки.
 
         const char *lp = skip_ws(line);
         /* check for: # @key: value  OR  # key: value  OR  ## @key: value */
+        // RU: Допустимые форматы: # @ключ: значение, # ключ: значение, ## @ключ: значение.
         if (*lp != '#') continue;
         lp++;
         if (*lp == '#') lp++;
         lp = skip_ws(lp);
         if (*lp == '@') lp++;
         /* read key */
+        // RU: Читать ключ до символа ':' или пробела.
         const char *kstart = lp;
         while (*lp && *lp != ':' && *lp != ' ' && lp < line + llen) lp++;
         if (*lp != ':') continue;
@@ -618,6 +926,7 @@ zsys_parse_meta_comments(const char *source, size_t len)
         lp++; /* skip : */
         lp = skip_ws(lp);
         /* read value until end of line */
+        // RU: Читать значение до конца строки (без завершающих пробелов).
         const char *vstart = lp;
         const char *vend   = line + llen;
         while (vend > vstart && (*(vend-1) == ' ' || *(vend-1) == '\r' || *(vend-1) == '\t'))
@@ -643,6 +952,11 @@ zsys_parse_meta_comments(const char *source, size_t len)
     return pairs;
 }
 
+/**
+ * @brief Free a flat key–value array returned by zsys_parse_meta_comments.
+ * @param pairs NULL-terminated array to free (may be NULL).
+ */
+// RU: Освободить массив пар ключ–значение от zsys_parse_meta_comments.
 void
 zsys_meta_free(char **pairs)
 {
@@ -651,8 +965,16 @@ zsys_meta_free(char **pairs)
     free(pairs);
 }
 
-/* ════════════════════════════ help text builder ════════════════════════════ */
+/* ════════ Help Text Builder ════════ */
 
+/**
+ * @brief Build an HTML help text listing commands with their descriptions.
+ * @param module_name Module or plugin name displayed as a bold header.
+ * @param cmds        NULL-terminated flat array of [cmd, description, cmd, description, …].
+ * @param prefix      Command prefix prepended before each command (may be NULL or "").
+ * @return Heap-allocated HTML string, or NULL on allocation failure.
+ */
+// RU: Собрать HTML-текст справки: заголовок модуля и список команд с описаниями.
 char *
 zsys_build_help_text(const char *module_name,
                      const char **cmds,

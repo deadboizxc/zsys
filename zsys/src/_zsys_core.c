@@ -1,20 +1,22 @@
-/*
- * _zsys_core.c  —  fast C hot paths for zsys
+/**
+ * @file _zsys_core.c
+ * @brief Python C extension providing fast hot-path implementations for zsys.
  *
- * Built via setup_core.py; zsys._core provides Python fallbacks.
+ * Built via setup_core.py (PEP 517). Python fallbacks live in zsys._core.
  *
- * Functions:
- *   escape_html, strip_html, strip_markdown
- *   truncate_text, split_text, get_args
- *   format_bytes, format_duration
+ * Exported Python functions:
+ *   escape_html, strip_html, strip_markdown,
+ *   truncate_text, split_text, get_args,
+ *   format_bytes, format_duration, human_time,
  *   format_bold, format_italic, format_code, format_mono,
- *   format_pre, format_link, format_mention
- *   build_help_text, build_modules_list
- *   ansi_color, format_json_log
- *   parse_meta_comments
- *   match_prefix, nested_get
- *   format_exc_html, router_lookup
+ *   format_pre, format_link, format_mention,
+ *   build_help_text, build_modules_list,
+ *   ansi_color, format_json_log,
+ *   parse_meta_comments, match_prefix, nested_get,
+ *   format_exc_html, router_lookup,
+ *   get_proc_mem_mb, get_proc_cpu_pct, find_py_modules
  */
+// RU: Python C-расширение с быстрыми реализациями горячих путей для zsys.
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
@@ -26,6 +28,12 @@
 
 /* ═══════════════════════════ internal helpers ══════════════════════════════ */
 
+/**
+ * @brief Skip leading spaces and tabs in a C string.
+ * @param p Pointer into the string.
+ * @return Pointer to the first non-whitespace character.
+ */
+// RU: Пропустить пробелы и табуляции в начале строки.
 static const char *
 skip_ws(const char *p)
 {
@@ -35,9 +43,17 @@ skip_ws(const char *p)
 
 /*
  * Growing byte buffer — avoids realloc churn when building strings.
+ * // RU: Растущий байтовый буфер — минимизирует количество вызовов realloc при построении строк.
  */
 typedef struct { char *data; Py_ssize_t len, cap; } Buf;
 
+/**
+ * @brief Initialise a Buf with the given initial capacity.
+ * @param b   Buffer to initialise.
+ * @param initial  Initial allocation size in bytes.
+ * @return 1 on success, 0 on allocation failure.
+ */
+// RU: Инициализировать буфер с заданной начальной ёмкостью.
 static int
 buf_init(Buf *b, Py_ssize_t initial)
 {
@@ -47,6 +63,14 @@ buf_init(Buf *b, Py_ssize_t initial)
     return b->data != NULL;
 }
 
+/**
+ * @brief Append n bytes from s to the buffer, growing it if necessary.
+ * @param b Buffer to write into.
+ * @param s Source bytes.
+ * @param n Number of bytes to append.
+ * @return 1 on success, 0 on allocation failure.
+ */
+// RU: Добавить n байт из s в буфер, при необходимости расширив его.
 static int
 buf_write(Buf *b, const char *s, Py_ssize_t n)
 {
@@ -62,9 +86,19 @@ buf_write(Buf *b, const char *s, Py_ssize_t n)
     return 1;
 }
 
+/** @brief Append a single character to the buffer. @return 1 on success, 0 on failure. */
+// RU: Добавить один символ в буфер.
 static int  buf_writec(Buf *b, char c)         { return buf_write(b, &c, 1); }
+/** @brief Append a NUL-terminated string to the buffer. @return 1 on success, 0 on failure. */
+// RU: Добавить строку с нулевым терминатором в буфер.
 static int  buf_writes(Buf *b, const char *s)  { return buf_write(b, s, (Py_ssize_t)strlen(s)); }
 
+/**
+ * @brief Convert the buffer into a Python unicode object and free it.
+ * @param b Buffer to finalise (data is freed).
+ * @return New Python str, or NULL on error.
+ */
+// RU: Преобразовать буфер в объект Python str и освободить память.
 static PyObject *
 buf_finish(Buf *b)
 {
@@ -74,9 +108,18 @@ buf_finish(Buf *b)
     return r;
 }
 
+/** @brief Release buffer memory without producing a Python object. */
+// RU: Освободить память буфера без создания Python-объекта.
 static void __attribute__((unused)) buf_free(Buf *b)    { if (b->data) { PyMem_Free(b->data); b->data = NULL; } }
 
-/* Escape text into buf (used by all format_* wrappers). */
+/**
+ * @brief Escape text into buf, replacing HTML special characters with entities.
+ * @param b    Destination buffer.
+ * @param text Input bytes.
+ * @param len  Input length.
+ * @return Always 1 (used by all format_* wrappers).
+ */
+// RU: Экранировать текст в буфер, заменяя спецсимволы HTML сущностями.
 static int
 buf_escape_html(Buf *b, const char *text, Py_ssize_t len)
 {
@@ -93,7 +136,14 @@ buf_escape_html(Buf *b, const char *text, Py_ssize_t len)
     return 1;
 }
 
-/* Wrap text in <tag>…</tag>, optionally HTML-escaping it first. */
+/**
+ * @brief Wrap a Python str in an HTML tag, optionally HTML-escaping it first.
+ * @param tag       Tag name (e.g. "b", "i", "code").
+ * @param text_obj  Python str to wrap.
+ * @param do_escape If non-zero, HTML-escape the content before inserting.
+ * @return New Python str with <tag>…</tag>, or NULL on error.
+ */
+// RU: Обернуть Python-строку в HTML-тег, при необходимости экранируя содержимое.
 static PyObject *
 wrap_tag(const char *tag, PyObject *text_obj, int do_escape)
 {
@@ -121,6 +171,13 @@ wrap_tag(const char *tag, PyObject *text_obj, int do_escape)
 
 /* ════════════════════════════ escape_html ══════════════════════════════════ */
 
+/**
+ * @brief Python binding: escape_html(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return HTML-escaped string, or NULL on error.
+ */
+// RU: Привязка Python: экранировать HTML-спецсимволы в строке.
 static PyObject *
 zsys_escape_html(PyObject *self, PyObject *args)
 {
@@ -136,6 +193,13 @@ zsys_escape_html(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ strip_html ═══════════════════════════════════ */
 
+/**
+ * @brief Python binding: strip_html(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return Plain text with all HTML tags removed and entities unescaped.
+ */
+// RU: Привязка Python: удалить HTML-теги и раскрыть HTML-сущности.
 static PyObject *
 zsys_strip_html(PyObject *self, PyObject *args)
 {
@@ -152,7 +216,7 @@ zsys_strip_html(PyObject *self, PyObject *args)
         else if (c == '>')  { in_tag = 0; continue; }
         else if (in_tag)    continue;
 
-        /* simple entity unescape */
+        /* simple entity unescape */ // RU: Простое раскрытие HTML-сущностей.
         if (c == '&') {
             #define TRY(ent, repl, skip) \
                 if (strncmp(text + i, ent, skip) == 0) { buf_writes(&b, repl); i += skip - 1; continue; }
@@ -171,11 +235,18 @@ zsys_strip_html(PyObject *self, PyObject *args)
 
 
 /* ═══════════════════════════ strip_markdown ════════════════════════════════ */
-/*
+/**
+ * @brief Python binding: strip_markdown(text) -> str
+ *
  * Single-pass state machine. Handles:
  *   **bold**, __bold__, *italic*, _italic_,
  *   `code`, ```block```, [text](url)
+ *
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return Plain text with all Markdown syntax stripped.
  */
+// RU: Привязка Python: удалить разметку Markdown из строки за один проход.
 
 static PyObject *
 zsys_strip_markdown(PyObject *self, PyObject *args)
@@ -190,7 +261,7 @@ zsys_strip_markdown(PyObject *self, PyObject *args)
     while (i < len) {
         char c = text[i];
 
-        /* ``` block → drop content */
+        /* ``` block → drop content */ // RU: Блок ``` — пропустить содержимое.
         if (c == '`' && i + 2 < len && text[i+1] == '`' && text[i+2] == '`') {
             i += 3;
             while (i < len) {
@@ -201,7 +272,7 @@ zsys_strip_markdown(PyObject *self, PyObject *args)
             continue;
         }
 
-        /* `inline code` → keep content */
+        /* `inline code` → keep content */ // RU: Встроенный код — сохранить содержимое.
         if (c == '`') {
             i++;
             while (i < len && text[i] != '`') buf_writec(&b, text[i++]);
@@ -209,7 +280,7 @@ zsys_strip_markdown(PyObject *self, PyObject *args)
             continue;
         }
 
-        /* **bold** or __bold__ */
+        /* **bold** or __bold__ */ // RU: Жирный текст ** или __.
         if ((c == '*' || c == '_') && i + 1 < len && text[i+1] == c) {
             char d = c; i += 2;
             while (i < len) {
@@ -219,7 +290,7 @@ zsys_strip_markdown(PyObject *self, PyObject *args)
             continue;
         }
 
-        /* *italic* or _italic_ */
+        /* *italic* or _italic_ */ // RU: Курсив * или _.
         if (c == '*' || c == '_') {
             char d = c; i++;
             while (i < len && text[i] != d) buf_writec(&b, text[i++]);
@@ -227,7 +298,7 @@ zsys_strip_markdown(PyObject *self, PyObject *args)
             continue;
         }
 
-        /* [text](url) → text */
+        /* [text](url) → text */ // RU: Ссылка [текст](url) — оставить только текст.
         if (c == '[') {
             i++;
             while (i < len && text[i] != ']') buf_writec(&b, text[i++]);
@@ -249,6 +320,13 @@ zsys_strip_markdown(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ truncate_text ════════════════════════════════ */
 
+/**
+ * @brief Python binding: truncate_text(text, max_length=4096, suffix='...') -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, max_length: int, suffix: str).
+ * @return Original string if short enough, else head + suffix.
+ */
+// RU: Привязка Python: обрезать строку до max_length символов, добавив суффикс.
 static PyObject *
 zsys_truncate_text(PyObject *self, PyObject *args)
 {
@@ -280,6 +358,13 @@ zsys_truncate_text(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ split_text ═══════════════════════════════════ */
 
+/**
+ * @brief Python binding: split_text(text, max_length=4096) -> list[str]
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, max_length: int).
+ * @return List of chunks each at most max_length characters long.
+ */
+// RU: Привязка Python: разбить строку на части по max_length символов.
 static PyObject *
 zsys_split_text(PyObject *self, PyObject *args)
 {
@@ -313,7 +398,7 @@ zsys_split_text(PyObject *self, PyObject *args)
         Py_ssize_t clen = PyUnicode_GetLength(current);
 
         if (clen + llen + 1 <= max_length) {
-            /* current += line + '\n' */
+            /* current += line + '\n' */ // RU: current += строка + '\n'
             PyObject *nl_s  = PyUnicode_FromString("\n");
             PyObject *tmp1  = PyUnicode_Concat(current, line);
             Py_DECREF(current);
@@ -328,7 +413,7 @@ zsys_split_text(PyObject *self, PyObject *args)
             current = PyUnicode_FromString("");
 
             if (llen > max_length) {
-                /* hard-split oversized line */
+                /* hard-split oversized line */ // RU: Жёсткое разбиение слишком длинной строки.
                 for (Py_ssize_t pos = 0; pos < llen; pos += max_length) {
                     Py_ssize_t end   = pos + max_length < llen ? pos + max_length : llen;
                     PyObject  *chunk = PyUnicode_Substring(line, pos, end);
@@ -353,6 +438,13 @@ zsys_split_text(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ get_args ═════════════════════════════════════ */
 
+/**
+ * @brief Python binding: get_args(text, max_split=-1) -> list[str]
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, max_split: int).
+ * @return Whitespace-split tokens after the first word (i.e. command arguments).
+ */
+// RU: Привязка Python: вернуть аргументы команды (все слова после первого).
 static PyObject *
 zsys_get_args(PyObject *self, PyObject *args)
 {
@@ -375,6 +467,13 @@ zsys_get_args(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ format_bytes ═════════════════════════════════ */
 
+/**
+ * @brief Python binding: format_bytes(size) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (size: int).
+ * @return Human-readable size string such as "1.5 MB".
+ */
+// RU: Привязка Python: отформатировать размер в байтах в читаемый вид.
 static PyObject *
 zsys_format_bytes(PyObject *self, PyObject *args)
 {
@@ -394,6 +493,13 @@ zsys_format_bytes(PyObject *self, PyObject *args)
 
 /* ═══════════════════════════ format_duration ═══════════════════════════════ */
 
+/**
+ * @brief Python binding: format_duration(seconds) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (seconds: float).
+ * @return Duration string like "1h 2m 3s", "5m 10s", or "42s".
+ */
+// RU: Привязка Python: отформатировать длительность в секундах в строку вида "1h 2m 3s".
 static PyObject *
 zsys_format_duration(PyObject *self, PyObject *args)
 {
@@ -415,6 +521,13 @@ zsys_format_duration(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ HTML formatters ══════════════════════════════ */
 
+/**
+ * @brief Python binding: format_bold(text, escape=True) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, escape: bool).
+ * @return text wrapped in <b>…</b>.
+ */
+// RU: Привязка Python: обернуть текст в <b>…</b>.
 static PyObject *
 zsys_format_bold(PyObject *self, PyObject *args)
 {
@@ -423,6 +536,13 @@ zsys_format_bold(PyObject *self, PyObject *args)
     return wrap_tag("b", text, escape);
 }
 
+/**
+ * @brief Python binding: format_italic(text, escape=True) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, escape: bool).
+ * @return text wrapped in <i>…</i>.
+ */
+// RU: Привязка Python: обернуть текст в <i>…</i>.
 static PyObject *
 zsys_format_italic(PyObject *self, PyObject *args)
 {
@@ -431,6 +551,13 @@ zsys_format_italic(PyObject *self, PyObject *args)
     return wrap_tag("i", text, escape);
 }
 
+/**
+ * @brief Python binding: format_code(text, escape=False) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, escape: bool).
+ * @return text wrapped in <code>…</code>.
+ */
+// RU: Привязка Python: обернуть текст в <code>…</code>.
 static PyObject *
 zsys_format_code(PyObject *self, PyObject *args)
 {
@@ -439,6 +566,13 @@ zsys_format_code(PyObject *self, PyObject *args)
     return wrap_tag("code", text, escape);
 }
 
+/**
+ * @brief Python binding: format_mono(text, escape=True) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, escape: bool).
+ * @return text wrapped in <code>…</code> (monospace alias).
+ */
+// RU: Привязка Python: обернуть текст в <code>…</code> (псевдоним моноширинного шрифта).
 static PyObject *
 zsys_format_mono(PyObject *self, PyObject *args)
 {
@@ -447,6 +581,13 @@ zsys_format_mono(PyObject *self, PyObject *args)
     return wrap_tag("code", text, escape);
 }
 
+/**
+ * @brief Python binding: format_pre(text, language=None, escape=False) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, language: str|None, escape: bool).
+ * @return text wrapped in <pre> or <pre><code class="language-…">.
+ */
+// RU: Привязка Python: обернуть текст в <pre> или блок с подсветкой синтаксиса.
 static PyObject *
 zsys_format_pre(PyObject *self, PyObject *args)
 {
@@ -479,6 +620,13 @@ zsys_format_pre(PyObject *self, PyObject *args)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Python binding: format_link(text, url, escape=True) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, url: str, escape: bool).
+ * @return HTML anchor <a href="url">text</a>.
+ */
+// RU: Привязка Python: создать HTML-ссылку <a href="url">текст</a>.
 static PyObject *
 zsys_format_link(PyObject *self, PyObject *args)
 {
@@ -502,6 +650,13 @@ zsys_format_link(PyObject *self, PyObject *args)
     return buf_finish(&b);
 }
 
+/**
+ * @brief Python binding: format_mention(text, user_id, escape=True) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, user_id: int, escape: bool).
+ * @return Telegram mention link <a href="tg://user?id=…">text</a>.
+ */
+// RU: Привязка Python: создать Telegram-упоминание пользователя.
 static PyObject *
 zsys_format_mention(PyObject *self, PyObject *args)
 {
@@ -530,13 +685,19 @@ zsys_format_mention(PyObject *self, PyObject *args)
 
 
 /* ═══════════════════════════ build_help_text ═══════════════════════════════ */
-/*
- * build_help_text(module_name, commands: dict[str,str], prefix) -> str
+/**
+ * @brief Python binding: build_help_text(module_name, commands, prefix) -> str
  *
+ * Produces an HTML help listing in the form:
  *   <b>Help for |name|</b>
  *   <b>Usage:</b>
  *   <code>.cmd</code> <code>args</code> — <i>desc</i>
+ *
+ * @param self Unused module object.
+ * @param args Positional args: (module_name: str, commands: dict[str,str], prefix: str).
+ * @return Formatted HTML help string.
  */
+// RU: Привязка Python: сформировать HTML-текст справки по командам модуля.
 
 static PyObject *
 zsys_build_help_text(PyObject *self, PyObject *args)
@@ -590,12 +751,18 @@ zsys_build_help_text(PyObject *self, PyObject *args)
 
 
 /* ══════════════════════════ build_modules_list ═════════════════════════════ */
-/*
- * build_modules_list(modules: dict[str, dict]) -> str
+/**
+ * @brief Python binding: build_modules_list(modules) -> str
  *
+ * Produces an HTML list of loaded modules:
  *   <b>Загруженные модули:</b>
  *   • <code>name</code> (N команд)
+ *
+ * @param self Unused module object.
+ * @param args Positional args: (modules: dict[str, dict]).
+ * @return Formatted HTML module list string.
  */
+// RU: Привязка Python: сформировать HTML-список загруженных модулей.
 
 static PyObject *
 zsys_build_modules_list(PyObject *self, PyObject *args)
@@ -641,7 +808,13 @@ zsys_build_modules_list(PyObject *self, PyObject *args)
 
 
 /* ════════════════════════════ ansi_color ═══════════════════════════════════ */
-/* ansi_color(text, code) → "\033[{code}m{text}\033[0m" */
+/**
+ * @brief Python binding: ansi_color(text, code) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, code: str).
+ * @return String wrapped in ANSI escape sequence: "\033[{code}m{text}\033[0m".
+ */
+// RU: Привязка Python: обернуть текст в ANSI-последовательность цвета.
 
 static PyObject *
 zsys_ansi_color(PyObject *self, PyObject *args)
@@ -662,7 +835,13 @@ zsys_ansi_color(PyObject *self, PyObject *args)
 
 
 /* ═══════════════════════════ format_json_log ═══════════════════════════════ */
-/* format_json_log(level, message, ts) → {"level":…,"message":…,"ts":…} */
+/**
+ * @brief Python binding: format_json_log(level, message, ts) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (level: str, message: str, ts: str).
+ * @return JSON log entry: {"level":…,"message":…,"ts":…}.
+ */
+// RU: Привязка Python: сформировать JSON-строку лога.
 
 static PyObject *
 zsys_format_json_log(PyObject *self, PyObject *args)
@@ -702,12 +881,17 @@ zsys_format_json_log(PyObject *self, PyObject *args)
 
 
 /* ═══════════════════════════ parse_meta_comments ═══════════════════════════ */
-/*
- * Three formats, single pass:
- *   # meta: key=value
- *   # meta key: value   (legacy)
- *   # @key value        (loader)
+/**
+ * @brief Helper: insert a key/value pair into the meta dict, normalising the key to lowercase.
+ * @param dict      Target Python dict.
+ * @param key       Key bytes (not NUL-terminated).
+ * @param klen      Key length.
+ * @param val       Value bytes (not NUL-terminated).
+ * @param vlen      Value length.
+ * @param overwrite If non-zero, overwrite an existing key.
+ * @return 1 on success, 0 on allocation failure.
  */
+// RU: Вспомогательная функция: добавить пару ключ/значение в словарь мета-данных.
 
 static int
 add_meta(PyObject *dict, const char *key, Py_ssize_t klen,
@@ -721,7 +905,7 @@ add_meta(PyObject *dict, const char *key, Py_ssize_t klen,
         kbuf[i] = (char)tolower((unsigned char)key[i]);
     kbuf[klen] = '\0';
 
-    /* trim trailing spaces from value */
+    /* trim trailing spaces from value */ // RU: Удалить пробелы в конце значения.
     while (vlen > 0 && (val[vlen-1] == ' ' || val[vlen-1] == '\t')) vlen--;
 
     PyObject *k = PyUnicode_FromStringAndSize(kbuf, klen);
@@ -736,6 +920,19 @@ add_meta(PyObject *dict, const char *key, Py_ssize_t klen,
     return ok;
 }
 
+/**
+ * @brief Python binding: parse_meta_comments(code) -> dict
+ *
+ * Parses three comment formats in a single pass:
+ *   # meta: key=value
+ *   # meta key: value   (legacy)
+ *   # @key value        (loader)
+ *
+ * @param self Unused module object.
+ * @param args Positional args: (code: str).
+ * @return Dict of parsed metadata key/value pairs.
+ */
+// RU: Привязка Python: разобрать мета-комментарии из исходного кода.
 static PyObject *
 zsys_parse_meta_comments(PyObject *self, PyObject *args)
 {
@@ -753,7 +950,7 @@ zsys_parse_meta_comments(PyObject *self, PyObject *args)
         if (p >= end || *p != '#') goto next_line;
         p++; p = skip_ws(p);
 
-        /* # meta: key=value */
+        /* # meta: key=value */ // RU: Формат «# meta: ключ=значение».
         if (strncasecmp(p, "meta:", 5) == 0) {
             p += 5; p = skip_ws(p);
             const char *key = p;
@@ -768,7 +965,7 @@ zsys_parse_meta_comments(PyObject *self, PyObject *args)
             goto next_line;
         }
 
-        /* # meta key: value  (legacy) */
+        /* # meta key: value  (legacy) */ // RU: Устаревший формат «# meta ключ: значение».
         if (strncasecmp(p, "meta", 4) == 0 && (p[4] == ' ' || p[4] == '\t')) {
             p += 4; p = skip_ws(p);
             const char *key = p;
@@ -784,7 +981,7 @@ zsys_parse_meta_comments(PyObject *self, PyObject *args)
             goto next_line;
         }
 
-        /* # @key value  (loader) */
+        /* # @key value  (loader) */ // RU: Формат загрузчика «# @ключ значение».
         if (*p == '@') {
             p++;
             const char *key = p;
@@ -808,6 +1005,13 @@ zsys_parse_meta_comments(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ match_prefix ═════════════════════════════════ */
 
+/**
+ * @brief Python binding: match_prefix(text, prefixes, trigger_set) -> bool
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, prefixes: list[str], trigger_set: set[str]).
+ * @return True if text starts with a prefix and the following word is in trigger_set.
+ */
+// RU: Привязка Python: проверить, начинается ли текст с префикса, за которым следует команда из набора.
 static PyObject *
 zsys_match_prefix(PyObject *self, PyObject *args)
 {
@@ -864,6 +1068,13 @@ zsys_match_prefix(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ nested_get ═══════════════════════════════════ */
 
+/**
+ * @brief Python binding: nested_get(d, key) -> str | None
+ * @param self Unused module object.
+ * @param args Positional args: (d: dict, key: str).
+ * @return String value reached by dot-separated key path, or None if missing/non-string.
+ */
+// RU: Привязка Python: получить значение из вложенного словаря по пути с разделителем «.».
 static PyObject *
 zsys_nested_get(PyObject *self, PyObject *args)
 {
@@ -907,6 +1118,13 @@ zsys_nested_get(PyObject *self, PyObject *args)
 
 /* ═══════════════════════════ format_underline ══════════════════════════════ */
 
+/**
+ * @brief Python binding: format_underline(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return text wrapped in <u>…</u>.
+ */
+// RU: Привязка Python: обернуть текст в <u>…</u>.
 static PyObject *
 zsys_format_underline(PyObject *self, PyObject *args)
 {
@@ -917,6 +1135,13 @@ zsys_format_underline(PyObject *self, PyObject *args)
 
 /* ═════════════════════════ format_strikethrough ════════════════════════════ */
 
+/**
+ * @brief Python binding: format_strikethrough(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return text wrapped in <s>…</s>.
+ */
+// RU: Привязка Python: обернуть текст в <s>…</s> (зачёркивание).
 static PyObject *
 zsys_format_strikethrough(PyObject *self, PyObject *args)
 {
@@ -927,6 +1152,13 @@ zsys_format_strikethrough(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ format_spoiler ═══════════════════════════════ */
 
+/**
+ * @brief Python binding: format_spoiler(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return text wrapped in <tg-spoiler>…</tg-spoiler>.
+ */
+// RU: Привязка Python: обернуть текст в тег спойлера Telegram.
 static PyObject *
 zsys_format_spoiler(PyObject *self, PyObject *args)
 {
@@ -937,6 +1169,13 @@ zsys_format_spoiler(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ format_quote ═════════════════════════════════ */
 
+/**
+ * @brief Python binding: format_quote(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return text wrapped in <blockquote>…</blockquote>.
+ */
+// RU: Привязка Python: обернуть текст в <blockquote>…</blockquote>.
 static PyObject *
 zsys_format_quote(PyObject *self, PyObject *args)
 {
@@ -947,6 +1186,13 @@ zsys_format_quote(PyObject *self, PyObject *args)
 
 /* ══════════════════════════ format_preformatted ════════════════════════════ */
 
+/**
+ * @brief Python binding: format_preformatted(text) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return text wrapped in <pre>…</pre>.
+ */
+// RU: Привязка Python: обернуть текст в <pre>…</pre>.
 static PyObject *
 zsys_format_preformatted(PyObject *self, PyObject *args)
 {
@@ -957,7 +1203,13 @@ zsys_format_preformatted(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ human_time ═══════════════════════════════════ */
 
-/* Russian plural form: 0=singular(1), 1=few(2-4), 2=many(5+) */
+/**
+ * @brief Select Russian plural form index for a given count.
+ * @param n Non-negative integer.
+ * @return 0 for singular (1), 1 for few (2–4), 2 for many (5+).
+ */
+// RU: Выбрать индекс формы русского множественного числа для заданного числа.
+/* Russian plural form: 0=singular(1), 1=few(2-4), 2=many(5+) */ // RU: Индексы форм: 0=единственное(1), 1=несколько(2-4), 2=много(5+).
 static int
 ru_plural(int n)
 {
@@ -967,6 +1219,13 @@ ru_plural(int n)
     return 2;
 }
 
+/**
+ * @brief Python binding: human_time(seconds, short=True) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (seconds: int, short: bool).
+ * @return Human-readable duration string in Russian (short or long form).
+ */
+// RU: Привязка Python: представить количество секунд как читаемую строку на русском языке.
 static PyObject *
 zsys_human_time(PyObject *self, PyObject *args)
 {
@@ -1010,7 +1269,7 @@ zsys_human_time(PyObject *self, PyObject *args)
             buf_writes(&b, "сек.");
             has_any = 1;
         }
-        /* trim trailing space */
+        /* trim trailing space */ // RU: Удалить пробел в конце строки.
         while (b.len > 0 && b.data[b.len - 1] == ' ') b.len--;
     } else {
         static const char *day_forms[3]  = { "день",    "дня",     "дней"    };
@@ -1051,6 +1310,13 @@ zsys_human_time(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ parse_duration ═══════════════════════════════ */
 
+/**
+ * @brief Python binding: parse_duration(text) -> int | None
+ * @param self Unused module object.
+ * @param args Positional args: (text: str).
+ * @return Total seconds parsed from duration string (e.g. "1h30m"), or None on failure.
+ */
+// RU: Привязка Python: разобрать строку длительности и вернуть общее число секунд.
 static PyObject *
 zsys_parse_duration(PyObject *self, PyObject *args)
 {
@@ -1085,6 +1351,13 @@ zsys_parse_duration(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ print_box_str ════════════════════════════════ */
 
+/**
+ * @brief Python binding: print_box_str(text, padding=2) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (text: str, padding: int).
+ * @return Text surrounded by a Unicode box-drawing border.
+ */
+// RU: Привязка Python: обернуть текст в рамку из символов псевдографики.
 static PyObject *
 zsys_print_box_str(PyObject *self, PyObject *args)
 {
@@ -1100,7 +1373,7 @@ zsys_print_box_str(PyObject *self, PyObject *args)
 
     Py_ssize_t n_lines = PyList_GET_SIZE(lines);
 
-    /* Find max line length in code points */
+    /* Find max line length in code points */ // RU: Найти максимальную длину строки в кодовых точках.
     Py_ssize_t max_len = 0;
     for (Py_ssize_t i = 0; i < n_lines; i++) {
         Py_ssize_t l = PyUnicode_GetLength(PyList_GET_ITEM(lines, i));
@@ -1115,12 +1388,12 @@ zsys_print_box_str(PyObject *self, PyObject *args)
         return PyErr_NoMemory();
     }
 
-    /* Top border: ╔═══╗ */
+    /* Top border: ╔═══╗ */ // RU: Верхняя граница рамки: ╔═══╗.
     buf_writes(&b, "╔");
     for (Py_ssize_t i = 0; i < inner_width; i++) buf_writes(&b, "═");
     buf_writes(&b, "╗\n");
 
-    /* Content rows */
+    /* Content rows */ // RU: Строки с содержимым.
     for (Py_ssize_t i = 0; i < n_lines; i++) {
         PyObject *line = PyList_GET_ITEM(lines, i);
         Py_ssize_t line_len = PyUnicode_GetLength(line);
@@ -1135,7 +1408,7 @@ zsys_print_box_str(PyObject *self, PyObject *args)
         buf_writes(&b, "║\n");
     }
 
-    /* Bottom border: ╚═══╝ */
+    /* Bottom border: ╚═══╝ */ // RU: Нижняя граница рамки: ╚═══╝.
     buf_writes(&b, "╚");
     for (Py_ssize_t i = 0; i < inner_width; i++) buf_writes(&b, "═");
     buf_writes(&b, "╝");
@@ -1146,6 +1419,13 @@ zsys_print_box_str(PyObject *self, PyObject *args)
 
 /* ═══════════════════════════ print_separator_str ═══════════════════════════ */
 
+/**
+ * @brief Python binding: print_separator_str(char='═', length=60) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (char: str|None, length: int).
+ * @return A separator string of `length` repetitions of `char`.
+ */
+// RU: Привязка Python: создать строку-разделитель из повторяющегося символа.
 static PyObject *
 zsys_print_separator_str(PyObject *self, PyObject *args)
 {
@@ -1168,6 +1448,13 @@ zsys_print_separator_str(PyObject *self, PyObject *args)
 
 /* ════════════════════════════ print_table_str ══════════════════════════════ */
 
+/**
+ * @brief Python binding: print_table_str(headers, rows) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (headers: list[str], rows: list[list]).
+ * @return Unicode box-drawing table with auto-sized columns.
+ */
+// RU: Привязка Python: построить таблицу из псевдографики с автоматической шириной столбцов.
 static PyObject *
 zsys_print_table_str(PyObject *self, PyObject *args)
 {
@@ -1185,13 +1472,13 @@ zsys_print_table_str(PyObject *self, PyObject *args)
     Py_ssize_t *col_widths = (Py_ssize_t *)PyMem_Malloc(n_cols * sizeof(Py_ssize_t));
     if (!col_widths) return PyErr_NoMemory();
 
-    /* Init from header widths */
+    /* Init from header widths */ // RU: Инициализировать ширины по заголовкам.
     for (Py_ssize_t c = 0; c < n_cols; c++) {
         PyObject *h = PyList_GET_ITEM(headers_obj, c);
         col_widths[c] = PyUnicode_Check(h) ? PyUnicode_GetLength(h) : 0;
     }
 
-    /* Expand from cell widths */
+    /* Expand from cell widths */ // RU: Расширить ширины по содержимому ячеек.
     for (Py_ssize_t r = 0; r < n_rows; r++) {
         PyObject *row = PyList_GET_ITEM(rows_obj, r);
         if (!PyList_Check(row)) continue;
@@ -1205,7 +1492,7 @@ zsys_print_table_str(PyObject *self, PyObject *args)
         }
     }
 
-    /* Estimate buffer: each box char is 3 bytes in UTF-8 */
+    /* Estimate buffer: each box char is 3 bytes in UTF-8 */ // RU: Оценить размер буфера: каждый символ псевдографики занимает 3 байта в UTF-8.
     Py_ssize_t row_width = 1;
     for (Py_ssize_t c = 0; c < n_cols; c++) row_width += col_widths[c] * 4 + 12;
     Buf b;
@@ -1214,7 +1501,7 @@ zsys_print_table_str(PyObject *self, PyObject *args)
         return PyErr_NoMemory();
     }
 
-    /* Top: ┌───┬───┐ */
+    /* Top: ┌───┬───┐ */ // RU: Верхняя строка таблицы: ┌───┬───┐.
     buf_writes(&b, "┌");
     for (Py_ssize_t c = 0; c < n_cols; c++) {
         for (Py_ssize_t i = 0; i < col_widths[c] + 2; i++) buf_writes(&b, "─");
@@ -1222,7 +1509,7 @@ zsys_print_table_str(PyObject *self, PyObject *args)
     }
     buf_writec(&b, '\n');
 
-    /* Header: │ h1 │ h2 │ */
+    /* Header: │ h1 │ h2 │ */ // RU: Строка заголовков: │ h1 │ h2 │.
     buf_writes(&b, "│");
     for (Py_ssize_t c = 0; c < n_cols; c++) {
         PyObject *h = PyList_GET_ITEM(headers_obj, c);
@@ -1236,7 +1523,7 @@ zsys_print_table_str(PyObject *self, PyObject *args)
     }
     buf_writec(&b, '\n');
 
-    /* Separator: ├───┼───┤ */
+    /* Separator: ├───┼───┤ */ // RU: Строка-разделитель: ├───┼───┤.
     buf_writes(&b, "├");
     for (Py_ssize_t c = 0; c < n_cols; c++) {
         for (Py_ssize_t i = 0; i < col_widths[c] + 2; i++) buf_writes(&b, "─");
@@ -1244,7 +1531,7 @@ zsys_print_table_str(PyObject *self, PyObject *args)
     }
     buf_writec(&b, '\n');
 
-    /* Data rows */
+    /* Data rows */ // RU: Строки с данными.
     for (Py_ssize_t r = 0; r < n_rows; r++) {
         PyObject *row = PyList_GET_ITEM(rows_obj, r);
         buf_writes(&b, "│");
@@ -1264,7 +1551,7 @@ zsys_print_table_str(PyObject *self, PyObject *args)
         buf_writec(&b, '\n');
     }
 
-    /* Bottom: └───┴───┘ */
+    /* Bottom: └───┴───┘ */ // RU: Нижняя строка таблицы: └───┴───┘.
     buf_writes(&b, "└");
     for (Py_ssize_t c = 0; c < n_cols; c++) {
         for (Py_ssize_t i = 0; i < col_widths[c] + 2; i++) buf_writes(&b, "─");
@@ -1277,6 +1564,13 @@ zsys_print_table_str(PyObject *self, PyObject *args)
 
 /* ═══════════════════════════ print_progress_str ════════════════════════════ */
 
+/**
+ * @brief Python binding: print_progress_str(current, total, prefix='Progress', length=40) -> str
+ * @param self Unused module object.
+ * @param args Positional args: (current: int, total: int, prefix: str, length: int).
+ * @return ASCII progress bar string like "Progress: |████░░░| 50.0% (5/10)".
+ */
+// RU: Привязка Python: построить текстовую полосу прогресса.
 static PyObject *
 zsys_print_progress_str(PyObject *self, PyObject *args)
 {
@@ -1307,15 +1601,19 @@ zsys_print_progress_str(PyObject *self, PyObject *args)
 }
 
 
-/* ════════════════ format_exc_html ══════════════════════════════════════════
- *
- * format_exc_html(error_type, error_text,
- *                 cause_type="", cause_text="",
- *                 suffix="", max_length=4000) -> str
+/* ════════════════ format_exc_html ══════════════════════════════════════════ */
+/**
+ * @brief Python binding: format_exc_html(error_type, error_text, ...) -> str
  *
  * Builds HTML error message from already-extracted exception fields.
  * HTML escaping is done internally — caller passes raw strings.
- * ════════════════════════════════════════════════════════════════════════════ */
+ *
+ * @param self Unused module object.
+ * @param args Positional args: (error_type, error_text,
+ *             cause_type="", cause_text="", suffix="", max_length=4000).
+ * @return HTML-formatted error string, truncated to max_length if needed.
+ */
+// RU: Привязка Python: сформировать HTML-сообщение об ошибке из полей исключения.
 
 static PyObject *
 zsys_format_exc_html(PyObject *self, PyObject *args)
@@ -1359,7 +1657,7 @@ zsys_format_exc_html(PyObject *self, PyObject *args)
         buf_writes(&b, "</b>");
     }
 
-    /* truncate if needed */
+    /* truncate if needed */ // RU: Обрезать, если превышен лимит длины.
     if (max_length > 0 && b.len > max_length) {
         b.data[max_length - 3] = '.';
         b.data[max_length - 2] = '.';
@@ -1371,13 +1669,18 @@ zsys_format_exc_html(PyObject *self, PyObject *args)
 }
 
 
-/* ════════════════ router_lookup ═════════════════════════════════════════════
- *
- * router_lookup(trigger_map: dict, trigger: str) -> Any | None
+/* ════════════════ router_lookup ════════════════════════════════════════════ */
+/**
+ * @brief Python binding: router_lookup(trigger_map, trigger) -> Any | None
  *
  * Lowercases trigger in C (tolower, ASCII), then does PyDict_GetItem.
  * Equivalent to: trigger_map.get(trigger.lower())
- * ════════════════════════════════════════════════════════════════════════════ */
+ *
+ * @param self Unused module object.
+ * @param args Positional args: (trigger_map: dict, trigger: str).
+ * @return Mapped value if found, otherwise None.
+ */
+// RU: Привязка Python: найти значение в словаре по строчному варианту триггера.
 
 static PyObject *
 zsys_router_lookup(PyObject *self, PyObject *args)
@@ -1391,7 +1694,7 @@ zsys_router_lookup(PyObject *self, PyObject *args)
             &trigger_utf8, &trigger_len))
         return NULL;
 
-    /* lowercase into stack buffer (most triggers < 64 chars) */
+    /* lowercase into stack buffer (most triggers < 64 chars) */ // RU: Перевести в нижний регистр в стековый буфер (большинство триггеров < 64 символов).
     char stack_buf[64];
     char *lower = stack_buf;
     char *heap  = NULL;
@@ -1427,7 +1730,12 @@ zsys_router_lookup(PyObject *self, PyObject *args)
 
 #if defined(__linux__)
 
-/* get_proc_mem_mb() -> float  — RSS memory of current process in MB */
+/**
+ * @brief Python binding: get_proc_mem_mb() -> float
+ * @return RSS memory of the current process in megabytes (reads /proc/self/status).
+ */
+// RU: Привязка Python: вернуть RSS-память текущего процесса в мегабайтах.
+/* get_proc_mem_mb() -> float  — RSS memory of current process in MB */ // RU: RSS-память текущего процесса в МБ.
 static PyObject *
 zsys_get_proc_mem_mb(PyObject *self, PyObject *args)
 {
@@ -1448,26 +1756,31 @@ zsys_get_proc_mem_mb(PyObject *self, PyObject *args)
     return PyFloat_FromDouble(mb);
 }
 
-/* get_proc_cpu_pct() -> float  — CPU % of current process */
+/**
+ * @brief Python binding: get_proc_cpu_pct() -> float
+ * @return CPU usage percentage of the current process (reads /proc/self/stat and /proc/uptime).
+ */
+// RU: Привязка Python: вернуть процент загрузки CPU текущим процессом.
+/* get_proc_cpu_pct() -> float  — CPU % of current process */ // RU: Процент загрузки CPU текущим процессом.
 static PyObject *
 zsys_get_proc_cpu_pct(PyObject *self, PyObject *args)
 {
     (void)self; (void)args;
-    /* read utime+stime from /proc/self/stat */
+    /* read utime+stime from /proc/self/stat */ // RU: Считать utime и stime из /proc/self/stat.
     FILE *f = fopen("/proc/self/stat", "r");
     if (!f) return PyFloat_FromDouble(0.0);
     unsigned long utime = 0, stime = 0;
     long clk_tck = sysconf(_SC_CLK_TCK);
     if (clk_tck <= 0) clk_tck = 100;
-    /* field 14=utime 15=stime in /proc/self/stat */
+    /* field 14=utime 15=stime in /proc/self/stat */ // RU: Поля 14=utime и 15=stime в /proc/self/stat.
     int r = fscanf(f,
         "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %lu %lu",
         &utime, &stime);
     fclose(f);
     if (r < 2) return PyFloat_FromDouble(0.0);
-    /* cpu time in seconds */
+    /* cpu time in seconds */ // RU: Время CPU в секундах.
     double cpu_sec = (double)(utime + stime) / clk_tck;
-    /* uptime */
+    /* uptime */ // RU: Время работы системы.
     double uptime = 0.0;
     f = fopen("/proc/uptime", "r");
     if (f) { fscanf(f, "%lf", &uptime); fclose(f); }
@@ -1475,7 +1788,7 @@ zsys_get_proc_cpu_pct(PyObject *self, PyObject *args)
     return PyFloat_FromDouble(pct);
 }
 
-#else  /* non-Linux fallback */
+#else  /* non-Linux fallback */ // RU: Заглушки для систем, отличных от Linux.
 static PyObject *zsys_get_proc_mem_mb(PyObject *s, PyObject *a) {
     (void)s;(void)a; return PyFloat_FromDouble(0.0);
 }
@@ -1488,8 +1801,15 @@ static PyObject *zsys_get_proc_cpu_pct(PyObject *s, PyObject *a) {
 
 #include <dirent.h>
 
+/**
+ * @brief Python binding: find_py_modules(path) -> list[str]
+ * @param self Unused module object.
+ * @param args Positional args: (path: str).
+ * @return Sorted list of Python module names (*.py files without leading _) found in path.
+ */
+// RU: Привязка Python: вернуть отсортированный список имён Python-модулей из директории.
 /* find_py_modules(path: str) -> list[str]
-   Returns sorted list of Python module names (*.py, no leading _) from dir. */
+   Returns sorted list of Python module names (*.py, no leading _) from dir. */ // RU: Возвращает список имён модулей (*.py без ведущего _).
 static PyObject *
 zsys_find_py_modules(PyObject *self, PyObject *args)
 {
@@ -1506,11 +1826,11 @@ zsys_find_py_modules(PyObject *self, PyObject *args)
     struct dirent *ent;
     while ((ent = readdir(d)) != NULL) {
         const char *name = ent->d_name;
-        if (name[0] == '_') continue;           /* skip __init__ etc */
+        if (name[0] == '_') continue;           /* skip __init__ etc */ // RU: Пропустить файлы типа __init__.
         size_t nlen = strlen(name);
         if (nlen < 4) continue;
         if (strcmp(name + nlen - 3, ".py") != 0) continue;
-        /* strip .py */
+        /* strip .py */ // RU: Убрать расширение .py.
         PyObject *s = PyUnicode_FromStringAndSize(name, (Py_ssize_t)(nlen - 3));
         if (!s) { Py_DECREF(lst); closedir(d); return NULL; }
         PyList_Append(lst, s);
@@ -1518,7 +1838,7 @@ zsys_find_py_modules(PyObject *self, PyObject *args)
     }
     closedir(d);
 
-    /* sort in-place */
+    /* sort in-place */ // RU: Сортировать список на месте.
     if (PyList_Sort(lst) < 0) { Py_DECREF(lst); return NULL; }
     return lst;
 }
@@ -1576,6 +1896,11 @@ static struct PyModuleDef zsys_core_module = {
     ZsysMethods
 };
 
+/**
+ * @brief Python module initialisation entry point.
+ * @return The _zsys_core module object.
+ */
+// RU: Точка входа для инициализации Python-модуля.
 PyMODINIT_FUNC
 PyInit__zsys_core(void)
 {

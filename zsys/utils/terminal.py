@@ -20,6 +20,7 @@ except ImportError:
 
 # ============================================================================
 # SHELL EXECUTION
+# RU: ВЫПОЛНЕНИЕ КОМАНД
 # ============================================================================
 
 async def shell_exec(
@@ -49,6 +50,7 @@ async def shell_exec(
         code, out, err = await shell_exec("ls -la")
         code, out, err = await shell_exec("ping localhost", timeout=5)
     """
+    # RU: Выполняет команду оболочки асинхронно.
     process = await asyncio.create_subprocess_shell(
         cmd=command,
         stdout=stdout,
@@ -90,6 +92,7 @@ def shell_exec_sync(
     Example:
         code, out, err = shell_exec_sync("ls -la")
     """
+    # RU: Синхронная версия shell_exec.
     import subprocess
     
     try:
@@ -107,13 +110,18 @@ def shell_exec_sync(
 
 # ============================================================================
 # SYSTEM RESOURCES
+# RU: СИСТЕМНЫЕ РЕСУРСЫ
 # ============================================================================
 
 def get_ram_usage() -> float:
-    """
-    Get RAM usage by current process in MB.
+    """Get RAM usage by current process in MB.
+
     Uses C extension (reads /proc/self/status) when available, falls back to psutil.
+
+    Returns:
+        float: RAM usage in MB.
     """
+    # RU: Возвращает использование RAM текущим процессом в МБ.
     if _C and _c_get_mem is not None:
         return round(_c_get_mem(), 1)
     try:
@@ -128,10 +136,14 @@ def get_ram_usage() -> float:
 
 
 def get_cpu_usage() -> float:
-    """
-    Get CPU usage by current process in %.
+    """Get CPU usage by current process in %.
+
     Uses C extension (reads /proc/self/stat) when available, falls back to psutil.
+
+    Returns:
+        float: CPU usage in percent.
     """
+    # RU: Возвращает использование CPU текущим процессом в процентах.
     if _C and _c_get_cpu is not None:
         return round(_c_get_cpu(), 1)
     try:
@@ -146,10 +158,12 @@ def get_cpu_usage() -> float:
 
 
 __all__ = [
-    # Shell
+    # Shell commands and async execution
+    # RU: Команды оболочки и асинхронное выполнение
     "shell_exec",
     "shell_exec_sync",
-    # System resources
+    # System resource monitoring
+    # RU: Мониторинг системных ресурсов
     "get_ram_usage",
     "get_cpu_usage",
 ]

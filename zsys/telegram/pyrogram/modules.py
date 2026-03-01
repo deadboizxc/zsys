@@ -1,8 +1,8 @@
-"""
-Pyrogram Module Management
+"""Pyrogram Module Management
 
 Utilities for loading, unloading, and managing Pyrogram modules.
 """
+# RU: Управление Pyrogram-модулями — загрузка, выгрузка, перезагрузка.
 
 import sys
 import importlib
@@ -25,6 +25,7 @@ def get_module_path(module_name: str = "", core: bool = False) -> Path:
     Returns:
         Path to module file (or directory if module_name is empty)
     """
+    # RU: Получить путь к файлу модуля.
     if core:
         base = Path.cwd() / "modules"
     else:
@@ -37,6 +38,7 @@ def get_module_path(module_name: str = "", core: bool = False) -> Path:
 
 def get_module_dir(module_name: str = "", core: bool = False) -> Path:
     """Alias for get_module_path."""
+    # RU: Псевдоним для get_module_path.
     return get_module_path(module_name, core)
 
 
@@ -50,6 +52,7 @@ def find_modules(directory: Optional[Path] = None) -> List[str]:
     Returns:
         List of module names
     """
+    # RU: Найти все модули в директории.
     if directory is None:
         directory = Path.cwd() / "modules"
     
@@ -70,19 +73,21 @@ async def load_module(
     core: bool = False,
     message: Optional[Any] = None,
 ) -> Optional[Any]:
-    """
-    Асинхронно загружает модуль по имени.
+    """Asynchronously load a module by name.
 
     Args:
-        module_name: Имя модуля (без .py)
-        client:      Pyrogram Client (передаётся в модуль как app/client)
-        core:        True — ищем в modules/, False — в custom_modules/
+        module_name: Module name (without .py extension).
+        client: Pyrogram Client instance, exposed as app/client inside the module.
+        core: If True, load from modules/; otherwise from custom_modules/.
+        message: Optional message object for error reporting.
 
     Returns:
-        Загруженный модуль или None при ошибке
+        Loaded module object, or None on failure.
     """
+    # RU: Асинхронно загружает модуль по имени.
     base_dir = Path.cwd() / ("modules" if core else "custom_modules")
-    # Ищем файл или пакет
+    # Search for the module as a .py file or as a package directory
+    # RU: Ищем файл или пакет
     file_path = base_dir / f"{module_name}.py"
     pkg_path  = base_dir / module_name / "__init__.py"
 
@@ -102,7 +107,8 @@ async def load_module(
             return None
 
         module = importlib.util.module_from_spec(spec)
-        # Делаем client доступным внутри модуля
+        # Expose the client inside the loaded module's namespace
+        # RU: Делаем client доступным внутри модуля
         if client is not None:
             module.app    = client  # type: ignore[attr-defined]
             module.client = client  # type: ignore[attr-defined]
@@ -136,6 +142,7 @@ async def unload_module(module_name: str, client: Optional[Any] = None) -> bool:
     Returns:
         True if successful
     """
+    # RU: Выгрузить модуль из sys.modules.
     if client is not None:
         # Remove handlers registered by this module
         try:
@@ -162,23 +169,24 @@ async def reload_modules(
     message=None,
     core: bool = False,
 ) -> bool:
-    """
-    Перезагружает модуль: снимает старые хендлеры, импортирует заново, регистрирует новые.
+    """Reload a module: remove old handlers, reimport, and register new ones.
 
     Args:
-        module_name: Имя модуля (без .py)
-        client: Pyrogram client для регистрации хендлеров
-        message: Сообщение для вывода ошибок (опционально)
-        core: True — искать в modules/, False — в custom_modules/
+        module_name: Module name (without .py extension).
+        client: Pyrogram client used for handler registration.
+        message: Optional message object for error output.
+        core: If True, look in modules/; otherwise in custom_modules/.
 
     Returns:
-        True если успешно, False при ошибке
+        True on success, False on failure.
     """
+    # RU: Перезагружает модуль: снимает старые хендлеры, импортирует заново, регистрирует новые.
     module_path = get_module_path(module_name, core=core)
     if not module_path.exists():
         return False
 
-    # Снимаем старые хендлеры если клиент доступен
+    # Remove old handlers to prevent duplicate registration after reload
+    # RU: Снимаем старые хендлеры если клиент доступен
     old_module = sys.modules.get(module_name)
     if old_module and client is not None:
         for obj in vars(old_module).values():
@@ -189,7 +197,8 @@ async def reload_modules(
                     except Exception:
                         pass
 
-    # Перезагружаем модуль с диска
+    # Reload the module from disk using a fresh module spec
+    # RU: Перезагружаем модуль с диска
     try:
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         if not spec or not spec.loader:
@@ -201,7 +210,8 @@ async def reload_modules(
         print(f"Failed to reload {module_name}: {e}")
         return False
 
-    # Регистрируем новые хендлеры
+    # Register handlers defined in the freshly loaded module
+    # RU: Регистрируем новые хендлеры
     if client is not None:
         for obj in vars(module).values():
             if callable(obj) and hasattr(obj, "handlers"):
@@ -218,6 +228,7 @@ def reload_all_modules(client=None) -> Dict[str, bool]:
     Returns:
         Dictionary of results {module_name: success}
     """
+    # RU: Перезагрузить все загруженные модули.
     results = {}
     for name in list(sys.modules.keys()):
         if not name.startswith("_") and "." not in name:
@@ -230,18 +241,19 @@ def reload_all_modules(client=None) -> Dict[str, bool]:
 
 
 def is_module_enabled(module_name: str, core: bool = False) -> bool:
-    """
-    Проверяет, существует ли модуль на диске (не отключён).
+    """Check whether a module exists on disk and is not disabled.
 
     Args:
-        module_name: Имя модуля
-        core:        True — modules/, False — custom_modules/
+        module_name: Module name to check.
+        core: If True, look in modules/; otherwise in custom_modules/.
 
     Returns:
-        True если модуль найден и не отключён
+        True if the module file is found and not marked as disabled.
     """
+    # RU: Проверяет, существует ли модуль на диске (не отключён).
     base_dir = Path.cwd() / ("modules" if core else "custom_modules")
-    # Поддержка disabled-файлов (module.disabled)
+    # Skip modules that have a corresponding .disabled marker file
+    # RU: Поддержка disabled-файлов (module.disabled)
     if (base_dir / f"{module_name}.disabled").exists():
         return False
     return (
@@ -260,6 +272,7 @@ def is_package_installed(package_name: str) -> bool:
     Returns:
         True if package is installed
     """
+    # RU: Проверить, установлен ли пакет.
     try:
         importlib.import_module(package_name)
         return True
@@ -277,6 +290,7 @@ def install_requirements(requirements_file: str) -> bool:
     Returns:
         True if successful
     """
+    # RU: Установить зависимости из файла требований.
     try:
         import subprocess
         subprocess.run(
@@ -299,6 +313,7 @@ def import_library(library_name: str) -> Optional[Any]:
     Returns:
         Imported library or None if failed
     """
+    # RU: Динамически импортировать библиотеку.
     try:
         return importlib.import_module(library_name)
     except ImportError:

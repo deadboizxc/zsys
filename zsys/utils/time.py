@@ -35,6 +35,7 @@ def timestamp_to_date(timestamp: Union[int, float], fmt: str = "%Y-%m-%d %H:%M:%
     Returns:
         str: Formatted date string.
     """
+    # RU: Конвертирует Unix-метку времени в строку даты.
     return datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime(fmt)
 
 
@@ -47,6 +48,7 @@ def timestamp_to_datetime(timestamp: Union[int, float]) -> datetime:
     Returns:
         datetime: Datetime object.
     """
+    # RU: Конвертирует Unix-метку времени в объект datetime.
     return datetime.fromtimestamp(timestamp, tz=timezone.utc)
 
 
@@ -55,11 +57,12 @@ def human_time(seconds: Union[int, float], short: bool = True) -> str:
     
     Args:
         seconds: Number of seconds.
-        short: Use short format (дн., ч., мин., сек.) or long.
+        short: Use short format (d., h., min., sec.) or long format.
     
     Returns:
         str: Human-readable time string.
     """
+    # RU: Конвертирует секунды в строку вида "1 дн. 2 ч.".
     if _C:
         return _c_human_time(int(seconds), short)
     seconds = int(seconds)
@@ -102,6 +105,7 @@ def human_time_delta(td: timedelta, short: bool = True) -> str:
     Returns:
         str: Human-readable time string.
     """
+    # RU: Конвертирует timedelta в читаемую строку.
     return human_time(int(td.total_seconds()), short=short)
 
 
@@ -111,6 +115,7 @@ def current_timestamp() -> int:
     Returns:
         int: Current Unix timestamp.
     """
+    # RU: Возвращает текущую Unix-метку времени.
     return int(time.time())
 
 
@@ -124,6 +129,7 @@ def time_difference(timestamp1: Union[int, float], timestamp2: Union[int, float]
     Returns:
         int: Absolute difference in seconds.
     """
+    # RU: Возвращает абсолютную разницу между двумя метками времени в секундах.
     return abs(int(timestamp1 - timestamp2))
 
 
@@ -138,6 +144,7 @@ def parse_duration(text: str) -> Optional[int]:
     Returns:
         int: Duration in seconds, or None if invalid.
     """
+    # RU: Парсит строку длительности в секунды.
     if _C:
         return _c_parse_duration(text)
     import re
@@ -151,12 +158,14 @@ def parse_duration(text: str) -> Optional[int]:
     }
     
     # Try single unit: "30m", "2h"
+    # RU: Пробуем формат с одной единицей: "30m", "2h"
     match = re.match(r"^(\d+)([smhdw])$", text.lower())
     if match:
         value, unit = match.groups()
         return int(value) * units[unit]
     
     # Try combined: "1h30m", "2d12h"
+    # RU: Пробуем комбинированный формат: "1h30m", "2d12h"
     total = 0
     pattern = re.compile(r"(\d+)([smhdw])")
     matches = pattern.findall(text.lower())
@@ -177,5 +186,6 @@ def format_uptime(start_time: Union[int, float]) -> str:
     Returns:
         str: Human-readable uptime string.
     """
+    # RU: Форматирует время работы с момента запуска.
     uptime_seconds = current_timestamp() - int(start_time)
     return human_time(uptime_seconds)

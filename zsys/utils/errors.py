@@ -3,6 +3,7 @@ Custom exception classes for zsys ecosystem.
 
 Provides structured error handling across all projects.
 """
+# RU: Пользовательские классы исключений для экосистемы zsys.
 
 try:
     from zsys._core import format_exc_html as _c_format_exc_html, C_AVAILABLE as _C
@@ -13,20 +14,23 @@ except ImportError:
 
 class BaseException(Exception):
     """Base exception for all zsys errors."""
-    
+    # RU: Базовое исключение для всех ошибок zsys.
+
     def __init__(self, message: str, details: dict = None):
-        """Initialize error.
-        
+        """Initialize error with message and optional details.
+
         Args:
-            message: Error message
-            details: Additional error details
+            message: Error message.
+            details: Additional error details.
         """
+        # RU: Инициализирует ошибку с сообщением и дополнительными деталями.
         super().__init__(message)
         self.message = message
         self.details = details or {}
     
     def __str__(self) -> str:
-        """String representation."""
+        """Return string representation of the error, including details if present."""
+        # RU: Возвращает строковое представление ошибки, включая детали если есть.
         if self.details:
             details_str = ", ".join(f"{k}={v}" for k, v in self.details.items())
             return f"{self.message} ({details_str})"
@@ -35,135 +39,185 @@ class BaseException(Exception):
 
 class ConfigError(BaseException):
     """Configuration-related errors."""
+    # RU: Ошибки конфигурации.
     pass
 
 
 class DatabaseError(BaseException):
     """Database operation errors."""
+    # RU: Ошибки операций с базой данных.
     pass
 
 
 class APIError(BaseException):
     """API/HTTP request errors."""
-    
+    # RU: Ошибки API/HTTP-запросов.
+
     def __init__(self, message: str, status_code: int = None, details: dict = None):
-        """Initialize API error.
-        
+        """Initialize API error with optional HTTP status code.
+
         Args:
-            message: Error message
-            status_code: HTTP status code
-            details: Additional details
+            message: Error message.
+            status_code: HTTP status code.
+            details: Additional details.
         """
+        # RU: Инициализирует ошибку API с необязательным HTTP-кодом статуса.
         super().__init__(message, details)
         self.status_code = status_code
 
 
 class BotError(BaseException):
     """Bot operation errors."""
+    # RU: Ошибки работы бота.
     pass
 
 
 class AuthenticationError(BaseException):
     """Authentication/authorization errors."""
+    # RU: Ошибки аутентификации/авторизации.
     pass
 
 
 class ValidationError(BaseException):
     """Data validation errors."""
-    
+    # RU: Ошибки валидации данных.
+
     def __init__(self, message: str, field: str = None, details: dict = None):
-        """Initialize validation error.
-        
+        """Initialize validation error with optional field name.
+
         Args:
-            message: Error message
-            field: Field that failed validation
-            details: Additional details
+            message: Error message.
+            field: Field that failed validation.
+            details: Additional details.
         """
+        # RU: Инициализирует ошибку валидации с необязательным именем поля.
         super().__init__(message, details)
         self.field = field
 
 
 class NetworkError(BaseException):
     """Network/connectivity errors."""
+    # RU: Ошибки сети/подключения.
     pass
 
 
 class ModuleError(BaseException):
     """Module loading/execution errors."""
+    # RU: Ошибки загрузки/выполнения модуля.
     pass
 
 
 class FileError(BaseException):
     """File operation errors."""
+    # RU: Ошибки файловых операций.
     pass
 
 
 class LicenseError(BaseException):
     """Licensing-related errors."""
+    # RU: Ошибки лицензирования.
     pass
 
 
 class SessionError(BaseException):
     """Session-related errors."""
+    # RU: Ошибки сессии.
     pass
 
 
 # =============================================================================
 # MEDIA/CDN ERRORS (from qp-media)
+# RU: ОШИБКИ МЕДИАФАЙЛОВ/CDN (из qp-media)
 # =============================================================================
 
 class MediaError(BaseException):
     """Base media operation error."""
+    # RU: Базовая ошибка работы с медиафайлами.
     pass
 
 
 class MediaNotFoundError(MediaError):
     """Media not found."""
+    # RU: Медиафайл не найден.
     def __init__(self, media_id: str, details: dict = None):
+        """Initialize media not found error.
+
+        Args:
+            media_id: Identifier of the missing media.
+            details: Additional error context.
+        """
+        # RU: Инициализирует ошибку отсутствующего медиафайла.
         super().__init__(f"Media not found: {media_id}", details)
         self.media_id = media_id
 
 
 class MediaExistsError(MediaError):
     """Media already exists (duplicate hash)."""
+    # RU: Медиафайл уже существует (дубликат хеша).
     def __init__(self, hash_value: str, details: dict = None):
+        """Initialize duplicate media error.
+
+        Args:
+            hash_value: Hash of the duplicate media.
+            details: Additional error context.
+        """
+        # RU: Инициализирует ошибку дублирующегося медиафайла.
         super().__init__(f"Media with hash {hash_value} already exists", details)
         self.hash_value = hash_value
 
 
 class InvalidMediaTypeError(MediaError):
     """Invalid media type."""
+    # RU: Недопустимый тип медиафайла.
     def __init__(self, media_type: str, details: dict = None):
+        """Initialize invalid media type error.
+
+        Args:
+            media_type: The unsupported media type string.
+            details: Additional error context.
+        """
+        # RU: Инициализирует ошибку недопустимого типа медиафайла.
         super().__init__(f"Invalid media type: {media_type}", details)
         self.media_type = media_type
 
 
 class StorageError(BaseException):
     """Storage operation error."""
+    # RU: Ошибка операции хранилища.
     pass
 
 
 class PermissionDeniedError(BaseException):
     """Permission denied."""
+    # RU: Отказано в доступе.
     def __init__(self, action: str, details: dict = None):
+        """Initialize permission denied error.
+
+        Args:
+            action: The action that was denied.
+            details: Additional error context.
+        """
+        # RU: Инициализирует ошибку отказа в доступе.
         super().__init__(f"Permission denied: {action}", details)
         self.action = action
 
 
 # =============================================================================
 # ERROR FORMATTING UTILITIES
+# RU: УТИЛИТЫ ФОРМАТИРОВАНИЯ ОШИБОК
 # =============================================================================
 
 def handle_error(error: Exception, default_message: str = "An error occurred") -> str:
     """Format error for display to user.
-    
+
     Args:
-        error: Exception to format
-        default_message: Default message if error is generic
-        
+        error: Exception to format.
+        default_message: Default message if error is generic.
+
     Returns:
-        Formatted error message
+        Formatted error message as an HTML string.
     """
+    # RU: Форматирует ошибку для отображения пользователю.
     if isinstance(error, BaseException):
         msg = f"<b>❌ {error.__class__.__name__}</b>\n\n{error.message}"
         if error.details:
@@ -185,18 +239,19 @@ def format_exc(
 ) -> str:
     """
     Format exception for display (HTML).
-    
+
     Args:
-        e: Exception to format
-        suffix: Additional text to append
-        max_length: Maximum message length (truncated if exceeded)
-        include_cause: Include __cause__ if available
-        escape_html: Escape HTML special characters
-        show_traceback: Print traceback to console
-        
+        e: Exception to format.
+        suffix: Additional text to append.
+        max_length: Maximum message length (truncated if exceeded).
+        include_cause: Include __cause__ if available.
+        escape_html: Escape HTML special characters.
+        show_traceback: Print traceback to console.
+
     Returns:
-        Formatted error message in HTML
+        Formatted error message in HTML.
     """
+    # RU: Форматирует исключение для отображения (HTML).
     import traceback as tb
     from html import escape as html_escape
     
@@ -204,6 +259,7 @@ def format_exc(
         tb.print_exc()
 
     # Check for Telegram RPC errors
+    # RU: Проверяем на наличие ошибок Telegram RPC API
     try:
         from pyrogram import errors as pyrogram_errors
         if isinstance(e, pyrogram_errors.RPCError):
@@ -227,6 +283,7 @@ def format_exc(
         )
 
     # Python fallback (or escape_html=False path)
+    # RU: Запасной путь Python (или путь с escape_html=False)
     def _escape(text: str) -> str:
         from html import escape as _he
         return _he(text) if escape_html else text
@@ -242,7 +299,15 @@ def format_exc(
 
 
 def _format_telegram_rpc_error(e) -> str:
-    """Format Telegram API RPC error."""
+    """Format Telegram API RPC error into an HTML string.
+
+    Args:
+        e: Pyrogram RPCError instance.
+
+    Returns:
+        Formatted HTML error string with code, ID, message, and description.
+    """
+    # RU: Форматирует ошибку RPC Telegram API в HTML-строку.
     error_details = {
         "code": getattr(e, "CODE", "UNKNOWN"),
         "id": getattr(e, "ID", getattr(e, "NAME", "UNKNOWN")),
@@ -266,12 +331,13 @@ def print_exc(
 ) -> None:
     """
     Print exception to console with optional context.
-    
+
     Args:
-        e: Exception to print
-        context: Additional context description
-        show_traceback: Whether to print full traceback
+        e: Exception to print.
+        context: Additional context description.
+        show_traceback: Whether to print full traceback.
     """
+    # RU: Выводит исключение в консоль с необязательным контекстом.
     import traceback
     import sys
     
