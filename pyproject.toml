@@ -1,0 +1,128 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "zsys"
+version = "1.0.0"
+description = "Modular Python ecosystem for bots, userbots, APIs, storage, blockchain, and crypto services"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "deadboizxc", email = "deadboi.zxc@gmail.com" }
+]
+keywords = [
+    "zsys",
+    "telegram",
+    "bot",
+    "userbot",
+    "blockchain",
+    "crypto",
+    "storage",
+    "modular"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: AsyncIO",
+]
+
+# Core dependencies (minimal)
+dependencies = [
+    "pydantic>=2.6.0",
+]
+
+[project.optional-dependencies]
+# === Telegram Implementations ===
+telegram-pyrogram = [
+    "pyrogram>=2.0.0",
+    "tgcrypto>=1.2.0",
+]
+telegram-aiogram = [
+    "aiogram>=3.0.0",
+]
+telegram-telethon = [
+    "telethon>=1.36.0",
+]
+telegram = [
+    "zsys[telegram-pyrogram]",
+    "zsys[telegram-aiogram]",
+    "zsys[telegram-telethon]",
+]
+
+# === Storage Implementations ===
+storage-sqlite = [
+    # Built-in, no dependencies
+]
+storage-redis = [
+    "redis>=5.0.0",
+]
+storage-postgres = [
+    "asyncpg>=0.29.0",
+    "sqlalchemy>=2.0.0",
+]
+storage = [
+    "zsys[storage-redis]",
+    "zsys[storage-postgres]",
+]
+
+# === Crypto Implementations ===
+crypto = [
+    "cryptography>=42.0.0",
+]
+
+# === Blockchain Implementations ===
+blockchain = [
+    "web3>=6.15.0",
+    "eth-account>=0.11.0",
+]
+
+# === All Features ===
+all = [
+    "zsys[telegram]",
+    "zsys[storage]",
+    "zsys[crypto]",
+    "zsys[blockchain]",
+]
+
+# === Development ===
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "black>=24.0.0",
+    "ruff>=0.2.0",
+    "mypy>=1.8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/deadboizxc/zsys"
+Documentation = "https://github.com/deadboizxc/zsys/blob/main/README.md"
+Repository = "https://github.com/deadboizxc/zsys"
+Issues = "https://github.com/deadboizxc/zsys/issues"
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
