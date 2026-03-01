@@ -108,6 +108,17 @@ async def load_module(
             module.client = client  # type: ignore[attr-defined]
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
+
+        # Register old-style @Client.on_message handlers with the client
+        if client is not None:
+            for obj in vars(module).values():
+                if callable(obj) and hasattr(obj, "handlers") and isinstance(obj.handlers, (list, tuple)):
+                    for handler, group in obj.handlers:
+                        try:
+                            client.add_handler(handler, group)
+                        except Exception:
+                            pass
+
         return module
     except Exception as e:
         print(f"Failed to load module {module_name}: {e}")

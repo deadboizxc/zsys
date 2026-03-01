@@ -11,6 +11,12 @@ import os
 import asyncio
 from typing import Optional, Tuple, Union
 
+try:
+    from zsys._core import get_proc_mem_mb as _c_get_mem, get_proc_cpu_pct as _c_get_cpu, C_AVAILABLE as _C
+except ImportError:
+    _c_get_mem = _c_get_cpu = None
+    _C = False
+
 
 # ============================================================================
 # SHELL EXECUTION
@@ -106,16 +112,10 @@ def shell_exec_sync(
 def get_ram_usage() -> float:
     """
     Get RAM usage by current process in MB.
-    
-    Includes child processes.
-    
-    Returns:
-        float: RAM usage in MB rounded to one decimal place
-        
-    Example:
-        usage = get_ram_usage()
-        print(f"RAM: {usage} MB")
+    Uses C extension (reads /proc/self/status) when available, falls back to psutil.
     """
+    if _C and _c_get_mem is not None:
+        return round(_c_get_mem(), 1)
     try:
         import psutil
         current_process = psutil.Process(os.getpid())
@@ -130,16 +130,10 @@ def get_ram_usage() -> float:
 def get_cpu_usage() -> float:
     """
     Get CPU usage by current process in %.
-    
-    Includes child processes.
-    
-    Returns:
-        float: CPU usage in percent rounded to one decimal place
-        
-    Example:
-        usage = get_cpu_usage()
-        print(f"CPU: {usage}%")
+    Uses C extension (reads /proc/self/stat) when available, falls back to psutil.
     """
+    if _C and _c_get_cpu is not None:
+        return round(_c_get_cpu(), 1)
     try:
         import psutil
         current_process = psutil.Process(os.getpid())

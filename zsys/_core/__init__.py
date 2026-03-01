@@ -22,6 +22,7 @@ __all__ = [
     "human_time", "parse_duration",
     "print_box_str", "print_separator_str", "print_table_str", "print_progress_str",
     "format_exc_html", "router_lookup",
+    "get_proc_mem_mb", "get_proc_cpu_pct", "find_py_modules",
 ]
 
 C_AVAILABLE: bool = False
@@ -42,6 +43,7 @@ try:
         human_time, parse_duration,
         print_box_str, print_separator_str, print_table_str, print_progress_str,
         format_exc_html, router_lookup,
+        get_proc_mem_mb, get_proc_cpu_pct, find_py_modules,
     )
     C_AVAILABLE = True
 
@@ -315,3 +317,28 @@ except ImportError:
 
     def router_lookup(trigger_map: dict, trigger: str):
         return trigger_map.get(trigger.lower())
+
+    def get_proc_mem_mb() -> float:
+        try:
+            import os, psutil
+            p = psutil.Process(os.getpid())
+            return round(p.memory_info().rss / 1024 / 1024, 2)
+        except Exception:
+            return 0.0
+
+    def get_proc_cpu_pct() -> float:
+        try:
+            import os, psutil
+            return psutil.Process(os.getpid()).cpu_percent()
+        except Exception:
+            return 0.0
+
+    def find_py_modules(path: str) -> list:
+        import os
+        try:
+            return sorted(
+                f[:-3] for f in os.listdir(path)
+                if f.endswith(".py") and not f.startswith("_")
+            )
+        except OSError:
+            return []

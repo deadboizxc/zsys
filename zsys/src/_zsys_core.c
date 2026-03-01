@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <unistd.h>
 
 
 /* ═══════════════════════════ internal helpers ══════════════════════════════ */
@@ -1422,6 +1423,107 @@ zsys_router_lookup(PyObject *self, PyObject *args)
 }
 
 
+/* ════════════════════════ system resources (Linux /proc) ══════════════════ */
+
+#if defined(__linux__)
+
+/* get_proc_mem_mb() -> float  — RSS memory of current process in MB */
+static PyObject *
+zsys_get_proc_mem_mb(PyObject *self, PyObject *args)
+{
+    (void)self; (void)args;
+    FILE *f = fopen("/proc/self/status", "r");
+    if (!f) return PyFloat_FromDouble(0.0);
+    char line[128];
+    double mb = 0.0;
+    while (fgets(line, sizeof(line), f)) {
+        if (strncmp(line, "VmRSS:", 6) == 0) {
+            unsigned long kb = 0;
+            sscanf(line + 6, " %lu", &kb);
+            mb = kb / 1024.0;
+            break;
+        }
+    }
+    fclose(f);
+    return PyFloat_FromDouble(mb);
+}
+
+/* get_proc_cpu_pct() -> float  — CPU % of current process */
+static PyObject *
+zsys_get_proc_cpu_pct(PyObject *self, PyObject *args)
+{
+    (void)self; (void)args;
+    /* read utime+stime from /proc/self/stat */
+    FILE *f = fopen("/proc/self/stat", "r");
+    if (!f) return PyFloat_FromDouble(0.0);
+    unsigned long utime = 0, stime = 0;
+    long clk_tck = sysconf(_SC_CLK_TCK);
+    if (clk_tck <= 0) clk_tck = 100;
+    /* field 14=utime 15=stime in /proc/self/stat */
+    int r = fscanf(f,
+        "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %lu %lu",
+        &utime, &stime);
+    fclose(f);
+    if (r < 2) return PyFloat_FromDouble(0.0);
+    /* cpu time in seconds */
+    double cpu_sec = (double)(utime + stime) / clk_tck;
+    /* uptime */
+    double uptime = 0.0;
+    f = fopen("/proc/uptime", "r");
+    if (f) { fscanf(f, "%lf", &uptime); fclose(f); }
+    double pct = uptime > 0.0 ? (cpu_sec / uptime) * 100.0 : 0.0;
+    return PyFloat_FromDouble(pct);
+}
+
+#else  /* non-Linux fallback */
+static PyObject *zsys_get_proc_mem_mb(PyObject *s, PyObject *a) {
+    (void)s;(void)a; return PyFloat_FromDouble(0.0);
+}
+static PyObject *zsys_get_proc_cpu_pct(PyObject *s, PyObject *a) {
+    (void)s;(void)a; return PyFloat_FromDouble(0.0);
+}
+#endif
+
+/* ═════════════════════ module discovery ════════════════════════════════════ */
+
+#include <dirent.h>
+
+/* find_py_modules(path: str) -> list[str]
+   Returns sorted list of Python module names (*.py, no leading _) from dir. */
+static PyObject *
+zsys_find_py_modules(PyObject *self, PyObject *args)
+{
+    (void)self;
+    const char *path;
+    if (!PyArg_ParseTuple(args, "s", &path)) return NULL;
+
+    DIR *d = opendir(path);
+    if (!d) return PyList_New(0);
+
+    PyObject *lst = PyList_New(0);
+    if (!lst) { closedir(d); return NULL; }
+
+    struct dirent *ent;
+    while ((ent = readdir(d)) != NULL) {
+        const char *name = ent->d_name;
+        if (name[0] == '_') continue;           /* skip __init__ etc */
+        size_t nlen = strlen(name);
+        if (nlen < 4) continue;
+        if (strcmp(name + nlen - 3, ".py") != 0) continue;
+        /* strip .py */
+        PyObject *s = PyUnicode_FromStringAndSize(name, (Py_ssize_t)(nlen - 3));
+        if (!s) { Py_DECREF(lst); closedir(d); return NULL; }
+        PyList_Append(lst, s);
+        Py_DECREF(s);
+    }
+    closedir(d);
+
+    /* sort in-place */
+    if (PyList_Sort(lst) < 0) { Py_DECREF(lst); return NULL; }
+    return lst;
+}
+
+
 /* ════════════════════════════ method table ═════════════════════════════════ */
 
 static PyMethodDef ZsysMethods[] = {
@@ -1460,6 +1562,9 @@ static PyMethodDef ZsysMethods[] = {
     { "print_progress_str",   zsys_print_progress_str,   METH_VARARGS, "print_progress_str(current, total, prefix='Progress', length=40) -> str" },
     { "format_exc_html",      zsys_format_exc_html,      METH_VARARGS, "format_exc_html(error_type, error_text, cause_type='', cause_text='', suffix='', max_length=4000) -> str" },
     { "router_lookup",        zsys_router_lookup,        METH_VARARGS, "router_lookup(trigger_map, trigger) -> Any | None" },
+    { "get_proc_mem_mb",      zsys_get_proc_mem_mb,      METH_NOARGS,  "get_proc_mem_mb() -> float" },
+    { "get_proc_cpu_pct",     zsys_get_proc_cpu_pct,     METH_NOARGS,  "get_proc_cpu_pct() -> float" },
+    { "find_py_modules",      zsys_find_py_modules,      METH_VARARGS, "find_py_modules(path: str) -> list[str]" },
     { NULL, NULL, 0, NULL }
 };
 

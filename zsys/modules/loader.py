@@ -15,8 +15,9 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 try:
-    from zsys._core import parse_meta_comments as _c_parse_meta_comments, C_AVAILABLE as _C
+    from zsys._core import parse_meta_comments as _c_parse_meta_comments, find_py_modules as _c_find_py_modules, C_AVAILABLE as _C
 except ImportError:
+    _c_find_py_modules = None
     _C = False
 
 
@@ -76,23 +77,18 @@ class ModuleLoader:
         self._cache: Dict[str, ModuleType] = {}
     
     def discover(self, pattern: str = "*.py") -> List[str]:
-        """Discover available modules in base path.
-        
-        Args:
-            pattern: Glob pattern for module files.
-        
-        Returns:
-            List of module names.
-        """
+        """Discover available modules in base path."""
         if not self.base_path.exists():
             return []
-        
+
+        if _C and _c_find_py_modules is not None and pattern == "*.py":
+            return _c_find_py_modules(str(self.base_path))
+
         modules = [
             path.stem
             for path in self.base_path.glob(pattern)
             if path.is_file() and not path.name.startswith("_")
         ]
-        
         return sorted(modules)
     
     def is_enabled(self, name: str) -> bool:
