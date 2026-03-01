@@ -68,6 +68,7 @@ async def load_module(
     module_name: str,
     client: Optional[Any] = None,
     core: bool = False,
+    message: Optional[Any] = None,
 ) -> Optional[Any]:
     """
     Асинхронно загружает модуль по имени.
@@ -113,16 +114,31 @@ async def load_module(
         return None
 
 
-def unload_module(module_name: str) -> bool:
+async def unload_module(module_name: str, client: Optional[Any] = None) -> bool:
     """
     Unload a module from sys.modules.
-    
+
     Args:
         module_name: Name of module to unload
-    
+        client:      Pyrogram client (used to remove handlers if provided)
+
     Returns:
         True if successful
     """
+    if client is not None:
+        # Remove handlers registered by this module
+        try:
+            mod = sys.modules.get(module_name)
+            if mod:
+                for obj in vars(mod).values():
+                    if callable(obj) and hasattr(obj, "handlers") and isinstance(obj.handlers, (list, tuple)):
+                        for handler, group in obj.handlers:
+                            try:
+                                client.remove_handler(handler, group)
+                            except Exception:
+                                pass
+        except Exception:
+            pass
     if module_name in sys.modules:
         del sys.modules[module_name]
         return True

@@ -272,6 +272,7 @@ class GlobalI18N:
         self.default_lang = default_lang
         self.translations = self._load_all_translations()
         self.current_lang = self._load_saved_language()
+        self._cache: "Dict[str, str]" = {}
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -349,12 +350,25 @@ class GlobalI18N:
     # Public API
     # ------------------------------------------------------------------
 
-    @lru_cache(maxsize=1024)
+    @staticmethod
+    def _make_cache_key(key: str, module_name: "Optional[str]", kwargs: dict) -> str:
+        """Unused — kept for API compatibility."""
+        if kwargs:
+            return f"{module_name or ''}.{key}|{sorted(kwargs.items())}"
+        return f"{module_name or ''}.{key}"
+
     def get(self, key: str, module_name: "Optional[str]" = None, **kwargs) -> str:
         if module_name is None and "." in key:
             module_name, key = key.split(".", 1)
 
         full_key = f"{module_name}.{key}" if module_name else key
+
+        # Cache only for calls without format kwargs
+        if not kwargs:
+            cache_key = f"{self.current_lang}:{full_key}"
+            cached = self._cache.get(cache_key)
+            if cached is not None:
+                return cached
 
         if _C_AVAILABLE:
             lang_dict = self.translations.get(self.current_lang)
@@ -364,38 +378,42 @@ class GlobalI18N:
                 value = _c_nested_get(fb_dict, full_key) if fb_dict else None
             if value is None:
                 return f"[{full_key}]"
-            return value.format(**kwargs) if kwargs else value
+            result = value.format(**kwargs) if kwargs else value
+        else:
+            keys = full_key.split(".")
+            try:
+                value = self.translations[self.current_lang]
+                for k in keys:
+                    value = value[k]
+                result = value.format(**kwargs) if kwargs else value
+            except (KeyError, AttributeError):
+                if self.current_lang != self.default_lang:
+                    try:
+                        value = self.translations[self.default_lang]
+                        for k in keys:
+                            value = value[k]
+                        result = value.format(**kwargs) if kwargs else value
+                    except (KeyError, AttributeError):
+                        result = f"[{full_key}]"
+                else:
+                    result = f"[{full_key}]"
 
-        keys = full_key.split(".")
-
-        try:
-            value = self.translations[self.current_lang]
-            for k in keys:
-                value = value[k]
-            return value.format(**kwargs) if kwargs else value
-        except (KeyError, AttributeError):
-            if self.current_lang != self.default_lang:
-                try:
-                    value = self.translations[self.default_lang]
-                    for k in keys:
-                        value = value[k]
-                    return value.format(**kwargs) if kwargs else value
-                except (KeyError, AttributeError):
-                    return f"[{full_key}]"
-            return f"[{full_key}]"
+        if not kwargs:
+            self._cache[f"{self.current_lang}:{full_key}"] = result
+        return result
 
     def set_language(self, lang: str):
         if lang in self.translations:
             self.current_lang = lang
+            self._cache.clear()
             self._save_language()
-            self.get.cache_clear()
 
     def get_available_languages(self) -> List[str]:
         return sorted(self.translations.keys())
 
     def reload_translations(self):
         self.translations = self._load_all_translations()
-        self.get.cache_clear()
+        self._cache.clear()
 
 
 # ---------------------------------------------------------------------------
