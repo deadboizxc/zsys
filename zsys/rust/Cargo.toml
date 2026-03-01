@@ -1,0 +1,13 @@
+[package]
+name    = "zsys"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69"
+
+[lib]
+name = "zsys"
+crate-type = ["cdylib", "rlib"]
