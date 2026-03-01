@@ -23,6 +23,13 @@ except ImportError:
     _C = False
     _c_router_lookup = None
 
+try:
+    from zsys.bindings.python.zsys_cffi import Router as _CRouter
+    _C_LIB = True
+except ImportError:
+    _C_LIB = False
+    _CRouter = None
+
 @dataclass
 class Command:
     """Command definition."""
@@ -94,6 +101,15 @@ class Router:
         self._prefixes: List[str] = ["."]
         self._module_commands: Dict[str, List[str]] = {}  # module_name -> [cmd_names]
         self._messages: Dict[str, str] = {**self.DEFAULT_MESSAGES, **(messages or {})}
+        # C-backed fast trigger lookup (optional optimisation via libzsys)
+        self._c_router = None
+        self._c_handler_counter = 0
+        self._c_id_to_trigger: Dict[int, str] = {}
+        if _C_LIB:
+            try:
+                self._c_router = _CRouter()
+            except Exception:
+                self._c_router = None
     
     def set_messages(self, messages: Dict[str, str]) -> None:
         """Override filter error messages (for i18n support)."""
@@ -201,6 +217,14 @@ class Router:
         for trigger in cmd.all_triggers:
             self._trigger_map[trigger.lower()] = cmd
         
+        # Register triggers in C router for fast lookup
+        if self._c_router is not None:
+            for trigger in cmd.all_triggers:
+                hid = self._c_handler_counter
+                self._c_handler_counter += 1
+                self._c_id_to_trigger[hid] = trigger.lower()
+                self._c_router.add(trigger, hid)
+        
         # Track module -> commands
         if module:
             if module not in self._module_commands:
@@ -245,6 +269,8 @@ class Router:
         # Remove all triggers
         for trigger in cmd.all_triggers:
             self._trigger_map.pop(trigger.lower(), None)
+            if self._c_router is not None:
+                self._c_router.remove(trigger)
         
         # Remove from module tracking
         for mod, cmds in self._module_commands.items():
@@ -290,6 +316,15 @@ class Router:
     
     def get_command(self, trigger: str) -> Optional[Command]:
         """Get command by trigger (name or alias)."""
+        # Fast path: use libzsys C router if available
+        if self._c_router is not None:
+            hid = self._c_router.lookup(trigger)
+            if hid >= 0:
+                trig = self._c_id_to_trigger.get(hid)
+                if trig:
+                    return self._trigger_map.get(trig)
+            return None
+        # Legacy Python C extension path
         if _C:
             return _c_router_lookup(self._trigger_map, trigger)
         return self._trigger_map.get(trigger.lower())
