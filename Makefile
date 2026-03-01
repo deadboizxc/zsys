@@ -4,6 +4,7 @@
 # Targets:
 #   make              — build everything (C lib + Python extension)
 #   make build-c      — build pure C shared library (libzsys_core.so)
+#   make build-lib    — build universal libzsys.so (router + registry + i18n)
 #   make build-py     — build Python C extension (_zsys_core.so)
 #   make build-go     — check Go bindings compile
 #   make test         — run Python test suite
@@ -26,7 +27,7 @@ DOCS_DIR    := docs/_build
 
 VERSION     := $(shell $(PYTHON) -c "import zsys; print(zsys.__version__)" 2>/dev/null || echo "1.0.0")
 
-.PHONY: all build build-c build-py build-go test test-c test-all \
+.PHONY: all build build-c build-lib build-py build-go test test-c test-all \
         install install-c clean clean-c clean-py docs fmt lint version help
 
 # -----------------------------------------------------------------------------
@@ -47,6 +48,17 @@ build-c:
 2>&1 | tail -3
 @cd $(C_BUILD_DIR) && $(CMAKE) --build . --parallel $$(nproc) 2>&1 | tail -5
 @echo "✅  libzsys_core built → $(C_BUILD_DIR)/"
+
+# --- Universal C shared library (router + registry + i18n, no Python deps) ---
+build-lib:
+	@echo "⚙️   Building libzsys.so (router + registry + i18n)..."
+	$(CC) -std=c99 -Wall -Wextra -fPIC -shared -O2 \
+	    zsys/src/zsys_router.c \
+	    zsys/src/zsys_registry.c \
+	    zsys/src/zsys_i18n.c \
+	    -I zsys/include/ \
+	    -o libzsys.so
+	@echo "✅  libzsys.so built"
 
 # --- Python extension ---------------------------------------------------------
 build-py:
