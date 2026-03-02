@@ -1,6 +1,24 @@
+"""Aiogram router attachment — bridges zsys Router commands to aiogram handlers.
+
+Iterates over all commands registered in a zsys ``Router`` and registers each
+one as an ``aiogram`` message handler on the provided aiogram ``Router`` or
+``Dispatcher``, handling argument parsing, chat-type guards, and error replies.
+
+Note:
+    Import and call ``attach_router`` once during bot setup, before starting
+    polling.
+
+Example::
+
+    from aiogram import Dispatcher
+    from zsys.modules.router import Router
+    from zsys.telegram.aiogram.router import attach_router
+
+    dp = Dispatcher()
+    router = Router()
+    attach_router(router, dp)
 """
-aiogram-specific router attachment.
-"""
+# RU: Мост между zsys Router и aiogram: регистрирует команды как обработчики aiogram.
 
 from __future__ import annotations
 
@@ -16,14 +34,37 @@ def attach_router(
     aiogram_router: "AiogramRouter",
     prefix: str = "/",
 ) -> None:
-    """
-    Attach a zsys Router to an aiogram Router/Dispatcher.
+    """Register all zsys router commands as aiogram message handlers.
+
+    Iterates over every command stored in ``router.commands``, wraps each in
+    an async aiogram handler that builds an ``AiogramContext``, enforces
+    private/group-only restrictions, invokes the zsys handler, and replies
+    with an error message on unhandled exceptions.
 
     Args:
-        router: zsys Router instance
-        aiogram_router: aiogram Router or Dispatcher
-        prefix: Command prefix (usually "/")
+        router: zsys ``Router`` instance whose ``.commands`` dict will be
+            iterated.
+        aiogram_router: An aiogram ``Router`` or ``Dispatcher`` to register
+            handlers on.
+        prefix: Command prefix used to strip the leading character from
+            incoming text. Defaults to ``"/"``.
+
+    Raises:
+        ImportError: If ``aiogram`` is not installed when the handler is first
+            invoked (deferred import).
+
+    Example::
+
+        from aiogram import Dispatcher
+        from zsys.modules.router import Router
+        from zsys.telegram.aiogram.router import attach_router
+
+        dp = Dispatcher()
+        my_router = Router()
+        attach_router(my_router, dp)
+        await bot.start()
     """
+    # RU: Регистрирует команды zsys Router как обработчики сообщений aiogram.
     from aiogram.filters import Command as AiogramCommand
     from zsys.telegram.aiogram.context import AiogramContext
 

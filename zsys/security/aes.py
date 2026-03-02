@@ -1,8 +1,11 @@
-"""
-AES Cipher Implementation
+"""AES cipher — symmetric AES-256-CBC encryption implementing ICipher.
 
-Implements ICipher interface using AES encryption.
+Wraps the ``cryptography`` package (hazmat layer) to provide AES-256 in CBC mode
+with PKCS7 padding. Key material is normalised to 32 bytes via SHA-256.
+Requires: pip install zsys[crypto]  (cryptography>=3.0).
 """
+# RU: AES-256-CBC шифрование через библиотеку cryptography.
+# RU: Ключ нормализуется до 32 байт через SHA-256; требует pip install zsys[crypto].
 
 from typing import Optional
 from core.interfaces import ICipher

@@ -1,3 +1,12 @@
+"""Legacy license key manager — RSA-signed, AES-encrypted license keys.
+
+Low-level cryptographic license key generation, HMAC verification, and RSA digital
+signatures using pycryptodome. This module is superseded by LicenseManager in
+manager.py but is kept for backward compatibility.
+Requires: pip install pycryptodome.
+"""
+# RU: Устаревший менеджер лицензионных ключей с RSA-подписью и AES-шифрованием.
+# RU: Заменён LicenseManager в manager.py, сохранён для обратной совместимости.
 import os
 import base64
 import hashlib
@@ -286,11 +295,13 @@ def check_license(license_key_file, hash_storage_file, user_id, suffix="bin"):
 
 # Генерация ключей RSA
 def generate_rsa_keys(public_key_file, private_key_file):
+    """Generate a 2048-bit RSA key pair and save both keys as PEM files.
+
+    Args:
+        public_key_file: Destination path for the PEM-encoded public key.
+        private_key_file: Destination path for the PEM-encoded private key.
     """
-    Генерация пары RSA ключей (публичный и приватный) и их сохранение в файлы.
-    :param public_key_file: Файл для сохранения публичного ключа.
-    :param private_key_file: Файл для сохранения приватного ключа.
-    """
+    # RU: RSA-2048; сохраняет PEM-файлы публичного и приватного ключей.
     key = RSA.generate(2048)
     with open(public_key_file, "wb") as pub_file:
         pub_file.write(key.publickey().export_key())
@@ -301,13 +312,18 @@ def generate_rsa_keys(public_key_file, private_key_file):
 
 # Генерация цифровой подписи
 def generate_signature(data, private_key_file, signature_file, suffix="bin"):
+    """Sign *data* with RSA PKCS1v15 + SHA-512 and save the signature.
+
+    Args:
+        data: Bytes to sign.
+        private_key_file: Path to the PEM private key file.
+        signature_file: Base name for the output signature file.
+        suffix: ``"bin"`` saves raw bytes; ``"txt"`` saves Base64 text.
+
+    Raises:
+        FileNotFoundError: When *private_key_file* does not exist.
     """
-    Генерация цифровой подписи для данных.
-    :param data: Данные для подписи (байты).
-    :param private_key_file: Файл с приватным ключом.
-    :param signature_file: Файл для сохранения подписи.
-    :param suffix: Расширение файла ("bin" или "txt").
-    """
+    # RU: RSA PKCS1v15 + SHA512; "txt" → Base64; "bin" → бинарный файл.
     # Проверка существования файла с приватным ключом
     if not os.path.exists(private_key_file):
         raise FileNotFoundError(f"Файл с приватным ключом {private_key_file} не найден.")
@@ -333,14 +349,22 @@ def generate_signature(data, private_key_file, signature_file, suffix="bin"):
 
 # Проверка цифровой подписи
 def verify_signature(data, signature_file, public_key_file, suffix="bin"):
+    """Verify an RSA PKCS1v15 + SHA-512 signature against *data*.
+
+    Args:
+        data: Bytes whose authenticity is being verified.
+        signature_file: Full path to the signature file (including extension).
+        public_key_file: Path to the PEM public key file.
+        suffix: ``"bin"`` reads raw bytes; ``"txt"`` reads Base64 text.
+
+    Returns:
+        ``True`` if the signature is valid; ``False`` otherwise.
+
+    Raises:
+        FileNotFoundError: When *public_key_file* or *signature_file* does
+            not exist.
     """
-    Проверка цифровой подписи.
-    :param data: Данные для проверки (байты).
-    :param signature_file: Файл с подписью (полное имя, включая расширение).
-    :param public_key_file: Файл с публичным ключом.
-    :param suffix: Расширение файла ("bin" или "txt").
-    :return: True, если подпись действительна, иначе False.
-    """
+    # RU: RSA PKCS1v15 + SHA512; читает подпись (bin или Base64 txt); возвращает bool.
     # Проверка существования файлов
     if not os.path.exists(public_key_file):
         raise FileNotFoundError(f"Файл с публичным ключом {public_key_file} не найден.")

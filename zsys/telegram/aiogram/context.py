@@ -1,14 +1,24 @@
-"""
-aiogram 3.x context adapter with full feature support.
+"""Aiogram 3.x context adapter — full-featured unified message context.
 
-Supports all aiogram features:
-- Message operations
-- Inline keyboards
-- Callback query handling
-- FSM states
-- Throttling
-- And more!
+Wraps an ``aiogram.types.Message`` together with the active ``Bot`` and
+optional ``FSMContext`` into a single ``AiogramContext`` that implements the
+zsys ``Context`` interface, covering messaging, media, moderation, FSM, and
+inline keyboards.
+
+Note:
+    Intended for use inside aiogram handler functions or via
+    ``zsys.telegram.aiogram.router.attach_router``.
+
+Example::
+
+    from zsys.telegram.aiogram import AiogramContext
+
+    async def handler(message, bot, state):
+        ctx = AiogramContext(message, bot, state=state)
+        await ctx.reply("Hello!")
 """
+# RU: Контекстный адаптер aiogram 3.x, реализующий унифицированный интерфейс Context.
+# RU: Объединяет Message, Bot и FSMContext в единый объект для удобной работы с сообщениями.
 
 from __future__ import annotations
 
@@ -29,28 +39,30 @@ if TYPE_CHECKING:
 
 
 class AiogramContext(Context):
+    """Full-featured aiogram 3.x context implementing the unified interface.
+
+    Wraps a raw ``aiogram.types.Message``, the active ``Bot`` instance, and an
+    optional ``FSMContext`` to expose all Telegram capabilities — messaging,
+    media, moderation, FSM, and inline keyboards — through a single consistent
+    API.  Raw aiogram objects remain accessible for advanced use cases.
+
+    Attributes:
+        platform: Always ``"aiogram"``.
+        raw: Underlying ``aiogram.types.Message`` object.
+        client: Active ``aiogram.Bot`` instance (same object as ``bot``).
+        bot: Alias for ``client``; the active ``aiogram.Bot`` instance.
+        command: Parsed command name (without prefix), or empty string.
+        args: Whitespace-split arguments following the command.
+        text: Message text or caption; empty string if absent.
+        state: Optional ``aiogram.fsm.context.FSMContext`` for state machines.
+
+    Example::
+
+        ctx = AiogramContext(message, bot, command="start", state=fsm_state)
+        await ctx.reply("Hello!")
+        await ctx.set_state(MyStates.waiting)
     """
-    Full-featured aiogram 3.x context.
-    
-    Provides all aiogram capabilities through the unified interface,
-    plus direct access to raw aiogram objects for advanced usage.
-    
-    Usage:
-        @command("example")
-        async def example(ctx: AiogramContext):
-            # Unified API
-            await ctx.reply("Hello!")
-            
-            # aiogram-specific
-            await ctx.answer_callback("Done!")  # For callbacks
-            
-            # Use FSM states
-            await ctx.set_state(MyStates.waiting)
-            
-            # Direct access
-            ctx.raw  # aiogram Message object
-            ctx.bot  # aiogram Bot instance
-    """
+    # RU: Полнофункциональный контекст aiogram 3.x на основе унифицированного Context.
     
     platform: str = "aiogram"
     
@@ -62,6 +74,16 @@ class AiogramContext(Context):
         args: List[str] = None,
         state: "FSMContext" = None
     ):
+        """Initialise the context from an aiogram message, bot, and optional FSM state.
+
+        Args:
+            message: Incoming ``aiogram.types.Message`` object.
+            bot: Active ``aiogram.Bot`` instance.
+            command: Parsed command name (without leading ``/``). Defaults to ``""``.
+            args: List of arguments following the command. Defaults to ``[]``.
+            state: Optional ``FSMContext`` for finite-state machine operations.
+        """
+        # RU: Инициализация контекста из объектов aiogram Message, Bot и FSMContext.
         self.raw = message
         self.client = bot
         self.bot = bot  # Alias for convenience
@@ -78,6 +100,19 @@ class AiogramContext(Context):
     
     @property
     def user(self) -> User:
+        """Return the sender as a unified ``User`` dataclass.
+
+        Lazily constructs the ``User`` from ``raw.from_user`` on first access.
+        Returns a zeroed-out ``User(id=0)`` if the sender is absent.
+
+        Returns:
+            ``User`` dataclass populated from the aiogram ``from_user`` field.
+
+        Example::
+
+            print(ctx.user.username)
+        """
+        # RU: Возвращает отправителя в виде унифицированного объекта User.
         if self._user is None:
             u = self.raw.from_user
             if not u:
@@ -96,6 +131,18 @@ class AiogramContext(Context):
     
     @property
     def chat(self) -> Chat:
+        """Return the chat as a unified ``Chat`` dataclass.
+
+        Lazily constructs the ``Chat`` from ``raw.chat`` on first access.
+
+        Returns:
+            ``Chat`` dataclass populated from the aiogram ``chat`` field.
+
+        Example::
+
+            print(ctx.chat.id)
+        """
+        # RU: Возвращает чат в виде унифицированного объекта Chat.
         if self._chat is None:
             c = self.raw.chat
             self._chat = Chat(
@@ -108,15 +155,49 @@ class AiogramContext(Context):
     
     @property
     def message_id(self) -> int:
+        """Return the integer ID of the incoming message.
+
+        Returns:
+            Message ID from ``raw.message_id``.
+
+        Example::
+
+            print(ctx.message_id)
+        """
+        # RU: Возвращает целочисленный идентификатор входящего сообщения.
         return self.raw.message_id
     
     @property
     def is_reply(self) -> bool:
+        """Indicate whether the incoming message is a reply to another message.
+
+        Returns:
+            ``True`` if ``raw.reply_to_message`` is set, ``False`` otherwise.
+
+        Example::
+
+            if ctx.is_reply:
+                replied = await ctx.get_reply_message()
+        """
+        # RU: Возвращает True, если сообщение является ответом на другое сообщение.
         return self.raw.reply_to_message is not None
     
     @property
     def has_media(self) -> bool:
-        """Check if message has any media."""
+        """Indicate whether the message contains any media attachment.
+
+        Checks for photo, video, document, audio, voice, sticker, animation,
+        and video note.
+
+        Returns:
+            ``True`` if at least one media type is present.
+
+        Example::
+
+            if ctx.has_media:
+                await ctx.download_media()
+        """
+        # RU: Возвращает True, если сообщение содержит медиавложение любого типа.
         return bool(
             self.raw.photo or self.raw.video or self.raw.document or
             self.raw.audio or self.raw.voice or self.raw.sticker or
@@ -125,7 +206,18 @@ class AiogramContext(Context):
     
     @property
     def media_type(self) -> Optional[str]:
-        """Get media type if present."""
+        """Return the media type of the message as a string, or ``None``.
+
+        Returns:
+            One of ``"photo"``, ``"video"``, ``"document"``, ``"audio"``,
+            ``"voice"``, ``"sticker"``, ``"animation"``, ``"video_note"``,
+            or ``None`` if the message has no media.
+
+        Example::
+
+            mtype = ctx.media_type  # e.g. "photo"
+        """
+        # RU: Возвращает строковое обозначение типа медиа или None.
         if self.raw.photo:
             return "photo"
         elif self.raw.video:
@@ -149,7 +241,16 @@ class AiogramContext(Context):
     # ==========================================================================
     
     def _parse_mode(self, mode: Optional[str]) -> Optional[str]:
-        """Convert parse mode to aiogram format."""
+        """Convert a unified parse-mode string to the aiogram format.
+
+        Args:
+            mode: ``"markdown"`` → ``"MarkdownV2"``, ``"html"`` → ``"HTML"``,
+                any other value → ``None``.
+
+        Returns:
+            aiogram-compatible parse mode string, or ``None``.
+        """
+        # RU: Преобразует строку режима разметки в формат aiogram.
         if mode == "markdown":
             return "MarkdownV2"
         elif mode == "html":
@@ -164,7 +265,28 @@ class AiogramContext(Context):
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
         **kwargs
     ) -> "Message":
-        """Reply to the message."""
+        """Reply to the incoming message with text.
+
+        Sends the reply using ``raw.reply()``. When ``parse_mode`` is
+        ``"markdown"`` it is silently promoted to ``"html"`` to avoid
+        MarkdownV2 escaping issues.
+
+        Args:
+            text: Reply text.
+            parse_mode: Markup mode — ``"markdown"`` (promoted to HTML),
+                ``"html"``, or ``None``. Defaults to ``"markdown"``.
+            disable_preview: Disable web-page preview. Defaults to ``True``.
+            reply_markup: Optional inline keyboard markup.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.reply("Hello <b>world</b>!")
+        """
+        # RU: Отправляет ответ на входящее сообщение; markdown автоматически заменяется на HTML.
         # Escape special chars for MarkdownV2
         if parse_mode == "markdown":
             # Use HTML instead to avoid escaping issues
@@ -186,7 +308,23 @@ class AiogramContext(Context):
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
         **kwargs
     ) -> "Message":
-        """Edit the message."""
+        """Edit the text of the current message in-place.
+
+        Args:
+            text: New message text.
+            parse_mode: Markup mode. Defaults to ``"markdown"`` (promoted to HTML).
+            disable_preview: Disable web-page preview. Defaults to ``True``.
+            reply_markup: Optional updated inline keyboard markup.
+            **kwargs: Extra keyword arguments forwarded to ``Message.edit_text``.
+
+        Returns:
+            Updated ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.edit("Updated text")
+        """
+        # RU: Редактирует текст текущего сообщения.
         if parse_mode == "markdown":
             parse_mode = "html"
         
@@ -199,7 +337,17 @@ class AiogramContext(Context):
         )
     
     async def delete(self) -> bool:
-        """Delete the message."""
+        """Delete the current message.
+
+        Returns:
+            ``True`` on success, ``False`` if deletion failed (e.g. no
+            permission or the message is too old).
+
+        Example::
+
+            deleted = await ctx.delete()
+        """
+        # RU: Удаляет текущее сообщение; возвращает False при ошибке.
         try:
             await self.raw.delete()
             return True
@@ -212,7 +360,23 @@ class AiogramContext(Context):
         parse_mode: Optional[str] = "markdown",
         **kwargs
     ) -> "Message":
-        """Bot always replies (doesn't edit)."""
+        """Send a reply to the message (alias for :meth:`reply`).
+
+        Always sends a new reply message rather than editing.
+
+        Args:
+            text: Answer text.
+            parse_mode: Markup mode. Defaults to ``"markdown"``.
+            **kwargs: Extra keyword arguments forwarded to :meth:`reply`.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.answer("Got it!")
+        """
+        # RU: Отправляет ответное сообщение (псевдоним reply).
         return await self.reply(text, parse_mode=parse_mode, **kwargs)
     
     async def send(
@@ -222,7 +386,22 @@ class AiogramContext(Context):
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
         **kwargs
     ) -> "Message":
-        """Send a new message (not reply)."""
+        """Send a new independent message to the current chat (not a reply).
+
+        Args:
+            text: Message text.
+            parse_mode: Markup mode. Defaults to ``"markdown"`` (promoted to HTML).
+            reply_markup: Optional inline keyboard markup.
+            **kwargs: Extra keyword arguments forwarded to ``Bot.send_message``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send("Broadcast message")
+        """
+        # RU: Отправляет новое самостоятельное сообщение в текущий чат.
         if parse_mode == "markdown":
             parse_mode = "html"
         
@@ -239,7 +418,17 @@ class AiogramContext(Context):
     # ==========================================================================
     
     def _prepare_file(self, file: Union[str, Path, BinaryIO]):
-        """Prepare file for sending."""
+        """Wrap a local file path in ``FSInputFile``; pass through other types.
+
+        Args:
+            file: File path (``str`` or ``Path``) or an already-open binary
+                stream.
+
+        Returns:
+            ``aiogram.types.FSInputFile`` if ``file`` is an existing path,
+            otherwise the original object unchanged.
+        """
+        # RU: Оборачивает путь к файлу в FSInputFile для отправки через aiogram.
         from aiogram.types import FSInputFile
         if isinstance(file, (str, Path)) and Path(file).exists():
             return FSInputFile(file)
@@ -254,7 +443,24 @@ class AiogramContext(Context):
         spoiler: bool = False,
         **kwargs
     ) -> "Message":
-        """Send a photo."""
+        """Send a photo as a reply to the current message.
+
+        Args:
+            photo: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            caption: Optional caption text.
+            parse_mode: Caption markup mode. Defaults to ``"markdown"`` (→ HTML).
+            reply_markup: Optional inline keyboard markup.
+            spoiler: Whether to hide the photo behind a spoiler overlay.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_photo``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_photo("image.jpg", caption="Look!")
+        """
+        # RU: Отправляет фото в ответ на текущее сообщение.
         if parse_mode == "markdown":
             parse_mode = "html"
         
@@ -274,7 +480,22 @@ class AiogramContext(Context):
         parse_mode: Optional[str] = "markdown",
         **kwargs
     ) -> "Message":
-        """Send a document."""
+        """Send a document as a reply to the current message.
+
+        Args:
+            document: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            caption: Optional caption text.
+            parse_mode: Caption markup mode. Defaults to ``"markdown"`` (→ HTML).
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_document``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_document("report.pdf", caption="Here is the report.")
+        """
+        # RU: Отправляет документ в ответ на текущее сообщение.
         if parse_mode == "markdown":
             parse_mode = "html"
         
@@ -296,7 +517,26 @@ class AiogramContext(Context):
         spoiler: bool = False,
         **kwargs
     ) -> "Message":
-        """Send a video."""
+        """Send a video as a reply to the current message.
+
+        Args:
+            video: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            caption: Optional caption text.
+            parse_mode: Caption markup mode. Defaults to ``"markdown"`` (→ HTML).
+            duration: Video duration in seconds.
+            width: Video width in pixels.
+            height: Video height in pixels.
+            spoiler: Whether to hide the video behind a spoiler overlay.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_video``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_video("clip.mp4", caption="Watch this!")
+        """
+        # RU: Отправляет видео в ответ на текущее сообщение.
         if parse_mode == "markdown":
             parse_mode = "html"
         
@@ -320,7 +560,24 @@ class AiogramContext(Context):
         title: Optional[str] = None,
         **kwargs
     ) -> "Message":
-        """Send an audio file."""
+        """Send an audio file as a reply to the current message.
+
+        Args:
+            audio: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            caption: Optional caption text.
+            duration: Audio duration in seconds.
+            performer: Performer name shown in the audio player.
+            title: Track title shown in the audio player.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_audio``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_audio("song.mp3", title="My Song")
+        """
+        # RU: Отправляет аудиофайл в ответ на текущее сообщение.
         return await self.raw.reply_audio(
             self._prepare_file(audio),
             caption=caption,
@@ -337,7 +594,22 @@ class AiogramContext(Context):
         duration: Optional[int] = None,
         **kwargs
     ) -> "Message":
-        """Send a voice message."""
+        """Send a voice message as a reply to the current message.
+
+        Args:
+            voice: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            caption: Optional caption text.
+            duration: Voice message duration in seconds.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_voice``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_voice("note.ogg")
+        """
+        # RU: Отправляет голосовое сообщение в ответ на текущее.
         return await self.raw.reply_voice(
             self._prepare_file(voice),
             caption=caption,
@@ -352,7 +624,22 @@ class AiogramContext(Context):
         length: Optional[int] = None,
         **kwargs
     ) -> "Message":
-        """Send a video note (round video)."""
+        """Send a round video note as a reply to the current message.
+
+        Args:
+            video_note: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            duration: Video note duration in seconds.
+            length: Video note side dimension in pixels (must be square).
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_video_note``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_video_note("circle.mp4")
+        """
+        # RU: Отправляет круглое видео (video note) в ответ на текущее сообщение.
         return await self.raw.reply_video_note(
             self._prepare_file(video_note),
             duration=duration,
@@ -365,7 +652,20 @@ class AiogramContext(Context):
         sticker: Union[str, BinaryIO],
         **kwargs
     ) -> "Message":
-        """Send a sticker."""
+        """Send a sticker as a reply to the current message.
+
+        Args:
+            sticker: File path, binary stream, or Telegram ``file_id`` / URL.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_sticker``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_sticker("CAACAgIAAxkBAAI...")
+        """
+        # RU: Отправляет стикер в ответ на текущее сообщение.
         return await self.raw.reply_sticker(
             self._prepare_file(sticker) if isinstance(sticker, (str, Path)) else sticker,
             **kwargs
@@ -377,7 +677,21 @@ class AiogramContext(Context):
         caption: Optional[str] = None,
         **kwargs
     ) -> "Message":
-        """Send a GIF/animation."""
+        """Send a GIF or animation as a reply to the current message.
+
+        Args:
+            animation: File path, ``Path``, binary stream, or Telegram ``file_id``.
+            caption: Optional caption text.
+            **kwargs: Extra keyword arguments forwarded to ``Message.reply_animation``.
+
+        Returns:
+            Sent ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.send_animation("reaction.gif")
+        """
+        # RU: Отправляет GIF-анимацию в ответ на текущее сообщение.
         return await self.raw.reply_animation(
             self._prepare_file(animation),
             caption=caption,
@@ -389,7 +703,20 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def forward(self, chat_id: int, disable_notification: bool = False) -> "Message":
-        """Forward the message to another chat."""
+        """Forward the current message to another chat.
+
+        Args:
+            chat_id: Target chat identifier.
+            disable_notification: If ``True``, send silently. Defaults to ``False``.
+
+        Returns:
+            The forwarded ``aiogram.types.Message`` object.
+
+        Example::
+
+            await ctx.forward(chat_id=-100123456789)
+        """
+        # RU: Пересылает текущее сообщение в другой чат.
         return await self.raw.forward(chat_id, disable_notification=disable_notification)
     
     async def copy(
@@ -398,11 +725,37 @@ class AiogramContext(Context):
         caption: Optional[str] = None,
         **kwargs
     ) -> Any:
-        """Copy the message to another chat."""
+        """Copy the current message to another chat without a forward header.
+
+        Args:
+            chat_id: Target chat identifier.
+            caption: Optional new caption to replace the original one.
+            **kwargs: Extra keyword arguments forwarded to ``Message.copy_to``.
+
+        Returns:
+            ``MessageId`` of the copy on success.
+
+        Example::
+
+            await ctx.copy(chat_id=-100123456789)
+        """
+        # RU: Копирует сообщение в другой чат без заголовка пересылки.
         return await self.raw.copy_to(chat_id, caption=caption, **kwargs)
     
     async def pin(self, disable_notification: bool = False) -> bool:
-        """Pin the message."""
+        """Pin the current message in the chat.
+
+        Args:
+            disable_notification: If ``True``, pin silently. Defaults to ``False``.
+
+        Returns:
+            ``True`` on success, ``False`` if pinning failed.
+
+        Example::
+
+            await ctx.pin()
+        """
+        # RU: Закрепляет текущее сообщение в чате.
         try:
             await self.raw.pin(disable_notification=disable_notification)
             return True
@@ -410,7 +763,16 @@ class AiogramContext(Context):
             return False
     
     async def unpin(self) -> bool:
-        """Unpin the message."""
+        """Unpin the current message in the chat.
+
+        Returns:
+            ``True`` on success, ``False`` if unpinning failed.
+
+        Example::
+
+            await ctx.unpin()
+        """
+        # RU: Открепляет текущее сообщение в чате.
         try:
             await self.bot.unpin_chat_message(self.chat.id, self.message_id)
             return True
@@ -418,7 +780,19 @@ class AiogramContext(Context):
             return False
     
     async def react(self, emoji: str) -> bool:
-        """Add reaction to the message."""
+        """Add an emoji reaction to the current message.
+
+        Args:
+            emoji: Unicode emoji string to react with (e.g. ``"👍"``).
+
+        Returns:
+            ``True`` on success, ``False`` if the reaction could not be set.
+
+        Example::
+
+            await ctx.react("👍")
+        """
+        # RU: Устанавливает эмодзи-реакцию на текущее сообщение.
         try:
             from aiogram.types import ReactionTypeEmoji
             await self.bot.set_message_reaction(
@@ -435,7 +809,19 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def get_reply_message(self) -> Optional["AiogramContext"]:
-        """Get the message being replied to."""
+        """Return the message being replied to, wrapped in a new context.
+
+        Returns:
+            A new ``AiogramContext`` wrapping ``raw.reply_to_message``, or
+            ``None`` if the message is not a reply.
+
+        Example::
+
+            if ctx.is_reply:
+                replied_ctx = await ctx.get_reply_message()
+                print(replied_ctx.text)
+        """
+        # RU: Возвращает контекст сообщения, на которое отвечает текущее.
         if self.raw.reply_to_message:
             return AiogramContext(
                 self.raw.reply_to_message,
@@ -451,7 +837,23 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def download_media(self, path: Optional[str] = None) -> Optional[str]:
-        """Download media from the message."""
+        """Download the media attachment of the current message to disk.
+
+        Selects the best available ``file_id`` (largest photo size for photos)
+        and downloads via ``Bot.download_file``.
+
+        Args:
+            path: Destination file path. Defaults to ``"downloads/<file_id>"``.
+
+        Returns:
+            The destination path string on success, or ``None`` if the message
+            has no downloadable media.
+
+        Example::
+
+            saved_path = await ctx.download_media("/tmp/photo.jpg")
+        """
+        # RU: Скачивает медиавложение сообщения на диск.
         file_id = None
         
         if self.raw.photo:
@@ -484,27 +886,63 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def typing(self):
-        """Send 'typing' action."""
+        """Send a ``typing`` chat action indicator to the current chat.
+
+        Example::
+
+            await ctx.typing()
+        """
+        # RU: Показывает индикатор «печатает…» в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "typing")
     
     async def upload_photo(self):
-        """Send 'uploading photo' action."""
+        """Send an ``upload_photo`` chat action indicator to the current chat.
+
+        Example::
+
+            await ctx.upload_photo()
+        """
+        # RU: Показывает индикатор загрузки фото в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "upload_photo")
     
     async def upload_video(self):
-        """Send 'uploading video' action."""
+        """Send an ``upload_video`` chat action indicator to the current chat.
+
+        Example::
+
+            await ctx.upload_video()
+        """
+        # RU: Показывает индикатор загрузки видео в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "upload_video")
     
     async def upload_document(self):
-        """Send 'uploading document' action."""
+        """Send an ``upload_document`` chat action indicator to the current chat.
+
+        Example::
+
+            await ctx.upload_document()
+        """
+        # RU: Показывает индикатор загрузки документа в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "upload_document")
     
     async def record_voice(self):
-        """Send 'recording voice' action."""
+        """Send a ``record_voice`` chat action indicator to the current chat.
+
+        Example::
+
+            await ctx.record_voice()
+        """
+        # RU: Показывает индикатор записи голосового сообщения в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "record_voice")
     
     async def record_video(self):
-        """Send 'recording video' action."""
+        """Send a ``record_video`` chat action indicator to the current chat.
+
+        Example::
+
+            await ctx.record_video()
+        """
+        # RU: Показывает индикатор записи видео в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "record_video")
     
     # ==========================================================================
@@ -512,12 +950,40 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def get_chat_member(self, user_id: Optional[int] = None) -> Any:
-        """Get chat member info."""
+        """Fetch chat-member status for a user in the current chat.
+
+        Args:
+            user_id: Target user ID. Defaults to the sender's ID.
+
+        Returns:
+            aiogram ``ChatMember`` object with status and permissions.
+
+        Example::
+
+            member = await ctx.get_chat_member()
+            print(member.status)
+        """
+        # RU: Получает информацию об участнике текущего чата.
         uid = user_id or self.user.id
         return await self.bot.get_chat_member(self.chat.id, uid)
     
     async def is_admin(self, user_id: Optional[int] = None) -> bool:
-        """Check if user is admin in current chat."""
+        """Check whether a user holds admin privileges in the current chat.
+
+        Always returns ``True`` in private chats.
+
+        Args:
+            user_id: Target user ID. Defaults to the sender's ID.
+
+        Returns:
+            ``True`` if the user is ``administrator`` or ``creator``.
+
+        Example::
+
+            if await ctx.is_admin():
+                await ctx.reply("Welcome, admin!")
+        """
+        # RU: Проверяет, является ли пользователь администратором в текущем чате.
         if self.is_private:
             return True
         try:
@@ -527,7 +993,22 @@ class AiogramContext(Context):
             return False
     
     async def is_owner(self, user_id: Optional[int] = None) -> bool:
-        """Check if user is owner of current chat."""
+        """Check whether a user is the owner (creator) of the current chat.
+
+        Always returns ``True`` in private chats.
+
+        Args:
+            user_id: Target user ID. Defaults to the sender's ID.
+
+        Returns:
+            ``True`` if the user's status is ``"creator"``.
+
+        Example::
+
+            if await ctx.is_owner():
+                await ctx.reply("Welcome, owner!")
+        """
+        # RU: Проверяет, является ли пользователь владельцем текущего чата.
         if self.is_private:
             return True
         try:
@@ -541,7 +1022,20 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def ban_user(self, user_id: Optional[int] = None, until_date: int = 0) -> bool:
-        """Ban user from chat."""
+        """Ban a user from the current chat.
+
+        Args:
+            user_id: ID of the user to ban. Defaults to the sender's ID.
+            until_date: Unix timestamp of the ban expiry. ``0`` means permanent.
+
+        Returns:
+            ``True`` on success, ``False`` if the ban failed.
+
+        Example::
+
+            await ctx.ban_user(user_id=123456)
+        """
+        # RU: Банит пользователя в текущем чате.
         try:
             uid = user_id or self.user.id
             await self.bot.ban_chat_member(self.chat.id, uid, until_date=until_date or None)
@@ -686,7 +1180,23 @@ class AiogramContext(Context):
     
     @staticmethod
     def button(text: str, callback_data: str = None, url: str = None):
-        """Create an inline button."""
+        """Create a single ``InlineKeyboardButton``.
+
+        Args:
+            text: Button label shown to the user.
+            callback_data: Callback data string sent on press. Defaults to
+                ``text`` if neither this nor ``url`` is provided.
+            url: URL to open on press (mutually exclusive with
+                ``callback_data``).
+
+        Returns:
+            ``aiogram.types.InlineKeyboardButton`` instance.
+
+        Example::
+
+            btn = AiogramContext.button("Click me", callback_data="btn_1")
+        """
+        # RU: Создаёт кнопку инлайн-клавиатуры.
         from aiogram.types import InlineKeyboardButton
         if url:
             return InlineKeyboardButton(text=text, url=url)
@@ -694,7 +1204,23 @@ class AiogramContext(Context):
     
     @staticmethod
     def keyboard(*rows: List):
-        """Create an inline keyboard from rows of buttons."""
+        """Build an ``InlineKeyboardMarkup`` from rows of buttons.
+
+        Args:
+            *rows: Each positional argument is an iterable of
+                ``InlineKeyboardButton`` objects representing one row.
+
+        Returns:
+            ``aiogram.types.InlineKeyboardMarkup`` ready to attach as
+            ``reply_markup``.
+
+        Example::
+
+            kb = AiogramContext.keyboard(
+                [AiogramContext.button("Yes", "yes"), AiogramContext.button("No", "no")]
+            )
+        """
+        # RU: Собирает InlineKeyboardMarkup из строк кнопок.
         from aiogram.types import InlineKeyboardMarkup
         return InlineKeyboardMarkup(inline_keyboard=[list(row) for row in rows])
     
@@ -709,7 +1235,27 @@ class AiogramContext(Context):
         url: Optional[str] = None,
         cache_time: int = 0
     ) -> bool:
-        """Answer callback query (if this is a callback context)."""
+        """Answer a callback query originating from this context.
+
+        Should be called from a callback-query handler to dismiss the loading
+        indicator on the button.
+
+        Args:
+            text: Optional notification text shown to the user.
+            show_alert: If ``True``, show a blocking alert dialog instead of
+                a toast notification.
+            url: URL to open on the client side (for ``Game`` callbacks).
+            cache_time: Seconds the client may cache the answer.
+
+        Returns:
+            ``True`` on success, ``False`` if the context has no
+            ``answer`` method or if the call failed.
+
+        Example::
+
+            await ctx.answer_callback("Done!", show_alert=False)
+        """
+        # RU: Отвечает на callback-запрос; снимает индикатор загрузки с кнопки.
         # This is typically called from CallbackQuery handler
         if hasattr(self.raw, 'answer'):
             try:

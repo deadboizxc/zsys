@@ -1,12 +1,12 @@
-"""
-Core Cryptography Module - Universal crypto utilities for zsys ecosystem.
+"""Security crypto utilities — hashing, HMAC tokens, and ChaCha20 encryption.
 
-Provides:
-- Hashing (MD5, SHA256, SHA512, Argon2)
-- Token generation/verification (HMAC-based)
-- ChaCha20-Poly1305 encryption
-- File hashing
+Lightweight crypto helpers used internally by zsys security layer.
+Provides SHA-256 file hashing, HMAC token generation/verification,
+and optional ChaCha20-Poly1305 authenticated encryption.
+Requires: pip install cryptography  for ChaCha20 support.
 """
+# RU: Утилиты безопасности — хеширование, HMAC-токены и ChaCha20-шифрование.
+# RU: ChaCha20 требует: pip install cryptography.
 
 import hashlib
 import hmac

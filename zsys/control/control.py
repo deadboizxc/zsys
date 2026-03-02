@@ -1,12 +1,12 @@
-"""
-Core Control Module - Process management utilities for zsys ecosystem.
+"""Process control utilities — restart, stop, and hot-swap executables.
 
-Provides:
-- Process restart functionality
-- Graceful shutdown
-- Hot-reload support
-- Cross-platform process management
+Cross-platform utilities for restarting or stopping the current Python process,
+with optional cleanup callbacks and support for frozen executables (PyInstaller).
+On POSIX the new process is spawned via os.execv; on Windows/POSIX a shell
+script is generated for replace_executable hot-swap.
 """
+# RU: Утилиты управления процессом — перезапуск, остановка и горячая замена.
+# RU: Поддерживает frozen-исполняемые файлы (PyInstaller) и кроссплатформенность.
 
 import os
 import sys

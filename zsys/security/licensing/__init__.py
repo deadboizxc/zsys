@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-"""zsys core licensing - License key management system.
+"""Licensing package — cryptographic license key generation and validation.
 
-Provides cryptographic license key generation and validation.
+Wraps LicenseManager and helper functions from the manager module.
+Sets LICENSING_AVAILABLE=False when pycryptodome is not installed,
+allowing graceful feature degradation.
 """
+# RU: Пакет лицензирования — генерация и проверка лицензионных ключей.
+# RU: LICENSING_AVAILABLE=False если pycryptodome не установлен.
 
 try:
     from .manager import (

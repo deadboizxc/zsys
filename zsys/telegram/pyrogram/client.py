@@ -1,27 +1,29 @@
+"""PyrogramClient — Pyrogram userbot client with IClient structural subtyping.
+
+Provides ``PyrogramClient`` and ``PyrogramConfig`` as the primary entry-point
+for building Pyrogram-based userbots inside the zsys framework.  The client
+inherits directly from ``pyrogram.Client`` while satisfying ``IClient``
+through structural subtyping (Protocol), giving full Telegram API access
+alongside a standardised zsys lifecycle (start / stop / idle).
+
+Note:
+    ``PyrogramClient`` is **not** a wrapper around ``pyrogram.Client`` — it
+    *is* a ``pyrogram.Client``.  All Telegram API methods (``send_message``,
+    ``on_message``, ``get_chat``, …) are available directly on ``self``.
+    Subclass and override ``_on_started``, ``_on_stopping``, and
+    ``_register_handlers`` to customise behaviour without touching the core.
+    The module belongs to the ``zsys.telegram.pyrogram`` subsystem.
+
+Example::
+
+    config = PyrogramConfig(api_id=123456, api_hash="0abc1def")
+    client = PyrogramClient(config)
+    await client.start()
+    await client.idle()
 """
-PyrogramClient - Pyrogram userbot with IClient inheritance.
-
-PyrogramClient(Client, IClient) is not a wrapper but direct inheritance.
-This means self IS a pyrogram Client and IS an IClient at the same time.
-
-Hierarchy:
-    pyrogram.Client               - full Telegram API
-    zsys.core.interfaces.IClient  - zsys interface (start/stop/send_message/is_running)
-    PyrogramConfig (BaseConfig)   - configuration via Pydantic
-    PyrogramClient(Client, IClient) - final class, ready for subclassing
-
-Subclassing in your own bot:
-    class MyUserbot(PyrogramClient):
-        async def _on_started(self) -> None:
-            await self.load_modules()
-            await self.send_message("me", "Started!")
-
-        def _register_handlers(self) -> None:
-            @self.on_message(filters.command("ping") & filters.me)
-            async def ping(_, msg):
-                await msg.edit("pong")
-"""
-# RU: PyrogramClient - Pyrogram userbot с наследованием от IClient.
+# RU: PyrogramClient — Pyrogram userbot-клиент с реализацией IClient через структурную типизацию.
+# RU: Предоставляет PyrogramClient и PyrogramConfig как основную точку входа для Pyrogram-ботов
+# RU: в рамках zsys. Клиент наследует pyrogram.Client и удовлетворяет IClient (Protocol).
 
 from __future__ import annotations
 
@@ -82,8 +84,20 @@ class PyrogramConfig(BaseConfig):
         api_server_port: Port for the HTTP API server.
         enable_admin_bot: Start an admin control bot on startup.
         admin_bot_token: Bot token for the admin bot.
+
+    Note:
+        All fields can be overridden via environment variables using the
+        ``PYROGRAM_`` prefix (e.g. ``PYROGRAM_API_ID``, ``PYROGRAM_API_HASH``).
+        This is controlled by the inner ``Config`` class with
+        ``env_prefix = "PYROGRAM_"``.
+
+    Example::
+
+        config = PyrogramConfig(api_id=123456, api_hash="0abc1def")
+        client = PyrogramClient(config)
     """
     # RU: Конфигурация Pyrogram userbot/bot.
+    # RU: Все поля можно переопределить через переменные окружения с префиксом PYROGRAM_.
 
     # Credentials
     api_id: int = Field(description="Telegram API ID")
@@ -121,6 +135,8 @@ class PyrogramConfig(BaseConfig):
     admin_bot_token: str = Field(default="")
 
     class Config:
+        """Pydantic config — sets the ``PYROGRAM_`` env-var prefix for all fields."""
+        # RU: Pydantic-конфиг — устанавливает префикс переменных окружения PYROGRAM_.
         env_prefix = "PYROGRAM_"
 
 
@@ -131,19 +147,36 @@ class PyrogramConfig(BaseConfig):
 class PyrogramClient(Client):
     """Pyrogram userbot/bot implementing IClient via structural subtyping.
 
-    Inherits directly from pyrogram.Client so all Telegram API methods are
-    available on self: self.send_message(), self.on_message(), etc.
+    Inherits directly from ``pyrogram.Client`` so all Telegram API methods are
+    available on ``self``: ``self.send_message()``, ``self.on_message()``, etc.
 
-    Implements IClient through duck typing (Protocol structural subtyping):
-    isinstance(client, IClient) == True without explicit inheritance.
+    Satisfies ``IClient`` through duck-typing (Protocol structural subtyping) so
+    ``isinstance(client, IClient)`` returns ``True`` without explicit inheritance.
 
-    Override in subclasses:
-        _on_started()        - called after successful startup
-        _on_stopping()       - called before shutdown
-        _register_handlers() - register command handlers
-        _load_all_modules()  - load module system
+    Attributes:
+        is_running: ``True`` while the client is active.
+        is_stopping: ``True`` while a graceful shutdown is in progress.
+        pyrogram_config: The ``PyrogramConfig`` instance used to init the client.
+        loaded_modules: Snapshot dict of successfully loaded module objects.
+        failed_modules: List of module names that failed to load.
+
+    Note:
+        Override ``_on_started``, ``_on_stopping``, and ``_register_handlers``
+        in a subclass to customise lifecycle behaviour without touching the core.
+
+    Example::
+
+        class MyBot(PyrogramClient):
+            async def _on_started(self) -> None:
+                await self.send_message("me", "Ready!")
+
+        config = PyrogramConfig(api_id=123, api_hash="abc")
+        bot = MyBot(config)
+        await bot.start()
+        await bot.idle()
     """
-    # RU: Pyrogram userbot/bot с реализацией IClient (структурная типизация).
+    # RU: Pyrogram userbot/bot с реализацией IClient через структурную типизацию (Protocol).
+    # RU: Наследует pyrogram.Client напрямую — все методы Telegram API доступны через self.
 
     def __init__(self, config: PyrogramConfig) -> None:
         """Initialize the client with a configuration object.

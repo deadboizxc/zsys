@@ -1,97 +1,134 @@
-"""Bot interface for messaging platforms."""
+"""IBot — abstract contract for bot client implementations.
+
+Defines the structural Protocol interface that all bot backends
+(aiogram, pyTelegramBotAPI, discord.py, etc.) must satisfy.
+"""
+# RU: Интерфейс IBot — контракт для реализаций бот-клиентов.
+# RU: Структурная типизация (Protocol): явное наследование не требуется.
 
 from typing import Protocol, runtime_checkable, Any, Callable
 
 
 @runtime_checkable
 class IBot(Protocol):
+    """Abstract contract for regular bot clients (not userbots).
+
+    All bot backends must expose lifecycle management (start/stop),
+    basic messaging (send_message, delete_message), and handler
+    registration (command, message_handler).
+
+    Note:
+        This is a Protocol-based interface using structural subtyping.
+        Implementations do not need to explicitly inherit from IBot.
+
+    Supported platforms:
+        - Telegram Bot API (aiogram, pyTelegramBotAPI)
+        - Discord (discord.py)
+        - Other bot platforms
     """
-    Bot interface for regular bots (not userbots).
-    
-    Used for:
-    - Telegram Bot API (aiogram, pyTelegramBotAPI)
-    - Discord bots (discord.py)
-    - Other bot platforms
-    
-    Note: This is a Protocol-based interface using structural subtyping.
-    Implementations don't need to explicitly inherit from this class.
-    """
-    
+    # RU: Абстрактный контракт для бот-клиентов (не юзерботов).
+
     # ===== Lifecycle Management =====
-    
+
     async def start(self) -> None:
-        """Start the bot and establish connection."""
+        """Connect to the platform and begin polling or webhook.
+
+        Implementations must establish the underlying connection and
+        set ``is_running`` to True on success.
+        """
+        # RU: Запустить бот и установить соединение с платформой.
         ...
-    
+
     async def stop(self) -> None:
-        """Stop the bot and cleanup resources."""
+        """Disconnect from the platform and release all resources.
+
+        Implementations must gracefully stop polling/webhook handlers
+        and set ``is_running`` to False.
+        """
+        # RU: Остановить бот, разорвать соединение и освободить ресурсы.
         ...
-    
+
     @property
     def is_running(self) -> bool:
-        """Check if bot is currently running."""
+        """Whether the bot is currently connected and polling.
+
+        Returns:
+            True if the bot is active, False otherwise.
+        """
+        # RU: True, если бот активен и принимает обновления.
         ...
-    
+
     # ===== Basic Messaging =====
-    
+
     async def send_message(
-        self, 
-        chat_id: int | str, 
-        text: str, 
+        self,
+        chat_id: int | str,
+        text: str,
         **kwargs: Any
     ) -> Any:
-        """
-        Send a text message to a chat.
-        
+        """Send a text message to a chat.
+
         Args:
-            chat_id: Target chat ID (int) or username (str)
-            text: Message text
-            **kwargs: Platform-specific parameters
-            
+            chat_id: Target chat identifier — integer ID or string username.
+            text: UTF-8 text content of the message.
+            **kwargs: Platform-specific parameters (parse_mode, reply_markup, etc.).
+
         Returns:
-            Message object (platform-specific)
+            Platform-specific message object representing the sent message.
         """
+        # RU: Отправить текстовое сообщение в чат.
         ...
-    
+
     async def delete_message(
-        self, 
-        chat_id: int | str, 
+        self,
+        chat_id: int | str,
         message_id: int
     ) -> bool:
-        """Delete a message."""
-        ...
-    
-    # ===== Bot-Specific Features =====
-    
-    def command(self, commands: str | list[str]) -> Callable:
-        """
-        Decorator for registering command handlers.
-        
+        """Delete a message from a chat.
+
         Args:
-            commands: Command name(s) without leading slash
-            
+            chat_id: Chat identifier where the message lives.
+            message_id: Unique identifier of the message to delete.
+
+        Returns:
+            True if the message was deleted successfully, False otherwise.
+        """
+        # RU: Удалить сообщение из чата.
+        ...
+
+    # ===== Bot-Specific Features =====
+
+    def command(self, commands: str | list[str]) -> Callable:
+        """Return a decorator that registers a command handler.
+
+        Implementations must bind the decorated coroutine to the given
+        command trigger(s) so it fires when users send the command.
+
+        Args:
+            commands: Command name or list of names (without leading slash).
+
+        Returns:
+            Decorator that registers the wrapped function as a handler.
+
         Example:
             @bot.command("start")
             async def handle_start(message):
                 await message.reply("Hello!")
         """
+        # RU: Вернуть декоратор регистрации обработчика команды.
         ...
-    
+
     def message_handler(self, **filters: Any) -> Callable:
-        """
-        Decorator for registering message handlers with filters.
-        
+        """Return a decorator that registers a message handler with filters.
+
         Args:
-            **filters: Platform-specific filters (content_types, func, etc.)
+            **filters: Platform-specific message filters
+                (content_types, func, regexp, etc.).
+
+        Returns:
+            Decorator that registers the wrapped function as a handler.
         """
-        ...
-    
-    async def delete_message(
-        self, 
-        chat_id: int | str, 
-        message_id: int
-    ) -> bool:
-        """Delete a message."""
+        # RU: Вернуть декоратор регистрации обработчика сообщений с фильтрами.
         ...
 
 

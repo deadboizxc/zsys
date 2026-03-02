@@ -1,8 +1,12 @@
-"""
-ECC Cipher Implementation
+"""ECC cipher — ECDH key exchange with AES-GCM encryption implementing ICipher.
 
-Implements ICipher interface using Elliptic Curve Cryptography.
+Uses SECP256R1 curve for Elliptic-Curve Diffie-Hellman to derive a shared secret,
+then HKDF-SHA256 to produce a 32-byte AES key, and AES-GCM for authenticated
+encryption. More efficient than RSA at equivalent security levels.
+Requires: pip install zsys[crypto].
 """
+# RU: ECC-шифрование через ECDH + AES-GCM; кривая SECP256R1.
+# RU: Эффективнее RSA при эквивалентном уровне безопасности. Требует pip install zsys[crypto].
 
 from core.interfaces import ICipher
 from core.exceptions import CryptoError

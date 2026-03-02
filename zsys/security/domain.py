@@ -1,4 +1,10 @@
-"""Cryptographic utilities."""
+"""Security domain — placeholder for domain-level security models.
+
+Reserved for future security domain entities such as permission models,
+roles, policies, and security context objects used across the zsys security layer.
+"""
+# RU: Домен безопасности — заглушка для будущих моделей и объектов безопасности.
+# RU: Зарезервировано для прав доступа, ролей и политик безопасности.
 import hashlib
 import hmac
 import os
