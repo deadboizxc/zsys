@@ -1,9 +1,11 @@
-"""
-Base context classes for unified module system.
+"""Context dataclasses — unified command-handler context for all platforms.
 
-This module provides the abstract base classes and common types
-that all platform-specific contexts inherit from.
+Provides User, Chat, and the abstract Context base class that platform-
+specific contexts (Pyrogram, aiogram, telebot) inherit from.  The Context
+abstraction ensures handler code is portable across messaging backends.
 """
+# RU: Датаклассы контекста — унифицированный контекст обработчиков команд.
+# RU: User, Chat и абстрактный Context для всех платформ.
 
 from __future__ import annotations
 
@@ -15,7 +17,18 @@ from pathlib import Path
 
 @dataclass
 class User:
-    """Unified user representation."""
+    """Unified user representation across all messaging platforms.
+
+    Attributes:
+        id: Numeric user identifier.
+        username: @username without the leading ``@``; None if not set.
+        first_name: User's first name; None if not available.
+        last_name: User's last name; None if not available.
+        is_bot: True if this account is a bot.
+        language_code: BCP-47 language code (e.g. ``"en"``); None if unknown.
+        is_premium: True if the user has premium status.
+    """
+    # RU: Унифицированное представление пользователя для всех платформ.
     id: int
     username: Optional[str] = None
     first_name: Optional[str] = None
@@ -23,24 +36,39 @@ class User:
     is_bot: bool = False
     language_code: Optional[str] = None
     is_premium: bool = False
-    
+
     @property
     def full_name(self) -> str:
-        """Full name (first + last)."""
+        """Concatenated first and last name.
+
+        Returns:
+            ``"First Last"`` or just ``"First"`` if no last name.
+        """
+        # RU: Полное имя пользователя (имя + фамилия).
         if self.last_name:
             return f"{self.first_name} {self.last_name}"
         return self.first_name or ""
-    
+
     @property
     def mention(self) -> str:
-        """Markdown mention link."""
+        """Markdown inline mention link.
+
+        Returns:
+            ``@username`` or inline tg:// link with full name.
+        """
+        # RU: Markdown-ссылка-упоминание пользователя.
         if self.username:
             return f"@{self.username}"
         return f"[{self.full_name}](tg://user?id={self.id})"
-    
+
     @property
     def html_mention(self) -> str:
-        """HTML mention link."""
+        """HTML inline mention link.
+
+        Returns:
+            ``@username`` or HTML anchor with tg:// href.
+        """
+        # RU: HTML-ссылка-упоминание пользователя.
         if self.username:
             return f"@{self.username}"
         return f'<a href="tg://user?id={self.id}">{self.full_name}</a>'
@@ -48,29 +76,50 @@ class User:
 
 @dataclass
 class Chat:
-    """Unified chat representation."""
+    """Unified chat representation across all messaging platforms.
+
+    Attributes:
+        id: Numeric chat identifier.
+        type: Chat category string (``"private"``, ``"group"``, etc.).
+        title: Display title for groups/channels; None for private chats.
+        username: Public @username without ``@``; None if not public.
+        description: Chat description text; None if not set.
+        members_count: Total member count; None if not available.
+    """
+    # RU: Унифицированное представление чата для всех платформ.
     id: int
     type: str  # "private", "group", "supergroup", "channel"
     title: Optional[str] = None
     username: Optional[str] = None
     description: Optional[str] = None
     members_count: Optional[int] = None
-    
+
     @property
     def is_private(self) -> bool:
+        """True if this is a one-on-one private chat."""
+        # RU: True, если это личный чат.
         return self.type == "private"
-    
+
     @property
     def is_group(self) -> bool:
+        """True if this is a group or supergroup."""
+        # RU: True, если это группа или супергруппа.
         return self.type in ("group", "supergroup")
-    
+
     @property
     def is_channel(self) -> bool:
+        """True if this is a broadcast channel."""
+        # RU: True, если это канал.
         return self.type == "channel"
-    
+
     @property
     def link(self) -> Optional[str]:
-        """Get chat link if available."""
+        """Public t.me link for this chat, if it has a username.
+
+        Returns:
+            Full ``https://t.me/<username>`` URL, or None.
+        """
+        # RU: Публичная ссылка t.me на чат, если есть username.
         if self.username:
             return f"https://t.me/{self.username}"
         return None
@@ -78,22 +127,31 @@ class Chat:
 
 @dataclass
 class Context(ABC):
-    """
-    Abstract base context for command handlers.
-    
-    Provides a consistent interface regardless of the underlying platform.
-    All platform-specific contexts (Pyrogram, aiogram, telebot) inherit from this.
-    
-    Usage:
+    """Abstract base context for unified command handlers.
+
+    Provides a consistent interface regardless of the underlying messaging
+    platform.  All platform-specific contexts (Pyrogram, aiogram, telebot)
+    must inherit from this class and implement all abstract methods.
+
+    Usage::
+
         @command("hello")
         async def hello_cmd(ctx: Context):
             await ctx.reply(f"Hello, {ctx.user.first_name}!")
-            
-            # Access platform-specific features
+
+            # Access platform-specific features when needed
             if ctx.platform == "pyrogram":
-                # Pyrogram-specific code
                 await ctx.raw.forward(chat_id)
+
+    Attributes:
+        raw: Original platform message object.
+        client: Original platform client object.
+        command: Parsed command name (without prefix).
+        args: List of arguments split from the command text.
+        text: Full original message text.
+        platform: Platform identifier string (``"pyrogram"``, ``"aiogram"``, etc.).
     """
+    # RU: Абстрактный базовый контекст для унифицированных обработчиков команд.
     
     # Core attributes (set by subclasses)
     raw: Any = None  # Original message object

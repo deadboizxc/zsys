@@ -1,35 +1,38 @@
-"""
-ZSYS Exception classes.
+"""ZSYS exceptions — full hierarchy of typed errors.
 
-All ZSYS exceptions inherit from BaseException base class.
+All exceptions inherit from BaseException which provides optional
+machine-readable error codes and structured details dictionaries.
 
-Exception Hierarchy:
+Exception Hierarchy::
+
     BaseException (base)
-    ├── ConfigError (configuration)
-    ├── DatabaseError (database operations)
-    ├── StorageError (storage operations)
-    ├── ClientError (client operations)
-    ├── AuthenticationError (auth/authorization)
-    ├── SessionError (session management)
-    ├── ValidationError (data validation)
-    ├── NetworkError (network/connection)
-    ├── TimeoutError (timeout errors)
-    ├── NotFoundError (resource not found)
-    ├── PermissionError (access denied)
-    ├── PermissionDeniedError (permission denied with action)
-    ├── CryptoError (cryptography)
-    ├── BlockchainError (blockchain)
-    │   └── TransactionError (transactions)
-    ├── MediaError (media operations)
-    │   ├── MediaNotFoundError (media not found)
-    │   ├── MediaExistsError (media exists)
-    │   └── InvalidMediaTypeError (invalid media type)
-    ├── ModuleError (module loading)
-    ├── FileError (file operations)
-    ├── APIError (API/HTTP)
-    ├── BotError (bot operations)
-    └── LicenseError (licensing)
+    ├── ConfigError           — configuration loading/validation
+    ├── DatabaseError         — database operations
+    ├── StorageError          — key-value storage operations
+    ├── ClientError           — bot/userbot client operations
+    ├── AuthenticationError   — auth/authorisation failures
+    ├── SessionError          — session management
+    ├── ValidationError       — data validation (code="VALIDATION_ERROR")
+    ├── NetworkError          — network/connection errors
+    ├── TimeoutError          — timeout errors
+    ├── NotFoundError         — resource not found
+    ├── PermissionError       — access denied
+    ├── PermissionDeniedError — permission denied with action context
+    ├── CryptoError           — cryptographic operations
+    ├── BlockchainError       — blockchain operations
+    │   └── TransactionError  — transaction-level failures
+    ├── MediaError            — media operations
+    │   ├── MediaNotFoundError    — media file not found
+    │   ├── MediaExistsError      — duplicate media (hash collision)
+    │   └── InvalidMediaTypeError — unsupported MIME type
+    ├── ModuleError           — plugin module loading
+    ├── FileError             — filesystem operations
+    ├── APIError              — external API / HTTP errors
+    ├── BotError              — bot-platform-level errors
+    └── LicenseError          — license validation/activation
 """
+# RU: Иерархия исключений ZSYS — типизированные ошибки всех уровней.
+# RU: Все наследуют BaseException с опциональными кодами и словарём деталей.
 
 from .base import BaseException, BaseException
 from .config import ConfigError

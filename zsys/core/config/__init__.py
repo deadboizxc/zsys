@@ -1,8 +1,10 @@
-"""
-Configuration management for ZSYS.
+"""ZSYS configuration management — Pydantic-based base config.
 
-Provides base configuration class and utilities.
+Provides BaseConfig as the universal parent for all ZSYS project
+configurations, with environment variable loading and .env file support.
 """
+# RU: Управление конфигурацией ZSYS — базовый класс на Pydantic.
+# RU: Поддержка переменных окружения и .env-файлов.
 
 from .base import BaseConfig
 

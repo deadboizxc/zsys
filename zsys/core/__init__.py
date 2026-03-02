@@ -1,16 +1,20 @@
-"""
-ZSYS Core - Pure abstraction layer.
+"""ZSYS core — pure abstraction layer.
 
-This package contains ONLY abstract interfaces, base models, and helpers.
-NO concrete implementations or external library dependencies allowed.
+This package contains ONLY abstract interfaces, base data models,
+configuration classes, logging utilities, and the exception hierarchy.
+No concrete implementations or external library dependencies are allowed here.
 
-Architecture:
-- interfaces/: Protocol-based interfaces (IBot, IClient, IStorage, etc.)
-- models/: Base data models (BaseUser, BaseChat, BaseClient, etc.)
-- config/: Configuration management
-- logging/: Logging utilities
-- exceptions/: Exception classes hierarchy
+Architecture::
+
+    zsys/core/
+    ├── interfaces/   — Protocol-based structural interfaces
+    ├── dataclass_models/ — Platform-agnostic data models (dataclasses)
+    ├── config/       — Pydantic-based configuration management
+    ├── logging/      — Logging utilities
+    └── exceptions/   — Full exception class hierarchy
 """
+# RU: Основной пакет ZSYS — чистый слой абстракций.
+# RU: Только интерфейсы, модели, конфигурация, логирование и исключения.
 
 # TODO: Restore when interfaces module exists
 # from .interfaces import (
