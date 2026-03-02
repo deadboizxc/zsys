@@ -12,6 +12,18 @@ from typing import TYPE_CHECKING, List, Union
 
 from zsys._core import match_prefix as _c_match_prefix, C_AVAILABLE as _C_AVAILABLE
 
+# ── Cython tier-2 import ──────────────────────────────────────────────────────
+# RU: Импорт Cython-уровня для горячего пути диспетчеризации команд.
+try:
+    from zsys.modules._router_dispatch import (   # type: ignore[import]
+        parse_command_c  as _cy_parse_command,
+        check_trigger_c  as _cy_check_trigger,
+    )
+    _CY_ROUTER = True
+except ImportError:
+    _CY_ROUTER = False
+    _cy_parse_command = _cy_check_trigger = None
+
 if TYPE_CHECKING:
     from pyrogram import Client as PyrogramClient
     from zsys.modules.router import Router
@@ -69,6 +81,21 @@ def attach_router(
             # RU: Фильтр сообщений, соответствующих известному префиксу и триггеру (C-ускорение).
             text = message.text or message.caption or ""
             return _c_match_prefix(text, prefixes, _get_trigger_set())
+    elif _CY_ROUTER:
+        def dynamic_command_filter(_, __, message):
+            """Filter messages using Cython-compiled prefix+trigger check (tier-2).
+
+            Args:
+                _: Unused filter argument.
+                __: Unused client argument.
+                message: Incoming Pyrogram message.
+
+            Returns:
+                True if the message matches a registered command.
+            """
+            # RU: Фильтр сообщений через Cython tier-2 (быстрее чистого Python).
+            text = message.text or message.caption or ""
+            return _cy_check_trigger(text, prefixes, _get_trigger_set())
     else:
         def dynamic_command_filter(_, __, message):
             """Filter messages that match a known command prefix and trigger (Python fallback).
@@ -116,17 +143,38 @@ def attach_router(
         if not text:
             return
 
-        parts = text.split(maxsplit=1)
-        cmd_part = parts[0]
+        # Tier-2: Cython prefix parse — avoids Python string overhead
+        # RU: Tier-2 Cython разбор префикса команды
+        if _CY_ROUTER:
+            parsed = _cy_parse_command(text, prefixes)
+            if parsed is not None:
+                _, cmd_part, _ = parsed
+                cmd = router.get_command(cmd_part)
+            else:
+                # Fall through to per-command prefix handling below
+                # RU: Переходим к обработке per-command префиксов
+                cmd_part = None
+                cmd = None
+        else:
+            parts = text.split(maxsplit=1)
+            cmd_part = parts[0]
+            cmd = None
 
-        matched = False
-        for p in prefixes:
-            if cmd_part.startswith(p):
-                cmd_part = cmd_part[len(p):]
-                matched = True
-                break
+            matched = False
+            for p in prefixes:
+                if cmd_part.startswith(p):
+                    cmd_part = cmd_part[len(p):]
+                    matched = True
+                    break
 
-        if not matched:
+            if matched:
+                cmd = router.get_command(cmd_part)
+
+        # Per-command custom prefix handling (rare path)
+        # RU: Обработка нестандартных префиксов для конкретных команд
+        if cmd is None:
+            parts = text.split(maxsplit=1)
+            cmd_part_raw = parts[0]
             for trigger, cmd_candidate in router._trigger_map.items():
                 if cmd_candidate.prefix:
                     cmd_pxs = (
@@ -135,20 +183,16 @@ def attach_router(
                         else cmd_candidate.prefix
                     )
                     for p in cmd_pxs:
-                        if cmd_part.startswith(p):
-                            candidate = cmd_part[len(p):].lower()
+                        if cmd_part_raw.startswith(p):
+                            candidate = cmd_part_raw[len(p):].lower()
                             if candidate == trigger:
                                 cmd_part = candidate
-                                matched = True
+                                cmd = router.get_command(cmd_part)
                                 break
-                if matched:
+                if cmd is not None:
                     break
 
-        if not matched:
-            return
-
-        cmd = router.get_command(cmd_part)
-        if not cmd:
+        if cmd is None:
             return
 
         if cmd.reply_only and not message.reply_to_message:

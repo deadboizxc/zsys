@@ -16,6 +16,19 @@ except ImportError:
     _C_AVAILABLE = False
     _c_nested_get = None
 
+# ── Cython tier-2 hot-path imports ───────────────────────────────────────────
+# RU: Импорт Cython-уровня (tier-2) горячих путей i18n.
+try:
+    from zsys.i18n._i18n_fast import (       # type: ignore[import]
+        deep_merge_c as _cy_deep_merge,
+        nested_get_c as _cy_nested_get,
+        i18n_get_c   as _cy_i18n_get,
+    )
+    _CY_AVAILABLE = True
+except ImportError:
+    _CY_AVAILABLE = False
+    _cy_deep_merge = _cy_nested_get = _cy_i18n_get = None
+
 
 class I18N:
     """Internationalization manager for multi-language support.
@@ -53,8 +66,11 @@ class I18N:
         """Recursively merge override into base dict.
 
         Nested dicts are merged; other values are overwritten.
+        Uses the Cython fast path when available.
         """
-        # RU: Рекурсивно объединяет override в base.
+        # RU: Рекурсивно объединяет override в base. Cython-ускорение если доступно.
+        if _CY_AVAILABLE:
+            return _cy_deep_merge(base, override)
         result = dict(base)
         for key, value in override.items():
             if key in result and isinstance(result[key], dict) and isinstance(value, dict):
@@ -338,8 +354,10 @@ class GlobalI18N:
 
         Nested dicts are merged; other values are overwritten.
         # RU: Рекурсивно объединяет override в base.
-        # RU: Вложенные словари объединяются, остальные значения перезаписываются.
+        # RU: Использует Cython-ускорение tier-2 когда доступно.
         """
+        if _CY_AVAILABLE:
+            return _cy_deep_merge(base, override)
         result = dict(base)
         for key, value in override.items():
             if key in result and isinstance(result[key], dict) and isinstance(value, dict):
@@ -509,11 +527,22 @@ class GlobalI18N:
                 return cached
 
         if _C_AVAILABLE:
+            # Tier 1: C extension (fastest)
+            # RU: Tier 1: C-расширение (самый быстрый)
             lang_dict = self.translations.get(self.current_lang)
             value = _c_nested_get(lang_dict, full_key) if lang_dict else None
             if value is None and self.current_lang != self.default_lang:
                 fb_dict = self.translations.get(self.default_lang)
                 value = _c_nested_get(fb_dict, full_key) if fb_dict else None
+            if value is None:
+                return f"[{full_key}]"
+            result = value.format(**kwargs) if kwargs else value
+        elif _CY_AVAILABLE:
+            # Tier 2: Cython extension (~10-30x vs pure Python)
+            # RU: Tier 2: Cython-расширение (~10-30x быстрее чистого Python)
+            value = _cy_i18n_get(
+                self.translations, self.current_lang, self.default_lang, full_key
+            )
             if value is None:
                 return f"[{full_key}]"
             result = value.format(**kwargs) if kwargs else value
