@@ -1,8 +1,11 @@
-"""
-Simple Blockchain Implementation
+"""SimpleBlockchain — educational proof-of-work blockchain.
 
-Educational blockchain implementation for learning purposes.
+Provides a self-contained blockchain implementation for learning and
+demonstration purposes.  Implements IBlockchain with SHA-256 hashing
+and configurable proof-of-work difficulty.
 """
+# RU: SimpleBlockchain — учебный блокчейн с доказательством работы.
+# RU: Реализует IBlockchain: PoW, валидация цепи, расчёт баланса.
 
 from typing import Any, Optional, List
 from dataclasses import dataclass, field
@@ -18,7 +21,17 @@ logger = get_logger(__name__)
 
 @dataclass
 class Block:
-    """Block in the blockchain."""
+    """Individual block in the blockchain chain.
+
+    Attributes:
+        index: Zero-based position in the chain.
+        timestamp: When this block was created.
+        data: Arbitrary payload (transactions, strings, etc.).
+        previous_hash: Hash of the preceding block.
+        nonce: Proof-of-work counter incremented during mining.
+        hash: SHA-256 hash of this block's contents.
+    """
+    # RU: Блок в цепочке блоков.
     
     index: int
     timestamp: datetime
@@ -74,6 +87,8 @@ class SimpleBlockchain(IBlockchain):
         balance = blockchain.get_balance("Alice")
     """
     
+    # RU: Учебный блокчейн с PoW, валидацией и расчётом баланса.
+
     def __init__(self, difficulty: int = 4):
         """
         Initialize blockchain.

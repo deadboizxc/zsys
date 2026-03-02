@@ -1,8 +1,14 @@
-"""
-RSA Cipher Implementation
+"""RSA cipher implementation — RSA-OAEP asymmetric encryption.
 
-Implements ICipher interface using RSA encryption.
+Implements the ICipher interface using RSA with OAEP padding and SHA-256.
+Encrypts with the public key, decrypts with the private key.
+
+Requires the ``cryptography`` package::
+
+    pip install zsys[crypto]
 """
+# RU: Реализация RSA-шифра — асимметричное шифрование RSA-OAEP.
+# RU: Шифрование открытым ключом, расшифрование закрытым.
 
 from typing import Optional, Tuple
 from core.interfaces import ICipher
@@ -19,6 +25,7 @@ except ImportError:
 
 class RSACipher(ICipher):
     """
+    # RU: Реализация ICipher через RSA-OAEP с SHA-256.
     RSA (Rivest–Shamir–Adleman) cipher implementation.
     
     Asymmetric encryption using RSA.

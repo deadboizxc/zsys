@@ -1,8 +1,14 @@
-"""
-EVM Chain Implementation
+"""EVM chain implementation — Ethereum and EVM-compatible blockchain backends.
 
-Integration with Ethereum and EVM-compatible chains.
+Provides EVMWallet and EVMChain classes that implement IWallet and IBlockchain
+for Ethereum, BSC, Polygon, and any other EVM-compatible network.
+
+Requires web3::
+
+    pip install zsys[blockchain]
 """
+# RU: Реализация EVM-цепочки — Ethereum и совместимые блокчейны.
+# RU: Требует web3: pip install zsys[blockchain].
 
 from typing import Any, Optional
 from core.interfaces import IBlockchain, IWallet
@@ -38,6 +44,8 @@ class EVMWallet(IWallet):
         print(f"Balance: {await wallet.balance} ETH")
     """
     
+    # RU: Кошелёк EVM. Поддерживает Ethereum и все совместимые сети.
+
     def __init__(self, private_key: str, w3: Optional[Any] = None):
         """
         Initialize EVM wallet.
@@ -183,6 +191,8 @@ class EVMChain(IBlockchain):
         block = chain.get_block(12345)
     """
     
+    # RU: Реализация IBlockchain для EVM-совместимых блокчейнов.
+
     def __init__(self, rpc_url: str = "https://eth.llamarpc.com"):
         """
         Initialize EVM chain.

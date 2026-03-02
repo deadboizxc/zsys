@@ -1,11 +1,13 @@
-"""
-ZSYS Blockchain Module
+"""ZSYS blockchain module — simple-chain and EVM chain implementations.
 
-Blockchain implementations.
-Supports: Simple blockchain, EVM chains
+Provides IBlockchain and IWallet implementations for educational
+SimpleBlockchain and production-ready EVM chains (Ethereum, BSC, Polygon).
 
-Install with:
+Requires ``web3`` for EVM chains::
+
     pip install zsys[blockchain]
 """
+# RU: Модуль блокчейна ZSYS — SimpleBlockchain и EVM-цепочки.
+# RU: EVM требует web3: pip install zsys[blockchain].
 
 __all__ = []

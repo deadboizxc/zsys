@@ -1,8 +1,15 @@
-"""
-ECC Cipher Implementation
+"""ECC cipher implementation — ECDH key exchange with AES-GCM encryption.
 
-Implements ICipher interface using Elliptic Curve Cryptography.
+Implements the ICipher interface using Elliptic Curve Diffie-Hellman (ECDH)
+for key agreement and AES-256-GCM for authenticated encryption.  Output
+format is: ephemeral public key (65 bytes) + nonce (12 bytes) + ciphertext.
+
+Requires the ``cryptography`` package::
+
+    pip install zsys[crypto]
 """
+# RU: Реализация ECC-шифра — ECDH + AES-256-GCM.
+# RU: Формат вывода: эфемерный ключ (65 байт) + nonce (12 байт) + шифртекст.
 
 from core.interfaces import ICipher
 from core.exceptions import CryptoError
@@ -22,6 +29,7 @@ import os
 
 class ECCCipher(ICipher):
     """
+    # RU: Реализация ICipher через ECDH + AES-256-GCM.
     ECC (Elliptic Curve Cryptography) cipher implementation.
     
     Uses ECDH for key agreement and AES-GCM for encryption.
