@@ -1,0 +1,12 @@
+[package]
+name    = "zsys-crypto"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "zsys_crypto_binding"
+
+[build-dependencies]
+bindgen = "0.69"
+
+[dependencies]

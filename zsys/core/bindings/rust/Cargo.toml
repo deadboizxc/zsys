@@ -1,0 +1,19 @@
+[package]
+name        = "zsys-core"
+version     = "0.1.0"
+edition     = "2021"
+build       = "build.rs"
+description = "Safe Rust bindings for libzsys_core (ZsysUser, ZsysChat, ZsysClientConfig)"
+
+[lib]
+name = "zsys_core"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69"
+
+[dev-dependencies]
+
+[profile.release]
+opt-level = 3

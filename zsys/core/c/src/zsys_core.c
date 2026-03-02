@@ -12,7 +12,7 @@
 // RU: Чистая C-библиотека zsys без зависимости от Python.h.
 //     Текстовые утилиты, форматирование, парсинг длительности, терминальные утилиты.
 
-#include "../include/zsys_core.h"
+#include "zsys_core.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

@@ -1,0 +1,15 @@
+[package]
+name = "zsys-storage"
+version = "0.1.0"
+edition = "2021"
+description = "Rust bindings for zsys/storage (ZsysKV key-value store)"
+build = "build.rs"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69"
+
+[lib]
+name = "zsys_storage"
+crate-type = ["rlib"]

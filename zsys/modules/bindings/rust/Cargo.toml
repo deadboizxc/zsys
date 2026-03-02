@@ -1,0 +1,15 @@
+[package]
+name        = "zsys-modules"
+version     = "0.1.0"
+edition     = "2021"
+description = "Safe Rust bindings for ZsysRouter and ZsysRegistry (zsys_core)"
+build       = "build.rs"
+
+[dependencies]
+
+[build-dependencies]
+bindgen = "0.69"
+
+[lib]
+name = "zsys_modules"
+crate-type = ["rlib", "cdylib"]

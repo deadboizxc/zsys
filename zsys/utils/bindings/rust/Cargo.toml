@@ -1,0 +1,12 @@
+[package]
+name    = "zsys-utils"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "zsys_utils"
+
+[build-dependencies]
+bindgen = "0.69"
+
+[dependencies]
