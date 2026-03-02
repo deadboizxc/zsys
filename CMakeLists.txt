@@ -26,9 +26,20 @@ endif()
 # Source files
 set(ZSYS_SOURCES
     zsys/src/zsys_core.c
+    zsys/src/zsys_router.c
+    zsys/src/zsys_registry.c
+    zsys/src/zsys_i18n.c
+    zsys/src/zsys_user.c
+    zsys/src/zsys_chat.c
+    zsys/src/zsys_client.c
+    zsys/src/zsys_storage.c
 )
 set(ZSYS_HEADERS
     zsys/include/zsys_core.h
+    zsys/include/zsys_user.h
+    zsys/include/zsys_chat.h
+    zsys/include/zsys_client.h
+    zsys/include/zsys_storage.h
 )
 
 # ── Shared library: libzsys_core.so ─────────────────────────────────────────
