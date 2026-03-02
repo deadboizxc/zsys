@@ -75,6 +75,8 @@ class Command:
     # RU: Пользовательский фильтр Pyrogram
     prefix: Optional[Union[str, List[str]]] = None  # Per-command prefix override
     # RU: Переопределение префикса для конкретной команды
+    help_key: Optional[str] = None  # i18n key for command description (e.g. "ping.help.description")
+    # RU: Ключ i18n для описания команды (например "ping.help.description")
 
     @property
     def all_triggers(self) -> List[str]:
@@ -183,6 +185,7 @@ class Router:
         text_only: bool = False,
         extra_filters: Any = None,
         prefix: Optional[Union[str, List[str]]] = None,
+        help_key: Optional[str] = None,
         module: str = None,  # Track which module registered this
     ) -> Callable:
         """Register a command via decorator.
@@ -202,6 +205,7 @@ class Router:
             text_only: Command requires text input.
             extra_filters: Custom Pyrogram filter to add.
             prefix: Per-command prefix override.
+            help_key: i18n key for command description (auto-populates modules_help).
             module: Module name that registers this command (auto-detected).
 
         Returns:
@@ -251,6 +255,7 @@ class Router:
                 text_only=text_only,
                 extra_filters=extra_filters,
                 prefix=prefix,
+                help_key=help_key,
             )
 
             self._register_command(cmd, module)
@@ -277,6 +282,38 @@ class Router:
         """
         # RU: Внутренний метод: регистрирует команду и обновляет все структуры поиска.
         self.commands[cmd.name] = cmd
+
+        # Auto-populate modules_help when help_key is set
+        # RU: Автоматически заполняем modules_help если задан help_key
+        if cmd.help_key:
+            try:
+                from zsys.i18n.i18n import _global_global_i18n
+                from zsys.modules.registry import modules_help as _mh
+
+                # Resolve description lazily via global i18n proxy
+                # RU: Получаем описание через глобальный прокси i18n
+                if _global_global_i18n is not None:
+                    desc = _global_global_i18n.get(cmd.help_key)
+                else:
+                    desc = cmd.description or cmd.name  # fallback before i18n init
+
+                # Build the command key with optional usage (same format as old dicts)
+                # RU: Строим ключ команды с опциональным usage (тот же формат что и старые словари)
+                cmd_key = f"{cmd.name} {cmd.usage}".strip() if cmd.usage else cmd.name
+
+                # Determine short module name (last component of dotted name)
+                # RU: Определяем короткое имя модуля (последний компонент через точку)
+                mod_name = (module or "unknown").split(".")[-1]
+
+                # Merge into existing modules_help entry for this module
+                # RU: Объединяем с существующей записью modules_help для этого модуля
+                existing = dict(_mh.get(mod_name, {}))
+                existing[cmd_key] = desc
+                # Bypass __setitem__ sync to registry to avoid double-registration loop
+                # RU: Обходим __setitem__ чтобы не попасть в двойную регистрацию
+                dict.__setitem__(_mh, mod_name, existing)
+            except Exception:
+                pass  # always graceful - help_key is optional
 
         # Map all triggers to command
         # RU: Сопоставляем все триггеры с командой
@@ -495,6 +532,7 @@ def command(
     text_only: bool = False,
     extra_filters: Any = None,
     prefix: Optional[Union[str, List[str]]] = None,
+    help_key: Optional[str] = None,
 ) -> Callable:
     """Global command decorator using the default router.
 
@@ -513,6 +551,7 @@ def command(
         text_only: Requires text argument.
         extra_filters: Custom Pyrogram filter.
         prefix: Per-command prefix override.
+        help_key: i18n key for command description (auto-populates modules_help).
 
     Returns:
         Decorator that registers the command on the default router.
@@ -554,6 +593,7 @@ def command(
         text_only=text_only,
         extra_filters=extra_filters,
         prefix=prefix,
+        help_key=help_key,
     )
 
 
