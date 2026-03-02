@@ -48,38 +48,47 @@ class I18N:
         self._translations: Dict[str, Dict[str, Any]] = {}
         self._load_all_translations()
     
+    @staticmethod
+    def _deep_merge_simple(base: dict, override: dict) -> dict:
+        """Recursively merge override into base dict.
+
+        Nested dicts are merged; other values are overwritten.
+        """
+        # RU: Рекурсивно объединяет override в base.
+        result = dict(base)
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = I18N._deep_merge_simple(result[key], value)
+            else:
+                result[key] = value
+        return result
+
     def _load_all_translations(self):
-        """Load all translation files from locales directory."""
-        # RU: Загружает все файлы переводов из директории локалей.
+        """Load all translation files from locales directory recursively."""
+        # RU: Загружает все файлы переводов из директории локалей рекурсивно.
         if not self.locales_path.exists():
             self._translations[self.default_lang] = {}
             return
-        
-        # Load JSON files
-        # RU: Загружаем JSON-файлы локалей
-        for json_file in self.locales_path.glob("*.json"):
+
+        # Collect all JSON files grouped by language code, sorted for reproducibility
+        # RU: Собираем все JSON-файлы, группируем по коду языка
+        lang_files: "Dict[str, list]" = {}
+        for json_file in sorted(self.locales_path.rglob("*.json")):
             lang = json_file.stem
-            try:
-                with open(json_file, "r", encoding="utf-8") as f:
-                    self._translations[lang] = json.load(f)
-            except (json.JSONDecodeError, IOError):
-                self._translations[lang] = {}
-        
-        # Try to load CBOR files (if cbor2 available)
-        # RU: Пытаемся загрузить файлы CBOR (если доступен cbor2)
-        try:
-            import cbor2
-            for cbor_file in self.locales_path.glob("*.cbor"):
-                lang = cbor_file.stem
-                if lang not in self._translations:
-                    try:
-                        with open(cbor_file, "rb") as f:
-                            self._translations[lang] = cbor2.load(f)
-                    except Exception:
-                        pass
-        except ImportError:
-            pass
-        
+            lang_files.setdefault(lang, []).append(json_file)
+
+        for lang, files in lang_files.items():
+            merged: dict = {}
+            for json_file in files:
+                try:
+                    with open(json_file, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    if isinstance(data, dict):
+                        merged = I18N._deep_merge_simple(merged, data)
+                except (json.JSONDecodeError, IOError):
+                    pass
+            self._translations[lang] = merged
+
         # Ensure default language exists
         # RU: Убеждаемся, что язык по умолчанию существует
         if self.default_lang not in self._translations:
@@ -324,6 +333,22 @@ class GlobalI18N:
     # ------------------------------------------------------------------
 
     @staticmethod
+    def _deep_merge(base: dict, override: dict) -> dict:
+        """Recursively merge override into base dict.
+
+        Nested dicts are merged; other values are overwritten.
+        # RU: Рекурсивно объединяет override в base.
+        # RU: Вложенные словари объединяются, остальные значения перезаписываются.
+        """
+        result = dict(base)
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = GlobalI18N._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
+
+    @staticmethod
     def _convert_json_to_cbor(json_path: Path, cbor_path: Path):
         """Convert a JSON locale file to CBOR format for faster loading.
 
@@ -376,32 +401,47 @@ class GlobalI18N:
             return None
 
     def _load_all_translations(self) -> "Dict[str, Dict[str, Any]]":
-        """Load all locale files, preferring CBOR over JSON for performance.
+        """Load all locale files recursively, merging subdirectory files per language.
+
+        Scans the locales directory tree. Files are grouped by language code (stem).
+        Root-level files prefer CBOR over JSON for performance. Subdirectory files
+        are always loaded from JSON and deep-merged into the result.
 
         Returns:
-            Dictionary mapping language codes to translation data.
+            Dictionary mapping language codes to merged translation data.
         """
-        # RU: Загружает все файлы локалей, предпочитая CBOR для производительности.
-        translations: "Dict[str, Any]" = {}
+        # RU: Рекурсивно загружает все файлы локалей, объединяя поддиректории.
+        translations: "Dict[str, Dict[str, Any]]" = {}
 
         if not self.locales_path.exists():
             return {self.default_lang: {}}
 
-        for json_file in self.locales_path.glob("*.json"):
+        # Collect all JSON files, grouped by language code, sorted for reproducibility
+        # RU: Собираем все JSON-файлы, группируем по коду языка
+        lang_files: "Dict[str, list]" = {}
+        for json_file in sorted(self.locales_path.rglob("*.json")):
             lang = json_file.stem
-            cbor_file = self.locales_path / f"{lang}.cbor"
+            lang_files.setdefault(lang, []).append(json_file)
 
-            data = None
-            if cbor_file.exists():
-                data = self._load_cbor(cbor_file)
-            if data is None:
-                self._convert_json_to_cbor(json_file, cbor_file)
-                data = self._load_cbor(cbor_file)
-            if data is None:
-                data = self._load_json(json_file)
-            if data is None or not isinstance(data, dict):
-                continue
-            translations[lang] = data
+        for lang, files in lang_files.items():
+            merged: "Dict[str, Any]" = {}
+            for json_file in files:
+                is_root = json_file.parent == self.locales_path
+                data = None
+                if is_root:
+                    # Try CBOR cache for root-level files
+                    cbor_file = self.locales_path / f"{lang}.cbor"
+                    if cbor_file.exists():
+                        data = self._load_cbor(cbor_file)
+                    if data is None:
+                        self._convert_json_to_cbor(json_file, cbor_file)
+                        data = self._load_cbor(cbor_file)
+                if data is None:
+                    data = self._load_json(json_file)
+                if data and isinstance(data, dict):
+                    merged = self._deep_merge(merged, data)
+            if merged:
+                translations[lang] = merged
 
         return translations or {self.default_lang: {}}
 
