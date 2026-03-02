@@ -550,7 +550,19 @@ class AiogramContext(Context):
             return False
     
     async def unban_user(self, user_id: Optional[int] = None) -> bool:
-        """Unban user from chat."""
+        """Unban a previously banned user from the current chat.
+
+        Args:
+            user_id: ID of the user to unban. Defaults to the sender's ID.
+
+        Returns:
+            ``True`` on success, ``False`` if the unban failed.
+
+        Example::
+
+            await ctx.unban_user(user_id=123456)
+        """
+        # RU: Снимает бан с пользователя в текущем чате.
         try:
             uid = user_id or self.user.id
             await self.bot.unban_chat_member(self.chat.id, uid)
@@ -559,7 +571,19 @@ class AiogramContext(Context):
             return False
     
     async def kick_user(self, user_id: Optional[int] = None) -> bool:
-        """Kick user from chat."""
+        """Kick a user by banning and immediately unbanning them.
+
+        Args:
+            user_id: ID of the user to kick. Defaults to the sender's ID.
+
+        Returns:
+            ``True`` on success, ``False`` if the kick failed.
+
+        Example::
+
+            await ctx.kick_user(user_id=123456)
+        """
+        # RU: Выгоняет пользователя из чата (бан + разбан).
         uid = user_id or self.user.id
         if await self.ban_user(uid):
             return await self.unban_user(uid)
@@ -570,34 +594,89 @@ class AiogramContext(Context):
     # ==========================================================================
     
     async def get_state(self) -> Optional[str]:
-        """Get current FSM state."""
+        """Return the current FSM state key as a string.
+
+        Returns:
+            Current state string, or ``None`` if no FSM context is set or
+            the state is unset.
+
+        Example::
+
+            state = await ctx.get_state()
+        """
+        # RU: Возвращает текущее состояние FSM в виде строки.
         if self.state:
             return await self.state.get_state()
         return None
     
     async def set_state(self, state: Any = None):
-        """Set FSM state."""
+        """Set the FSM state.
+
+        Args:
+            state: New state value (usually a ``State`` object or ``None`` to
+                clear).
+
+        Example::
+
+            await ctx.set_state(MyStates.waiting)
+        """
+        # RU: Устанавливает состояние FSM.
         if self.state:
             await self.state.set_state(state)
     
     async def clear_state(self):
-        """Clear FSM state."""
+        """Clear the current FSM state and all associated data.
+
+        Example::
+
+            await ctx.clear_state()
+        """
+        # RU: Сбрасывает состояние FSM и связанные данные.
         if self.state:
             await self.state.clear()
     
     async def get_data(self) -> dict:
-        """Get FSM data."""
+        """Return the FSM context data dictionary.
+
+        Returns:
+            Dictionary of key-value pairs stored in the FSM context, or an
+            empty dict if no FSM context is set.
+
+        Example::
+
+            data = await ctx.get_data()
+            print(data.get("username"))
+        """
+        # RU: Возвращает словарь данных FSM-контекста.
         if self.state:
             return await self.state.get_data()
         return {}
     
     async def set_data(self, **data):
-        """Set FSM data."""
+        """Replace the FSM context data with the provided key-value pairs.
+
+        Args:
+            **data: Key-value pairs to store in the FSM context.
+
+        Example::
+
+            await ctx.set_data(step=1, username="alex")
+        """
+        # RU: Заменяет данные FSM-контекста переданными значениями.
         if self.state:
             await self.state.set_data(data)
     
     async def update_data(self, **data):
-        """Update FSM data."""
+        """Merge new key-value pairs into the existing FSM context data.
+
+        Args:
+            **data: Key-value pairs to update in the FSM context.
+
+        Example::
+
+            await ctx.update_data(step=2)
+        """
+        # RU: Обновляет данные FSM-контекста, сохраняя существующие ключи.
         if self.state:
             await self.state.update_data(**data)
     

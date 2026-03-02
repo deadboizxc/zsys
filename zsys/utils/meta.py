@@ -1,10 +1,12 @@
-"""
-Meta-comment parser for extracting metadata from source code.
+"""Meta-comment parser for extracting metadata from source code.
 
 Supports two formats:
 1. New format:  # meta: key=value
 2. Legacy format: # meta key: value
 """
+# RU: Парсер мета-комментариев для извлечения метаданных из исходного кода.
+# RU: Поддерживает новый формат (# meta: key=value) и устаревший (# meta key: value).
+# RU: При наличии C-расширения делегирует парсинг ему для максимальной скорости.
 
 import re
 from typing import Dict
@@ -17,6 +19,7 @@ except ImportError:
     _C = False
 
 # Compile regex once at module load (используются только при C_AVAILABLE=False)
+# RU: Компиляция регулярных выражений на этапе загрузки модуля экономит время на повторных вызовах.
 META_COMMENT_REGEX = re.compile(
     r"^ *# *meta: *([^\s=]+) *= *(.*?) *$",
     re.MULTILINE | re.IGNORECASE
@@ -29,7 +32,26 @@ LEGACY_META_REGEX = re.compile(
 
 
 def parse_meta_comments(code: str) -> Dict[str, str]:
-    """Extract meta-information from special comments in source code."""
+    """Extract meta-information from special comments in source code.
+
+    Supports two comment formats:
+
+    - New:    ``# meta: key=value``
+    - Legacy: ``# meta key: value``
+
+    When available, delegates to the faster C extension.
+
+    Args:
+        code: Source code as a string to scan for meta-comments.
+
+    Returns:
+        Dictionary mapping lowercased key names to their string values.
+        New-format keys take precedence over legacy-format keys.
+
+    Raises:
+        Nothing — returns an empty dict when no meta-comments are found.
+    """
+    # RU: При наличии C-расширения делегирует ему парсинг для ускорения на больших файлах.
     if _C:
         return _c_parse_meta(code)
     meta: Dict[str, str] = {}
@@ -67,6 +89,7 @@ def extract_docstring_meta(code: str) -> Dict[str, str]:
         >>> extract_docstring_meta(code)
         {'author': 'John Doe', 'version': '1.0.0'}
     """
+    # RU: Ищет первый докстринг в файле и извлекает из него пары «ключ: значение».
     meta: Dict[str, str] = {}
     
     # Find docstring

@@ -101,11 +101,20 @@ def calculate_expiration(duration_str):
 
 # Разбор строки с продолжительностью
 def parse_duration(duration_str):
+    """Parse a compact duration string into a :class:`timedelta`.
+
+    Recognises the following unit suffixes: ``y`` (year = 365 days),
+    ``m`` (month = 30 days), ``d`` (day).  Multiple units may be combined,
+    e.g. ``"1y2m30d"``.
+
+    Args:
+        duration_str: Duration string such as ``"1y"``, ``"30d"``, or
+            ``"1y2m30d"``.
+
+    Returns:
+        :class:`datetime.timedelta` representing the total duration.
     """
-    Разбор строки с продолжительностью действия лицензии.
-    :param duration_str: Строка с продолжительностью (например, "1y", "2m", "30d").
-    :return: Объект timedelta.
-    """
+    # RU: Regex ищет пары (число, единица); y=365d, m=30d; суммирует timedelta.
     import re
     pattern = re.compile(r'(\d+)([ymd])')
     match = pattern.findall(duration_str)
@@ -124,15 +133,23 @@ def parse_duration(duration_str):
 
 # Генерация лицензионного ключа с user_id и UUID
 def generate_license_key(main_key_file, license_key_file, hash_storage_file, duration_str, user_id, suffix="bin"):
+    """Generate, hash, and persist a license key for a user.
+
+    Reads the main key from *main_key_file*, computes an expiration timestamp,
+    generates a UUID, assembles ``user_id + main_key + UUID + expiration``,
+    hashes the result with :func:`hash_data`, saves the raw key data to
+    *license_key_file*, and appends the hash to *hash_storage_file* via
+    :func:`save_hash_to_storage`.
+
+    Args:
+        main_key_file: Path to the main key file (binary format).
+        license_key_file: Base name for the output license key file.
+        hash_storage_file: Base name of the shared hash storage file.
+        duration_str: Duration string, e.g. ``"1y"`` or ``"30d"``.
+        user_id: Unique user identifier string embedded in the key.
+        suffix: ``"bin"`` for binary output; ``"txt"`` for Base64 text.
     """
-    Генерация лицензионного ключа, его хеширование и сохранение.
-    :param main_key_file: Путь к файлу с главным ключом.
-    :param license_key_file: Имя файла для сохранения лицензионного ключа.
-    :param hash_storage_file: Имя общего файла для хранения хешей.
-    :param duration_str: Строка с продолжительностью действия лицензии (например, "1y").
-    :param user_id: Уникальный идентификатор пользователя.
-    :param suffix: Расширение файла ("bin" или "txt").
-    """
+    # RU: user_id+main_key+UUID+expiration → hash_data → сохраняет ключ и хеш в файлы.
     full_license_key_file = f"{license_key_file}.{suffix}"
 
     # Чтение главного ключа
@@ -172,13 +189,16 @@ def generate_license_key(main_key_file, license_key_file, hash_storage_file, dur
 
 # Сохранение хеша в общий файл
 def save_hash_to_storage(hash_storage_file, key_name, key_hash, suffix="bin"):
+    """Append a license key hash to the shared hash storage file.
+
+    Args:
+        hash_storage_file: Base name of the shared hash storage file.
+        key_name: Human-readable key identifier used only for logging.
+        key_hash: Binary hash bytes to store.
+        suffix: ``"bin"`` appends raw bytes (``"ab"`` mode); ``"txt"``
+            appends a Base64-encoded line (``"a"`` mode).
     """
-    Сохраняет хеш ключа в общий файл.
-    :param hash_storage_file: Имя общего файла для хранения хешей.
-    :param key_name: Имя ключа (для идентификации хеша).
-    :param key_hash: Хеш ключа (в байтах).
-    :param suffix: Расширение файла ("bin" или "txt").
-    """
+    # RU: "txt" → Base64 строка (append "a"); "bin" → бинарный append ("ab").
     full_hash_storage_file = f"{hash_storage_file}.{suffix}"
 
     if suffix == "txt":
@@ -196,14 +216,24 @@ def save_hash_to_storage(hash_storage_file, key_name, key_hash, suffix="bin"):
 
 # Проверка лицензии с user_id и UUID
 def check_license(license_key_file, hash_storage_file, user_id, suffix="bin"):
+    """Validate a license key file against the hash storage.
+
+    Reads and optionally Base64-decodes the license key, extracts the
+    embedded *user_id* and UUID, recomputes the SHA-512 hash with
+    :func:`hash_data`, looks up the hash in *hash_storage_file*, and
+    checks the expiration timestamp in the final 4 bytes.
+
+    Args:
+        license_key_file: Full path to the license key file.
+        hash_storage_file: Full path to the shared hash storage file.
+        user_id: Expected user identifier to verify ownership.
+        suffix: ``"bin"`` for binary files; ``"txt"`` for Base64 text.
+
+    Returns:
+        Tuple of ``(is_valid: bool, expiration_date: str | None)`` where
+        *expiration_date* is formatted as ``"YYYY-MM-DD"`` when available.
     """
-    Проверка лицензионного ключа.
-    :param license_key_file: Полный путь к файлу с лицензионным ключом.
-    :param hash_storage_file: Полный путь к файлу с хешами (общий файл).
-    :param user_id: Уникальный идентификатор пользователя.
-    :param suffix: Расширение файла ("bin" или "txt").
-    :return: True, если лицензия действительна, иначе False, а также дату окончания лицензии.
-    """
+    # RU: Читает ключ → извлекает user_id/UUID → recomputes hash → проверяет срок действия.
     try:
         # Чтение лицензионного ключа
         with open(license_key_file, "rb" if suffix == "bin" else "r") as file:

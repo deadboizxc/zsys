@@ -6,6 +6,7 @@ Combined utilities for:
 - Image resizing and manipulation (PIL/Pillow)
 - FFmpeg/FFprobe executable location
 """
+# RU: Медиа-утилиты — обработка изображений через Pillow и поиск исполняемых файлов FFmpeg.
 
 import os
 import shutil
@@ -44,6 +45,7 @@ def get_ffmpeg_paths() -> Dict[str, Optional[str]]:
         if paths["ffmpeg"]:
             subprocess.run([paths["ffmpeg"], "-i", "input.mp4"])
     """
+    # RU: Сначала ищет бинарники в bundled-директории bin/ffmpeg/{os}/, затем fallback на PATH.
     # Import here to avoid circular dependency
     from .filesystem import resource_path, is_android, is_frozen
     
@@ -61,12 +63,12 @@ def get_ffmpeg_paths() -> Dict[str, Optional[str]]:
         "windows": "win64",
         "linux": "linux64",
         "darwin": "macos",
-    }
+    }  # RU: Маппинг платформы на имя поддиректории с бинарниками
     bin_dir = bin_dir_map.get(os_type)
     
     if bin_dir is None:
         # Fallback to system PATH for unsupported OS
-        return {exe: shutil.which(f"{exe}{exe_suffix}") for exe in executables}
+        return {exe: shutil.which(f"{exe}{exe_suffix}") for exe in executables}  # RU: Неизвестная ОС — только системный PATH
     
     # Check custom bundled location
     custom_dir = Path(resource_path("bin")) / "ffmpeg" / bin_dir
@@ -83,12 +85,22 @@ def get_ffmpeg_paths() -> Dict[str, Optional[str]]:
 
 
 def get_ffmpeg() -> Optional[str]:
-    """Get path to ffmpeg executable."""
+    """Get path to ffmpeg executable.
+    
+    Returns:
+        Optional[str]: Absolute path to ffmpeg, or None if not found.
+    """
+    # RU: Удобная обёртка над get_ffmpeg_paths для получения только пути к ffmpeg.
     return get_ffmpeg_paths().get("ffmpeg")
 
 
 def get_ffprobe() -> Optional[str]:
-    """Get path to ffprobe executable."""
+    """Get path to ffprobe executable.
+    
+    Returns:
+        Optional[str]: Absolute path to ffprobe, or None if not found.
+    """
+    # RU: Удобная обёртка над get_ffmpeg_paths для получения только пути к ffprobe.
     return get_ffmpeg_paths().get("ffprobe")
 
 
@@ -138,6 +150,7 @@ def resize_image(
         img = Image.open("photo.jpg")
         result = resize_image(img, size=512, img_type="WEBP", quality=85)
     """
+    # RU: Открывает изображение из разных источников, вычисляет новый размер и сохраняет в нужный формат.
     if not PIL_AVAILABLE:
         raise ImportError("Pillow not installed. Install: pip install Pillow")
     
@@ -150,7 +163,7 @@ def resize_image(
     # Determine format (with fallback for WEBP)
     format_to_use = img_type.upper()
     if format_to_use == 'WEBP' and not features.check('webp'):
-        format_to_use = 'PNG'
+        format_to_use = 'PNG'  # RU: Fallback на PNG, если Pillow собран без поддержки WebP
     
     # Create BytesIO if output not specified
     return_bytes = output is None
@@ -171,7 +184,7 @@ def resize_image(
         elif not keep_aspect_ratio or img.width == img.height:
             new_size = (size, size)
         else:
-            ratio = img.height / img.width
+            ratio = img.height / img.width  # RU: Соотношение сторон для сохранения пропорций
             if img.width > img.height:  # Landscape
                 new_size = (size, max(1, int(size * ratio)))
             else:  # Portrait
@@ -212,10 +225,14 @@ def get_image_info(
     Returns:
         dict: Dict with keys: width, height, format, mode
     
+    Raises:
+        ImportError: If PIL/Pillow not installed.
+    
     Example:
         info = get_image_info("photo.jpg")
         print(f"Size: {info['width']}x{info['height']}")
     """
+    # RU: Открывает изображение без полного декодирования и извлекает метаданные.
     if not PIL_AVAILABLE:
         raise ImportError("Pillow not installed. Install: pip install Pillow")
     

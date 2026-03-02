@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-Terminal utilities - shell command execution and system resources.
+"""Terminal utilities — shell command execution and system resource monitoring.
 
-Combined utilities for:
-- Async/sync shell command execution
-- RAM and CPU usage monitoring
+Provides async and synchronous helpers for running shell commands, as well as
+functions for reading RAM and CPU consumption of the current process.
+Belongs to the zsys.utils subsystem.
 """
+# RU: Утилиты терминала — выполнение команд оболочки и мониторинг системных ресурсов.
+# RU: Содержит async/sync обёртки над subprocess, а также чтение RAM и CPU процесса.
 
 import os
 import asyncio

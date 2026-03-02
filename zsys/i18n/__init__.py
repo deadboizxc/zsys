@@ -1,4 +1,12 @@
-"""zsys.i18n - Internationalization module."""
+"""zsys.i18n - Internationalization module.
+
+Provides locale-aware translation utilities for the ZSYS ecosystem.
+Supports per-instance and global translation contexts, dynamic language
+switching, and a convenient shorthand ``t()`` for string lookup.
+"""
+# RU: Модуль интернационализации ZSYS.
+# RU: Поддерживает локальные и глобальные контексты перевода,
+# RU: динамическое переключение языка и быстрый вызов t() для поиска строк.
 
 from .i18n import (
     I18N,

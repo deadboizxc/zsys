@@ -4,6 +4,7 @@
 Provides functions for git operations, GitHub API interactions,
 and release management.
 """
+# RU: Git-утилиты — выполнение команд, работа с ветками и взаимодействие с GitHub API.
 
 import os
 import platform
@@ -31,6 +32,7 @@ def run_command(command: List[str], cwd: Optional[str] = None) -> str:
     Raises:
         subprocess.CalledProcessError: If command fails.
     """
+    # RU: Запускает подпроцесс, собирает stdout/stderr и пробрасывает ошибку при ненулевом коде возврата.
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -57,6 +59,7 @@ def is_git_repo(path: Optional[str] = None) -> bool:
     Returns:
         bool: True if path is a git repository.
     """
+    # RU: Проверяет наличие директории .git в указанном или текущем пути.
     check_path = Path(path) if path else Path.cwd()
     return (check_path / ".git").exists()
 
@@ -71,6 +74,7 @@ def git_pull(branch: str = "main", cwd: Optional[str] = None) -> str:
     Returns:
         str: Command output.
     """
+    # RU: Использует --ff-only для предотвращения случайных merge-коммитов.
     return run_command(["git", "pull", "origin", branch, "--ff-only"], cwd=cwd)
 
 
@@ -83,6 +87,7 @@ def git_fetch(cwd: Optional[str] = None) -> str:
     Returns:
         str: Command output.
     """
+    # RU: Обновляет все удалённые ссылки без слияния с локальными ветками.
     return run_command(["git", "fetch", "--all"], cwd=cwd)
 
 
@@ -96,6 +101,7 @@ def git_checkout(branch: str, cwd: Optional[str] = None) -> str:
     Returns:
         str: Command output.
     """
+    # RU: Переключает рабочую директорию на указанную ветку.
     return run_command(["git", "checkout", branch], cwd=cwd)
 
 
@@ -109,6 +115,7 @@ def git_rebase(branch: str = "main", cwd: Optional[str] = None) -> str:
     Returns:
         str: Command output.
     """
+    # RU: Перебазирует текущую ветку поверх origin/{branch}.
     return run_command(["git", "rebase", f"origin/{branch}"], cwd=cwd)
 
 
@@ -121,6 +128,7 @@ def get_current_branch(cwd: Optional[str] = None) -> str:
     Returns:
         str: Current branch name.
     """
+    # RU: Использует --abbrev-ref HEAD для получения читаемого имени ветки вместо SHA.
     return run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=cwd)
 
 
@@ -134,6 +142,7 @@ def get_commit_hash(short: bool = True, cwd: Optional[str] = None) -> str:
     Returns:
         str: Commit hash.
     """
+    # RU: Добавляет флаг --short для сокращённого 7-символьного хэша.
     cmd = ["git", "rev-parse"]
     if short:
         cmd.append("--short")
@@ -142,7 +151,19 @@ def get_commit_hash(short: bool = True, cwd: Optional[str] = None) -> str:
 
 
 class GitHubAPI:
-    """GitHub API client for release management."""
+    """GitHub API client for release management.
+    
+    Attributes:
+        owner: Repository owner (user or organisation).
+        repo: Repository name.
+        token: Optional GitHub personal access token for authenticated requests.
+        base_url: Base API URL composed from owner and repo.
+    
+    Example:
+        api = GitHubAPI("octocat", "Hello-World", token=os.environ["GH_TOKEN"])
+        release = api.get_latest_release()
+    """
+    # RU: Клиент для работы с GitHub Releases API — получение релизов и загрузка платформенных ассетов.
     
     def __init__(self, owner: str, repo: str, token: Optional[str] = None):
         """Initialize GitHub API client.
@@ -152,6 +173,7 @@ class GitHubAPI:
             repo: Repository name.
             token: GitHub API token (optional).
         """
+        # RU: Формирует базовый URL и сохраняет учётные данные для последующих запросов.
         if not HAS_REQUESTS:
             raise ImportError("requests library is required for GitHubAPI")
         
@@ -162,7 +184,12 @@ class GitHubAPI:
         
     @property
     def headers(self) -> Dict[str, str]:
-        """Get API headers with optional authorization."""
+        """Get API headers with optional authorization.
+        
+        Returns:
+            Dict[str, str]: Headers dict including Accept, API version, and optional Bearer token.
+        """
+        # RU: Добавляет Authorization только при наличии токена, чтобы не отправлять пустой заголовок.
         headers = {
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28"
@@ -177,6 +204,7 @@ class GitHubAPI:
         Returns:
             List of release data or None on error.
         """
+        # RU: Возвращает None при любой сетевой ошибке, не пробрасывая исключение.
         try:
             response = requests.get(
                 f"{self.base_url}/releases",
@@ -194,6 +222,7 @@ class GitHubAPI:
         Returns:
             Latest release data or None on error.
         """
+        # RU: Использует эндпоинт /releases/latest для получения последнего опубликованного релиза.
         try:
             response = requests.get(
                 f"{self.base_url}/releases/latest",
@@ -217,6 +246,7 @@ class GitHubAPI:
         Returns:
             Downloaded filename or None on error.
         """
+        # RU: Определяет текущую платформу и ищет ассет по ключевым словам в имени файла.
         if release is None:
             release = self.get_latest_release()
         
@@ -229,7 +259,7 @@ class GitHubAPI:
             "linux": ["linux"],
             "darwin": ["macos", "darwin"],
             "android": ["termux", "android"]
-        }
+        }  # RU: Ключевые слова для сопоставления имён ассетов с текущей платформой
         
         keywords = platform_keywords.get(current_platform, [])
         if not keywords:
@@ -251,6 +281,7 @@ class GitHubAPI:
         Returns:
             Downloaded filename or None on error.
         """
+        # RU: Скачивает ассет потоковой передачей чанками по 8 КБ для экономии памяти.
         download_url = asset.get("browser_download_url")
         file_name = asset.get("name")
         
@@ -266,7 +297,7 @@ class GitHubAPI:
             ) as r:
                 r.raise_for_status()
                 with open(file_name, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=8192):
+                    for chunk in r.iter_content(chunk_size=8192):  # RU: Потоковая запись по 8 КБ — не загружает весь файл в память
                         f.write(chunk)
             return file_name
         except requests.RequestException:

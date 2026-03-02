@@ -29,21 +29,27 @@ async def _run_sync(func, *args, **kwargs):
 
 
 class TelebotContext(Context):
+    """pyTelegramBotAPI (telebot) context implementing the unified interface.
+
+    Wraps a synchronous ``TeleBot`` instance and a ``telebot.types.Message``
+    object, executing every API call in a thread pool via ``_run_sync`` to
+    expose a fully async API compatible with the zsys ``Context`` base class.
+
+    Attributes:
+        platform: Always ``"telebot"``.
+        client: The synchronous ``TeleBot`` instance (same as ``bot``).
+        bot: Alias for ``client``; the synchronous ``TeleBot`` instance.
+        raw: Underlying ``telebot.types.Message`` object.
+        command: Parsed command name (without prefix), or empty string.
+        args: Whitespace-split arguments following the command.
+        text: Message text or caption; empty string if absent.
+
+    Example::
+
+        ctx = TelebotContext(bot, message, command="start")
+        await ctx.reply("Hello!")
     """
-    pyTelegramBotAPI (telebot) context adapter.
-    
-    Wraps synchronous telebot methods in async interface.
-    All methods are executed in a thread pool to avoid blocking.
-    
-    Usage:
-        @command("example")
-        async def example(ctx: TelebotContext):
-            # Unified API (async)
-            await ctx.reply("Hello!")
-            
-            # Direct access to sync telebot
-            ctx.bot.send_message(ctx.chat.id, "Direct call")
-    """
+    # RU: Контекст telebot — реализует унифицированный Context через пул потоков.
     
     platform: str = "telebot"
     
@@ -54,6 +60,15 @@ class TelebotContext(Context):
         command: str = "",
         args: List[str] = None
     ):
+        """Initialise the context from a telebot bot instance and message.
+
+        Args:
+            bot: Synchronous ``TeleBot`` instance.
+            message: Incoming ``telebot.types.Message`` object.
+            command: Parsed command name (without leading ``/``). Defaults to ``""``.
+            args: List of arguments following the command. Defaults to ``[]``.
+        """
+        # RU: Инициализация контекста из объектов TeleBot и Message.
         self.client = bot
         self.bot = bot  # Alias
         self.raw = message
@@ -69,6 +84,19 @@ class TelebotContext(Context):
     
     @property
     def user(self) -> User:
+        """Return the sender as a unified ``User`` dataclass.
+
+        Lazily constructs the ``User`` from ``raw.from_user`` on first access.
+        Returns a zeroed-out ``User(id=0)`` if the sender is absent.
+
+        Returns:
+            ``User`` dataclass populated from the telebot ``from_user`` field.
+
+        Example::
+
+            print(ctx.user.username)
+        """
+        # RU: Возвращает отправителя в виде унифицированного объекта User.
         if self._user is None:
             u = self.raw.from_user
             if not u:
@@ -87,6 +115,18 @@ class TelebotContext(Context):
     
     @property
     def chat(self) -> Chat:
+        """Return the chat as a unified ``Chat`` dataclass.
+
+        Lazily constructs the ``Chat`` from ``raw.chat`` on first access.
+
+        Returns:
+            ``Chat`` dataclass populated from the telebot ``chat`` field.
+
+        Example::
+
+            print(ctx.chat.id)
+        """
+        # RU: Возвращает чат в виде унифицированного объекта Chat.
         if self._chat is None:
             c = self.raw.chat
             self._chat = Chat(
@@ -99,15 +139,49 @@ class TelebotContext(Context):
     
     @property
     def message_id(self) -> int:
+        """Return the integer ID of the incoming message.
+
+        Returns:
+            Message ID from ``raw.message_id``.
+
+        Example::
+
+            print(ctx.message_id)
+        """
+        # RU: Возвращает целочисленный идентификатор входящего сообщения.
         return self.raw.message_id
     
     @property
     def is_reply(self) -> bool:
+        """Indicate whether the incoming message is a reply to another message.
+
+        Returns:
+            ``True`` if ``raw.reply_to_message`` is set, ``False`` otherwise.
+
+        Example::
+
+            if ctx.is_reply:
+                replied = await ctx.get_reply_message()
+        """
+        # RU: Возвращает True, если сообщение является ответом на другое.
         return self.raw.reply_to_message is not None
     
     @property
     def has_media(self) -> bool:
-        """Check if message has any media."""
+        """Indicate whether the message contains any media attachment.
+
+        Checks for photo, video, document, audio, voice, sticker, animation,
+        and video note.
+
+        Returns:
+            ``True`` if at least one media type is present.
+
+        Example::
+
+            if ctx.has_media:
+                await ctx.download_media()
+        """
+        # RU: Возвращает True, если сообщение содержит медиавложение.
         return bool(
             self.raw.photo or self.raw.video or self.raw.document or
             self.raw.audio or self.raw.voice or self.raw.sticker or

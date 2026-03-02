@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Time utilities for zsys core.
+"""Time utilities — formatting, conversion, and measurement helpers for zsys.
 
-Provides time formatting, conversion, and measurement functions.
+Provides Unix-timestamp conversion, human-readable duration strings,
+duration string parsing (e.g. ``1h30m``), and uptime formatting.
+C extension is used for ``human_time`` and ``parse_duration`` when available.
 """
+# RU: Утилиты времени — форматирование, конвертация и измерение для zsys.
+# RU: C-расширение применяется для human_time и parse_duration при наличии.
 
 import time
 from datetime import datetime, timedelta, timezone

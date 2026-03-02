@@ -1,9 +1,13 @@
-"""
-Core Constants Module - Universal configuration constants for zsys ecosystem.
+"""Universal configuration constants for the zsys ecosystem.
 
-Common constants used across all projects. Project-specific constants
-should be defined in their own configuration files.
+Defines immutable default values for file names, directory names, database
+settings, HTTP parameters, and logging options shared across all projects.
+Project-specific constants should be defined in their own config files.
 """
+# RU: Универсальные константы конфигурации для экосистемы zsys.
+# RU: Определяет неизменяемые значения по умолчанию для имён файлов,
+# RU: директорий, БД, HTTP и логирования. Проектные константы —
+# RU: в собственных конфиг-файлах проекта.
 
 from typing import Final
 

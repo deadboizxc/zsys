@@ -1,8 +1,10 @@
-"""
-Message formatting utilities for Telegram bots.
+"""Message formatting utilities for Telegram bots.
 
-Provides helpers for formatting text with HTML/Markdown.
+Provides helpers for formatting text with HTML/Markdown tags.
+Supports bold, italic, code, links, mentions, truncation, and chunk-splitting.
 """
+# RU: Утилиты форматирования сообщений для Telegram-ботов.
+# RU: Содержит функции HTML-разметки, обрезки текста и разбиения на части для отправки.
 
 import html
 import re
@@ -18,6 +20,7 @@ def escape_html(text: str) -> str:
     Returns:
         HTML-escaped text
     """
+    # RU: Делегирует экранирование стандартной библиотеке html.
     return html.escape(text)
 
 
@@ -31,6 +34,7 @@ def format_bold(text: str, escape: bool = True) -> str:
     Returns:
         Bold-formatted text
     """
+    # RU: Оборачивает текст в HTML-тег <b> для жирного начертания.
     if escape:
         text = escape_html(text)
     return f"<b>{text}</b>"
@@ -46,6 +50,7 @@ def format_italic(text: str, escape: bool = True) -> str:
     Returns:
         Italic-formatted text
     """
+    # RU: Оборачивает текст в HTML-тег <i> для курсивного начертания.
     if escape:
         text = escape_html(text)
     return f"<i>{text}</i>"
@@ -61,6 +66,7 @@ def format_code(text: str, escape: bool = False) -> str:
     Returns:
         Code-formatted text
     """
+    # RU: Оборачивает текст в HTML-тег <code> для отображения в моноширинном шрифте.
     if escape:
         text = escape_html(text)
     return f"<code>{text}</code>"
@@ -77,6 +83,7 @@ def format_pre(text: str, language: Optional[str] = None, escape: bool = False) 
     Returns:
         Pre-formatted text
     """
+    # RU: Оборачивает текст в <pre>, опционально вкладывая <code class='language-…'> для подсветки.
     if escape:
         text = escape_html(text)
     
@@ -96,6 +103,7 @@ def format_link(text: str, url: str, escape: bool = True) -> str:
     Returns:
         Link-formatted text
     """
+    # RU: Создаёт HTML-гиперссылку с заданным URL и отображаемым текстом.
     if escape:
         text = escape_html(text)
     return f'<a href="{url}">{text}</a>'
@@ -112,6 +120,7 @@ def format_mention(text: str, user_id: int, escape: bool = True) -> str:
     Returns:
         Mention-formatted text
     """
+    # RU: Создаёт упоминание пользователя через Telegram tg://user?id= ссылку.
     if escape:
         text = escape_html(text)
     return f'<a href="tg://user?id={user_id}">{text}</a>'
@@ -127,6 +136,7 @@ def format_mono(text: str, escape: bool = True) -> str:
     Returns:
         Monospace-formatted text
     """
+    # RU: Псевдоним format_code — оборачивает текст в <code> для моноширинного вывода.
     if escape:
         text = escape_html(text)
     return f"<code>{text}</code>"
@@ -143,6 +153,7 @@ def truncate_text(text: str, max_length: int = 4096, suffix: str = "...") -> str
     Returns:
         Truncated text
     """
+    # RU: Если текст укладывается в лимит — возвращает без изменений; иначе обрезает и добавляет суффикс.
     if len(text) <= max_length:
         return text
     
@@ -159,6 +170,7 @@ def split_text(text: str, max_length: int = 4096) -> List[str]:
     Returns:
         List of text chunks
     """
+    # RU: Разбивает текст на части по переносам строк, не превышая max_length символов на часть.
     if len(text) <= max_length:
         return [text]
     
@@ -172,7 +184,8 @@ def split_text(text: str, max_length: int = 4096) -> List[str]:
             if current_chunk:
                 chunks.append(current_chunk)
             
-            # If single line is too long, split it
+            # If single line is too long, split it by max_length slices
+            # RU: Одиночная строка длиннее лимита — нарезаем её на равные куски по max_length.
             if len(line) > max_length:
                 for i in range(0, len(line), max_length):
                     chunks.append(line[i:i + max_length])
@@ -195,18 +208,19 @@ def strip_markdown(text: str) -> str:
     Returns:
         Plain text
     """
+    # RU: Последовательно применяет regex для удаления жирного, курсива, кода и ссылок Markdown.
     # Remove bold/italic
-    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
-    text = re.sub(r'__(.+?)__', r'\1', text)
-    text = re.sub(r'\*(.+?)\*', r'\1', text)
-    text = re.sub(r'_(.+?)_', r'\1', text)
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)  # RU: **жирный** → жирный
+    text = re.sub(r'__(.+?)__', r'\1', text)        # RU: __жирный__ → жирный
+    text = re.sub(r'\*(.+?)\*', r'\1', text)        # RU: *курсив* → курсив
+    text = re.sub(r'_(.+?)_', r'\1', text)          # RU: _курсив_ → курсив
     
     # Remove code blocks
-    text = re.sub(r'```[\s\S]*?```', '', text)
-    text = re.sub(r'`(.+?)`', r'\1', text)
+    text = re.sub(r'```[\s\S]*?```', '', text)      # RU: многострочный блок кода удаляется целиком
+    text = re.sub(r'`(.+?)`', r'\1', text)          # RU: `инлайн код` → инлайн код
     
     # Remove links
-    text = re.sub(r'\[(.+?)\]\(.+?\)', r'\1', text)
+    text = re.sub(r'\[(.+?)\]\(.+?\)', r'\1', text) # RU: [текст](url) → текст
     
     return text
 
@@ -220,11 +234,12 @@ def strip_html(text: str) -> str:
     Returns:
         Plain text
     """
+    # RU: Удаляет HTML-теги регулярным выражением, затем декодирует HTML-сущности.
     # Remove HTML tags
-    text = re.sub(r'<[^>]+>', '', text)
+    text = re.sub(r'<[^>]+>', '', text)  # RU: <тег> и </тег> удаляются без остатка
     
     # Unescape HTML entities
-    text = html.unescape(text)
+    text = html.unescape(text)  # RU: &amp; → &, &lt; → < и т.д.
     
     return text
 
@@ -239,6 +254,7 @@ def get_args(text: str, max_split: int = -1) -> List[str]:
     Returns:
         List of arguments (excluding command)
     """
+    # RU: Разбивает строку по пробелам и отбрасывает первый элемент (саму команду).
     parts = text.split(maxsplit=max_split + 1 if max_split > 0 else max_split)
     return parts[1:] if len(parts) > 1 else []
 
@@ -252,6 +268,7 @@ def format_bytes(size: int) -> str:
     Returns:
         Formatted string (e.g., "1.5 MB")
     """
+    # RU: Итерируется по единицам и делит на 1024 пока размер не уложится в текущую единицу.
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
         if size < 1024.0:
             return f"{size:.1f} {unit}"
@@ -268,6 +285,7 @@ def format_duration(seconds: float) -> str:
     Returns:
         Formatted string (e.g., "1h 23m 45s")
     """
+    # RU: Последовательно извлекает дни, часы, минуты, секунды из общего числа секунд.
     if seconds < 60:
         return f"{seconds:.1f}s"
     

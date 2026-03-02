@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Text formatting utilities for zsys core.
+"""Text formatting utilities — HTML tag helpers for Telegram messages.
 
-Provides HTML formatting functions for Telegram messages.
+Provides thin wrapper functions that produce Telegram-compatible HTML markup:
+bold, italic, underline, code blocks, spoilers, links, and mention tags.
+C extension is used when available; pure-Python fallback is always present.
 """
+# RU: Утилиты форматирования текста — вспомогательные HTML-функции для Telegram.
+# RU: C-расширение используется при наличии; иначе активен чистый Python-fallback.
 
 from typing import Optional
 

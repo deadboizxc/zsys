@@ -3,6 +3,7 @@
 
 Provides functions to detect if code is running on Android (e.g., Termux).
 """
+# RU: Утилиты для определения платформы Android в контексте zsys
 
 import platform
 from typing import Final
@@ -18,6 +19,7 @@ def is_android() -> bool:
         >>> if is_android():
         ...     print("Running on Android")
     """
+    # RU: Проверяет, запущен ли код на Android через анализ системных атрибутов
     system: Final[str] = platform.system().lower()
     release: Final[str] = platform.release().lower()
     machine: Final[str] = platform.machine().lower()
@@ -40,6 +42,7 @@ def get_platform_info() -> dict:
     Returns:
         dict: Platform information including system, release, machine, and android status.
     """
+    # RU: Собирает сводную информацию о платформе, включая флаг Android
     return {
         "system": platform.system(),
         "release": platform.release(),

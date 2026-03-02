@@ -1,26 +1,12 @@
 # -*- coding: utf-8 -*-
-"""
-ZSYS Utils - General purpose utilities.
+"""ZSYS Utils — general-purpose utilities for the zsys framework.
 
-Organized modules:
-    - filesystem: Paths, frozen state, platform detection
-    - terminal: Shell commands, RAM/CPU monitoring
-    - media: Image processing, FFmpeg utilities
-    - git: Git operations and GitHub API
-    - versions: Version management
-    - text: Text formatting utilities
-    - time: Time and date utilities
-    - hash: Hashing utilities
-    - http: HTTP client utilities
-    - cache: Caching utilities
-    - android: Android/Termux specific utilities
-
-Usage:
-    from zsys.utils import resource_path, is_frozen, shell_exec
-    from zsys.utils import resize_image, get_ffmpeg
-    from zsys.utils import git_pull, GitHubAPI
-    from zsys.utils import VersionInfo
+Aggregates filesystem, terminal, media, git, version, text, time, hash, and HTTP
+helper modules into a single flat namespace for convenient importing.
+See submodule docstrings for individual API documentation.
 """
+# RU: Пакет вспомогательных утилит zsys — агрегирует модули файловой системы,
+# RU: терминала, медиа, git, версий, текста, времени, хеширования и HTTP в одно пространство имён.
 
 # Filesystem utilities
 from .filesystem import (

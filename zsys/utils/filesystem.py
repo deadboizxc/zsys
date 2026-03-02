@@ -7,6 +7,7 @@ Combined utilities for:
 - Frozen state detection (PyInstaller, Nuitka, cx_Freeze)
 - Platform detection (Android, Termux, OS info)
 """
+# RU: Утилиты файловой системы — пути к ресурсам, обнаружение платформы и состояния заморозки.
 
 import os
 import sys
@@ -38,16 +39,17 @@ def is_frozen() -> bool:
         else:
             base_path = os.getcwd()
     """
+    # RU: Проверяет атрибуты sys и глобальный флаг __compiled__ для определения типа сборки.
     frozen_attrs: tuple[Literal['frozen'], Literal['_MEIPASS'], Literal['importers']] = (
-        'frozen',
-        '_MEIPASS',
-        'importers'
+        'frozen',    # RU: PyInstaller
+        '_MEIPASS',  # RU: PyInstaller — временная папка с ресурсами
+        'importers'  # RU: cx_Freeze
     )
     
     return (
         getattr(sys, 'frozen', False)
         or any(hasattr(sys, attr) for attr in frozen_attrs)
-        or globals().get('__compiled__', False)
+        or globals().get('__compiled__', False)  # RU: Nuitka устанавливает этот глобальный флаг
     )
 
 
@@ -58,6 +60,7 @@ def get_frozen_info() -> dict:
     Returns:
         dict: Information about frozen state and bundler type
     """
+    # RU: Определяет тип сборщика по наличию характерных атрибутов и флагов.
     bundler = None
     
     if getattr(sys, 'frozen', False):
@@ -89,6 +92,7 @@ def is_android() -> bool:
     Returns:
         bool: True if running on Android
     """
+    # RU: Проверяет строку платформы на наличие подстроки 'android'.
     return "android" in platform.platform().lower()
 
 
@@ -99,6 +103,7 @@ def is_termux() -> bool:
     Returns:
         bool: True if running in Termux
     """
+    # RU: Termux устанавливает PREFIX=/data/data/com.termux/files/usr.
     return os.environ.get("PREFIX", "").startswith("/data/data/com.termux")
 
 
@@ -113,6 +118,7 @@ def get_platform_info() -> Dict[str, str]:
         info = get_platform_info()
         print(f"OS: {info['system']} {info['release']}")
     """
+    # RU: Собирает системную информацию и флаги Android/Termux/заморозки в единый словарь.
     return {
         "system": platform.system(),
         "release": platform.release(),
@@ -127,12 +133,22 @@ def get_platform_info() -> Dict[str, str]:
 
 
 def get_home_dir() -> str:
-    """Get user home directory."""
+    """Get user home directory.
+    
+    Returns:
+        str: Absolute path to the current user's home directory.
+    """
+    # RU: Возвращает домашнюю директорию текущего пользователя через os.path.expanduser.
     return os.path.expanduser("~")
 
 
 def get_temp_dir() -> str:
-    """Get system temporary directory."""
+    """Get system temporary directory.
+    
+    Returns:
+        str: Absolute path to the system temporary directory.
+    """
+    # RU: Возвращает временную директорию ОС через модуль tempfile.
     import tempfile
     return tempfile.gettempdir()
 
@@ -153,6 +169,7 @@ def _detect_project_root() -> Path:
     1. __main__ module directory (where script is executed)
     2. Current working directory (cwd)
     """
+    # RU: Приоритет отдаётся __main__.__file__, чтобы корень совпадал с точкой запуска.
     main_module = sys.modules.get('__main__')
     if main_module and hasattr(main_module, '__file__') and main_module.__file__:
         return Path(main_module.__file__).parent.resolve()
@@ -166,6 +183,7 @@ def get_project_root() -> Path:
     Returns:
         Path: Project root path (where main.py is located)
     """
+    # RU: Кэширует результат в _PROJECT_ROOT, чтобы избежать повторного обнаружения.
     global _PROJECT_ROOT
     if _PROJECT_ROOT is None:
         _PROJECT_ROOT = _detect_project_root()
@@ -182,6 +200,7 @@ def set_project_root(path: Union[str, Path]) -> None:
     Example:
         set_project_root(Path(__file__).parent)
     """
+    # RU: Принудительно перезаписывает кэшированный корень проекта указанным путём.
     global _PROJECT_ROOT
     _PROJECT_ROOT = Path(path).resolve()
 
@@ -203,9 +222,10 @@ def resource_path(relative_path: Union[str, Path]) -> str:
         font_path = resource_path("fonts/Arial.ttf")
         config_path = resource_path(Path("config") / "settings.json")
     """
+    # RU: В режиме заморозки PyInstaller распаковывает ресурсы в _MEIPASS, иначе — корень проекта.
     if is_frozen():
         # PyInstaller creates temp folder _MEIPASS
-        base_path = Path(getattr(sys, '_MEIPASS', get_project_root()))
+        base_path = Path(getattr(sys, '_MEIPASS', get_project_root()))  # RU: _MEIPASS — временная папка с распакованными ресурсами
     else:
         base_path = get_project_root()
     
@@ -235,6 +255,7 @@ def userdata_path(
         config_path = userdata_path("settings.json", subfolder="config")
         session_path = userdata_path("user.session", subfolder="sessions")
     """
+    # RU: Создаёт иерархию userdata/{subfolder}/ и возвращает абсолютный путь к файлу.
     userdata_folder = get_project_root() / "userdata"
     
     if subfolder:
@@ -265,6 +286,7 @@ def get_ffmpeg_paths() -> Dict[str, Optional[str]]:
         if paths["ffmpeg"]:
             subprocess.run([paths["ffmpeg"], "-i", "input.mp4"])
     """
+    # RU: Ищет бинарники в bin/ffmpeg/{os}/, при отсутствии — fallback на системный PATH.
     os_type = platform.system().lower()
     exe_suffix = ".exe" if os_type == "windows" else ""
     executables = ["ffmpeg", "ffprobe"]
@@ -305,6 +327,7 @@ def ensure_dir(path: Union[str, Path]) -> Path:
     Returns:
         Path: Created directory Path object
     """
+    # RU: Создаёт директорию со всеми промежуточными уровнями без ошибки при существующем пути.
     dir_path = Path(path)
     dir_path.mkdir(parents=True, exist_ok=True)
     return dir_path

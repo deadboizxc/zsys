@@ -3,6 +3,7 @@
 
 Provides hashing functions for strings and files.
 """
+# RU: Утилиты хэширования строк и файлов для ядра zsys
 
 import hashlib
 from typing import Literal
@@ -34,6 +35,7 @@ def md5_hash(text: str) -> str:
     Returns:
         str: MD5 hex digest.
     """
+    # RU: Вычисляет MD5-хэш переданной строки
     return hashlib.md5(text.encode()).hexdigest()
 
 
@@ -46,6 +48,7 @@ def sha256_hash(text: str) -> str:
     Returns:
         str: SHA256 hex digest.
     """
+    # RU: Вычисляет SHA-256 хэш переданной строки
     return hashlib.sha256(text.encode()).hexdigest()
 
 
@@ -58,6 +61,7 @@ def sha512_hash(text: str) -> str:
     Returns:
         str: SHA512 hex digest.
     """
+    # RU: Вычисляет SHA-512 хэш переданной строки
     return hashlib.sha512(text.encode()).hexdigest()
 
 
@@ -74,6 +78,7 @@ def hash_string(text: str, algorithm: HashAlgorithm = "sha256") -> str:
     Raises:
         ValueError: If algorithm is not supported.
     """
+    # RU: Универсальная функция хэширования строки с выбором алгоритма
     algorithms = {
         "md5": hashlib.md5,
         "sha1": hashlib.sha1,
@@ -107,6 +112,7 @@ def hash_file_sync(
         ValueError: If algorithm is not supported.
         FileNotFoundError: If file does not exist.
     """
+    # RU: Вычисляет хэш файла синхронно, читая его блоками
     algorithms = {
         "md5": hashlib.md5,
         "sha1": hashlib.sha1,
@@ -121,6 +127,7 @@ def hash_file_sync(
     hash_func = algorithms[algorithm]()
     
     with open(file_path, "rb") as f:
+        # RU: Walrus-оператор: читаем блок и проверяем его непустоту в одном выражении
         while chunk := f.read(chunk_size):
             hash_func.update(chunk)
     
@@ -147,6 +154,7 @@ async def hash_file(
         ValueError: If algorithm is not supported.
         FileNotFoundError: If file does not exist.
     """
+    # RU: Вычисляет хэш файла асинхронно с помощью aiofiles
     if not HAS_AIOFILES:
         raise ImportError("aiofiles is required for async file operations")
     
@@ -164,6 +172,7 @@ async def hash_file(
     hash_func = algorithms[algorithm]()
     
     async with aiofiles.open(file_path, "rb") as f:
+        # RU: Walrus-оператор в асинхронном контексте: читаем и проверяем блок атомарно
         while chunk := await f.read(chunk_size):
             hash_func.update(chunk)
     

@@ -7,6 +7,7 @@ Provides reusable decorators for:
 - Admin access control
 - Error handling
 """
+# RU: Декораторы для обработчиков команд бота (валидация, права доступа, логирование)
 
 from typing import Callable, TypeVar, Any, Awaitable, Optional, List
 from functools import wraps
@@ -29,6 +30,7 @@ def with_reply(func: F) -> F:
         async def delete_command(client, message):
             await message.reply_to_message.delete()
     """
+    # RU: Прерывает выполнение, если сообщение не является ответом на другое
     @wraps(func)
     async def wrapped(client: Any, message: Any) -> Any:
         if not hasattr(message, 'reply_to_message') or not message.reply_to_message:
@@ -54,6 +56,7 @@ def with_args(error_text: str = "<b>⚠️ Arguments required</b>") -> Callable[
             text = message.text.split(maxsplit=1)[1]
             await message.edit(text)
     """
+    # RU: Прерывает выполнение, если команда вызвана без аргументов
     def decorator(func: F) -> F:
         @wraps(func)
         async def wrapped(client: Any, message: Any) -> Any:
@@ -88,6 +91,7 @@ def admin_only(admin_ids: Optional[List[int]] = None) -> Callable[[F], F]:
             await message.edit("Restarting...")
             restart_bot()
     """
+    # RU: Ограничивает доступ к команде для заданного списка администраторов
     def decorator(func: F) -> F:
         @wraps(func)
         async def wrapped(client: Any, message: Any) -> Any:
@@ -103,6 +107,7 @@ def admin_only(admin_ids: Optional[List[int]] = None) -> Callable[[F], F]:
             
             # If no admin_ids, check if user is owner (me)
             if not admin_ids:
+                # RU: Сообщение считается «нашим», если исходящее или отправлено текущим аккаунтом
                 is_owner = getattr(message, 'outgoing', False) or getattr(message, 'from_user', None) == client.me
                 if not is_owner:
                     await message.edit("<b>⛔️ Owner access required</b>")
@@ -134,6 +139,7 @@ def error_handler(
             result = await some_risky_operation()
             await message.edit(result)
     """
+    # RU: Перехватывает исключения и отправляет пользователю сообщение об ошибке
     def decorator(func: F) -> F:
         @wraps(func)
         async def wrapped(client: Any, message: Any) -> Any:
@@ -178,6 +184,7 @@ def typing_action(func: F) -> F:
             await asyncio.sleep(5)
             await message.edit("Done!")
     """
+    # RU: Показывает статус «печатает» в чате во время обработки команды
     @wraps(func)
     async def wrapped(client: Any, message: Any) -> Any:
         chat_id = message.chat.id if hasattr(message, 'chat') else None
@@ -207,6 +214,7 @@ def log_command(func: F) -> F:
         async def important_command(client, message):
             await message.edit("Executed!")
     """
+    # RU: Логирует вызов команды с идентификатором пользователя и текстом
     @wraps(func)
     async def wrapped(client: Any, message: Any) -> Any:
         try:

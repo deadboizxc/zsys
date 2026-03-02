@@ -1,41 +1,10 @@
-"""
-ZSYS Core Logging Module.
+"""ZSYS Core Logging Module.
 
 Provides base logging functionality for the ZSYS ecosystem.
-
-Components:
-- BaseLogger: Foundation logger class with context support
-- Logger: Alias for BaseLogger (backward compatibility)
-- get_logger: Factory function for creating logger instances
-
-Features:
-- Flexible log level management
-- Handler management
-- Context support for structured logging
-- Thread-safe operations
-- Child logger creation
-- State management (enable/disable)
-
-Usage:
-    # Simple usage
-    from zsys.core.logging import Logger
-    
-    logger = Logger("myapp")
-    logger.info("Application started")
-    logger.error("Error occurred", exc_info=True)
-    
-    # With context
-    with logger.context(user_id=123):
-        logger.info("User action")
-    
-    # Bound logger
-    user_logger = logger.bind(user_id=123)
-    user_logger.info("Action")
-    
-    # Child logger
-    sub_logger = logger.get_child("submodule")
-    sub_logger.debug("Debug info")
+Exports BaseLogger, its Logger alias, and the get_logger factory function.
 """
+# RU: Модуль логирования ядра ZSYS — предоставляет BaseLogger, псевдоним Logger и фабрику get_logger.
+# RU: Для создания логгера используйте get_logger("имя") или Logger("имя") напрямую.
 
 from .base import BaseLogger, get_logger
 

@@ -3,6 +3,7 @@
 
 Provides async HTTP request functions.
 """
+# RU: Асинхронные HTTP-утилиты — загрузка данных, JSON-запросы и скачивание файлов.
 
 from typing import Optional, Dict, Any
 
@@ -45,6 +46,7 @@ async def fetch_url(
     Raises:
         ImportError: If aiohttp is not installed.
     """
+    # RU: Открывает сессию aiohttp, выполняет GET-запрос и возвращает тело ответа как строку.
     if not HAS_AIOHTTP:
         raise ImportError("aiohttp is required for HTTP operations")
     
@@ -75,6 +77,7 @@ async def fetch_json(
     Raises:
         ImportError: If aiohttp is not installed.
     """
+    # RU: Выполняет GET-запрос и десериализует JSON-ответ через aiohttp.
     if not HAS_AIOHTTP:
         raise ImportError("aiohttp is required for HTTP operations")
     
@@ -100,6 +103,7 @@ async def fetch_status(url: str, timeout: int = 30) -> int:
     Raises:
         ImportError: If aiohttp is not installed.
     """
+    # RU: Выполняет HEAD-like GET запрос и возвращает HTTP-статус без чтения тела ответа.
     if not HAS_AIOHTTP:
         raise ImportError("aiohttp is required for HTTP operations")
     
@@ -133,6 +137,7 @@ async def download_file(
     Raises:
         ImportError: If aiohttp or aiofiles is not installed.
     """
+    # RU: Скачивает файл потоковой передачей — записывает чанки асинхронно, не загружая всё в память.
     if not HAS_AIOHTTP:
         raise ImportError("aiohttp is required for HTTP operations")
     if not HAS_AIOFILES:
@@ -145,7 +150,7 @@ async def download_file(
             timeout=aiohttp.ClientTimeout(total=timeout)
         ) as response:
             async with aiofiles.open(path, "wb") as f:
-                async for chunk in response.content.iter_chunked(chunk_size):
+                async for chunk in response.content.iter_chunked(chunk_size):  # RU: iter_chunked позволяет читать ответ частями без буферизации всего тела
                     await f.write(chunk)
     
     return path
@@ -171,6 +176,7 @@ async def post_json(
     Raises:
         ImportError: If aiohttp is not installed.
     """
+    # RU: Отправляет POST-запрос с JSON-телом и десериализует JSON-ответ.
     if not HAS_AIOHTTP:
         raise ImportError("aiohttp is required for HTTP operations")
     

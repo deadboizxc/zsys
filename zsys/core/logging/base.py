@@ -1,16 +1,11 @@
-"""
-Base Logger for ZSYS Core.
+"""Base Logger for ZSYS Core.
 
 Provides foundational logging functionality that can be extended
 by specific implementations (ColorLogger, UnifiedLogger, etc.).
-
-Features:
-- Flexible log level management
-- Handler management
-- Context support
-- Structured logging support
-- Thread-safe operations
+Supports flexible level management, handler management, context, and thread-safety.
 """
+# RU: Базовый логгер ядра ZSYS — расширяемая основа для ColorLogger, UnifiedLogger и др.
+# RU: Поддерживает управление уровнями, обработчиками, контекстом и дочерними логгерами.
 
 import logging
 import sys
@@ -40,6 +35,7 @@ class BaseLogger:
         with logger.context(user_id=123):
             logger.info("User action")  # Will include user_id in log
     """
+    # RU: Базовый класс логгера — обёртка над logging.Logger с контекстом и удобным API.
     
     def __init__(
         self,
@@ -59,18 +55,21 @@ class BaseLogger:
             datefmt: Date format string
             propagate: Whether to propagate logs to parent loggers
         """
+        # RU: Сохраняет параметры, получает или создаёт именованный logger и настраивает обработчик.
         self.name = name
         self._level = self._normalize_level(level)
         self._format_string = format_string
         self._datefmt = datefmt
         self._context_data: Dict[str, Any] = {}
         
-        # Get or create logger
+        # Get or create logger — повторные вызовы с тем же именем вернут тот же экземпляр
+        # RU: logging.getLogger возвращает один и тот же объект для одинакового имени (registry).
         self.logger = logging.getLogger(name)
         self.logger.setLevel(self._level)
         self.logger.propagate = propagate
         
         # Initialize handlers if not already set
+        # RU: Пропускаем setup если logger уже настроен (например, при повторном создании).
         if not self.logger.handlers:
             self._setup_default_handler()
     
@@ -84,6 +83,7 @@ class BaseLogger:
         Returns:
             Integer log level
         """
+        # RU: Преобразует строковое название уровня в числовой код logging; неизвестное → INFO.
         if isinstance(level, int):
             return level
         
@@ -100,7 +100,8 @@ class BaseLogger:
         return level_map.get(level.upper(), logging.INFO)
     
     def _setup_default_handler(self):
-        """Setup default console handler."""
+        """Set up the default console (stdout) handler with a standard formatter."""
+        # RU: Создаёт StreamHandler на stdout и применяет стандартный формат если не задан другой.
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(self._level)
         
@@ -124,6 +125,7 @@ class BaseLogger:
         Returns:
             Message with context appended
         """
+        # RU: Если контекст не пуст — добавляет пары key=value в квадратных скобках к сообщению.
         if not self._context_data:
             return message
         
@@ -141,6 +143,7 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments (exc_info, stack_info, stacklevel, extra)
         """
+        # RU: Передаёт сообщение с добавленным контекстом во внутренний logging.Logger.debug.
         self.logger.debug(self._build_message(message), *args, **kwargs)
     
     def info(self, message: str, *args, **kwargs):
@@ -152,6 +155,7 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments (exc_info, stack_info, stacklevel, extra)
         """
+        # RU: Передаёт сообщение с добавленным контекстом во внутренний logging.Logger.info.
         self.logger.info(self._build_message(message), *args, **kwargs)
     
     def warning(self, message: str, *args, **kwargs):
@@ -163,10 +167,12 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments (exc_info, stack_info, stacklevel, extra)
         """
+        # RU: Передаёт сообщение с добавленным контекстом во внутренний logging.Logger.warning.
         self.logger.warning(self._build_message(message), *args, **kwargs)
     
     def warn(self, message: str, *args, **kwargs):
         """Alias for warning()."""
+        # RU: Псевдоним для обратной совместимости с кодом, использующим warn().
         self.warning(message, *args, **kwargs)
     
     def error(self, message: str, *args, **kwargs):
@@ -178,6 +184,7 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments (exc_info, stack_info, stacklevel, extra)
         """
+        # RU: Передаёт сообщение с добавленным контекстом во внутренний logging.Logger.error.
         self.logger.error(self._build_message(message), *args, **kwargs)
     
     def critical(self, message: str, *args, **kwargs):
@@ -189,10 +196,12 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments (exc_info, stack_info, stacklevel, extra)
         """
+        # RU: Передаёт сообщение с добавленным контекстом во внутренний logging.Logger.critical.
         self.logger.critical(self._build_message(message), *args, **kwargs)
     
     def fatal(self, message: str, *args, **kwargs):
         """Alias for critical()."""
+        # RU: Псевдоним для обратной совместимости с кодом, использующим fatal().
         self.critical(message, *args, **kwargs)
     
     def exception(self, message: str, *args, **kwargs):
@@ -206,6 +215,7 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments (exc_info defaults to True)
         """
+        # RU: Устанавливает exc_info=True по умолчанию для автоматического захвата трейсбека.
         kwargs.setdefault("exc_info", True)
         self.logger.exception(self._build_message(message), *args, **kwargs)
     
@@ -219,6 +229,7 @@ class BaseLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments
         """
+        # RU: Нормализует уровень и делегирует logging.Logger.log с добавленным контекстом.
         level = self._normalize_level(level)
         self.logger.log(level, self._build_message(message), *args, **kwargs)
     
@@ -231,6 +242,7 @@ class BaseLogger:
         Args:
             level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL) or int
         """
+        # RU: Обновляет уровень логгера и всех его обработчиков одновременно.
         self._level = self._normalize_level(level)
         self.logger.setLevel(self._level)
         
@@ -245,6 +257,7 @@ class BaseLogger:
         Returns:
             Current log level as integer
         """
+        # RU: Возвращает числовой уровень, хранящийся в _level (кешируется при set_level).
         return self._level
     
     def is_enabled_for(self, level: Union[str, int]) -> bool:
@@ -257,6 +270,7 @@ class BaseLogger:
         Returns:
             True if enabled, False otherwise
         """
+        # RU: Нормализует уровень и делегирует проверку стандартному logging.Logger.isEnabledFor.
         level = self._normalize_level(level)
         return self.logger.isEnabledFor(level)
     
@@ -269,6 +283,7 @@ class BaseLogger:
         Args:
             handler: Handler to add
         """
+        # RU: Добавляет обработчик во внутренний logging.Logger (например, FileHandler).
         self.logger.addHandler(handler)
     
     def remove_handler(self, handler: logging.Handler):
@@ -278,10 +293,12 @@ class BaseLogger:
         Args:
             handler: Handler to remove
         """
+        # RU: Удаляет конкретный обработчик из внутреннего logging.Logger.
         self.logger.removeHandler(handler)
     
     def clear_handlers(self):
-        """Remove all handlers."""
+        """Remove all handlers from the logger."""
+        # RU: Очищает список обработчиков, прекращая вывод во все подключённые назначения.
         self.logger.handlers.clear()
     
     def get_handlers(self):
@@ -291,6 +308,7 @@ class BaseLogger:
         Returns:
             List of handlers
         """
+        # RU: Возвращает копию списка обработчиков для безопасной итерации снаружи.
         return self.logger.handlers.copy()
     
     # ===== Context Management =====
@@ -307,6 +325,7 @@ class BaseLogger:
             with logger.context(user_id=123, request_id="abc"):
                 logger.info("Processing request")
         """
+        # RU: Сохраняет текущий контекст, добавляет новые поля и восстанавливает при выходе.
         # Save current context
         old_context = self._context_data.copy()
         
@@ -333,6 +352,7 @@ class BaseLogger:
             user_logger = logger.bind(user_id=123)
             user_logger.info("User action")
         """
+        # RU: Создаёт новый экземпляр логгера с объединённым контекстом и общим logging.Logger.
         new_logger = self.__class__(
             name=self.name,
             level=self._level,
@@ -340,17 +360,19 @@ class BaseLogger:
             datefmt=self._datefmt
         )
         new_logger._context_data = {**self._context_data, **kwargs}
-        new_logger.logger = self.logger  # Share underlying logger
+        new_logger.logger = self.logger  # Share underlying logger — RU: единый backend для всех привязок
         return new_logger
     
     # ===== State Management =====
     
     def enable(self):
         """Enable logging."""
+        # RU: Снимает флаг disabled с внутреннего logging.Logger.
         self.logger.disabled = False
     
     def disable(self):
         """Disable logging."""
+        # RU: Устанавливает флаг disabled — логгер перестаёт обрабатывать любые записи.
         self.logger.disabled = True
     
     def is_disabled(self) -> bool:
@@ -360,6 +382,7 @@ class BaseLogger:
         Returns:
             True if disabled, False otherwise
         """
+        # RU: Читает флаг disabled напрямую из внутреннего logging.Logger.
         return self.logger.disabled
     
     # ===== Utility Methods =====
@@ -378,6 +401,7 @@ class BaseLogger:
             child = logger.get_child("submodule")
             # Creates logger with name "parent.submodule"
         """
+        # RU: Создаёт дочерний логгер с именем «родитель.суффикс» и теми же настройками.
         child_name = f"{self.name}.{suffix}"
         return self.__class__(
             name=child_name,
@@ -387,7 +411,12 @@ class BaseLogger:
         )
     
     def __repr__(self) -> str:
-        """String representation."""
+        """Return a developer-friendly string representation.
+
+        Returns:
+            str: Representation showing class name, logger name, and current level.
+        """
+        # RU: Показывает класс, имя и числовой уровень для удобной отладки в REPL.
         return f"<{self.__class__.__name__}(name='{self.name}', level={self._level})>"
 
 
@@ -412,6 +441,7 @@ def get_logger(
     Usage:
         logger = get_logger("myapp", level="DEBUG")
     """
+    # RU: Удобная фабричная функция — создаёт BaseLogger без явного импорта класса.
     return BaseLogger(name=name, level=level, format_string=format_string)
 
 
