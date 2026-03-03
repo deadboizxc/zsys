@@ -29,6 +29,7 @@ class DuckDBDatabase(Database):
         _conn: Active DuckDB connection object.
         _lock: Reentrant mutex that guards every statement execution.
     """
+
     # RU: DuckDB-реализация интерфейса Database.
     # RU: Все таблицы создаются в схеме core; доступ потокобезопасен через Lock.
 
@@ -50,14 +51,14 @@ class DuckDBDatabase(Database):
             import duckdb
         except ImportError:
             raise ImportError("duckdb не установлен. Установите: pip install duckdb")
-        
+
         self._file = str(file)
         Path(self._file).parent.mkdir(parents=True, exist_ok=True)
-        
+
         self._duckdb = duckdb
         self._conn = duckdb.connect(self._file)
         self._lock = threading.Lock()
-        
+
         self._execute("CREATE SCHEMA IF NOT EXISTS core;")
 
     def _execute(self, sql: str, params: Optional[list] = None):

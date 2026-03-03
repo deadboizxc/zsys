@@ -20,6 +20,7 @@ class APIError(BaseException):
         code: Optional error code — may be an HTTP status as a string
             (e.g. ``"404"``) or a platform-specific error code.
     """
+
     # RU: Исключение при сбое API- или HTTP-запроса.
 
     def __init__(self, message: str, code: str | None = None):
@@ -43,5 +44,6 @@ class BotError(BaseException):
         message: Human-readable error description.
         code: Optional platform-specific error code.
     """
+
     # RU: Исключение при сбое операции на уровне бота.
     pass

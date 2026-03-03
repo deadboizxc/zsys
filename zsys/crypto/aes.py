@@ -22,6 +22,7 @@ try:
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import padding
+
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
@@ -48,6 +49,7 @@ class AESCipher(ICipher):
         enc = cipher.encrypt_string("Hello, world!")
         text = cipher.decrypt_string(enc)
     """
+
     # RU: Симметричный шифр AES-256-CBC. IV (16 байт) предшествует шифртексту.
 
     def __init__(self, key: str | bytes):
@@ -90,9 +92,7 @@ class AESCipher(ICipher):
 
         # Create cipher
         cipher = Cipher(
-            algorithms.AES(self.key),
-            modes.CBC(iv),
-            backend=default_backend()
+            algorithms.AES(self.key), modes.CBC(iv), backend=default_backend()
         )
         encryptor = cipher.encryptor()
 
@@ -123,9 +123,7 @@ class AESCipher(ICipher):
 
         # Create cipher
         cipher = Cipher(
-            algorithms.AES(self.key),
-            modes.CBC(iv),
-            backend=default_backend()
+            algorithms.AES(self.key), modes.CBC(iv), backend=default_backend()
         )
         decryptor = cipher.decryptor()
 

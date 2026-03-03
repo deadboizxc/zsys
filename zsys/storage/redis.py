@@ -31,6 +31,7 @@ class RedisDatabase(Database):
         _client: Underlying ``redis.Redis`` client instance.
         _lock: ``threading.Lock`` used to serialise concurrent writes.
     """
+
     # RU: Реализация Database на базе Redis.
     # RU: Каждая переменная хранится под ключом «модуль:переменная».
     # RU: Клиент создаётся с decode_responses=True; словари/списки — JSON,
@@ -57,7 +58,7 @@ class RedisDatabase(Database):
             import redis
         except ImportError:
             raise ImportError("redis не установлен. Установите: pip install redis")
-        
+
         self._client = redis.Redis(host=host, port=port, db=db, decode_responses=True)
         self._lock = threading.Lock()
 
@@ -207,12 +208,16 @@ class RedisDatabase(Database):
         # RU: Файл создаётся в target_path; при любой ошибке бросает DatabaseError.
         try:
             from pathlib import Path
+
             data = {}
             for module in self.get_modules():
                 data[module] = self.get_collection(module)
 
             # build timestamped filename, e.g. redis_backup_20240101_1530.json
-            backup_file = Path(target_path) / f"redis_backup_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+            backup_file = (
+                Path(target_path)
+                / f"redis_backup_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+            )
             with open(backup_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 

@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, Engine, event
 from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from sqlalchemy.pool import StaticPool, QueuePool
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ORMConfig:
@@ -30,8 +30,9 @@ class ORMConfig:
         pool_pre_ping: If True, test each connection with a ping before use.
         connect_args: Extra keyword arguments forwarded to the DBAPI ``connect()`` call.
     """
+
     # RU: Конфигурация движка SQLAlchemy: URL базы данных, параметры пула соединений.
-    
+
     def __init__(
         self,
         database_url: str,
@@ -40,7 +41,7 @@ class ORMConfig:
         max_overflow: int = 10,
         pool_recycle: int = 3600,
         pool_pre_ping: bool = True,
-        connect_args: Optional[dict] = None
+        connect_args: Optional[dict] = None,
     ):
         """Initialise ORM configuration with engine and pool parameters.
 
@@ -101,8 +102,9 @@ class DatabaseSession:
             with db.get_session() as session:
                 yield session
     """
+
     # RU: Менеджер движка и фабрики сессий SQLAlchemy с поддержкой контекстного менеджера.
-    
+
     def __init__(self, config: ORMConfig):
         """Initialise the database session manager and create the engine.
 
@@ -120,7 +122,7 @@ class DatabaseSession:
         self.engine: Optional[Engine] = None
         self.SessionLocal: Optional[sessionmaker] = None
         self._init_engine()
-    
+
     def _init_engine(self) -> None:
         """Create the SQLAlchemy engine and session factory.
 
@@ -139,7 +141,7 @@ class DatabaseSession:
         # RU: Определяем класс пула и параметры движка в зависимости от типа БД.
         # Determine pool class based on database type
         is_sqlite = "sqlite" in self.config.database_url
-        
+
         if is_sqlite:
             # SQLite doesn't use connection pooling — StaticPool reuses a single connection.
             # RU: SQLite не поддерживает пул потоков — используем StaticPool с одним соединением.
@@ -163,19 +165,17 @@ class DatabaseSession:
                 "pool_pre_ping": self.config.pool_pre_ping,
                 "connect_args": self.config.connect_args,
             }
-        
+
         # Create engine
         # RU: Создаём движок с собранными параметрами.
         self.engine = create_engine(self.config.database_url, **engine_kwargs)
-        
+
         # Create session factory
         # RU: Создаём фабрику сессий без автокоммита и автофлаша.
         self.SessionLocal = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=self.engine
+            autocommit=False, autoflush=False, bind=self.engine
         )
-        
+
         # Add event listeners for better connection handling
         @event.listens_for(self.engine, "connect")
         def receive_connect(dbapi_conn, connection_record):
@@ -193,7 +193,7 @@ class DatabaseSession:
                 cursor = dbapi_conn.cursor()
                 cursor.execute("PRAGMA foreign_keys=ON")
                 cursor.close()
-    
+
     @contextmanager
     def get_session(self) -> Generator[Session, None, None]:
         """Yield a transactional database session, committing or rolling back automatically.
@@ -224,7 +224,7 @@ class DatabaseSession:
             raise
         finally:
             session.close()
-    
+
     def get_session_dependency(self) -> Generator[Session, None, None]:
         """Yield a bare session suitable for FastAPI dependency injection.
 
@@ -252,7 +252,7 @@ class DatabaseSession:
             yield session
         finally:
             session.close()
-    
+
     def create_all(self) -> None:
         """Create all ORM-mapped tables in the database.
 
@@ -271,8 +271,9 @@ class DatabaseSession:
             raise RuntimeError("Engine not initialized")
         # Import Base from base_model to get all models
         from .base_model import Base
+
         Base.metadata.create_all(bind=self.engine)
-    
+
     def drop_all(self) -> None:
         """Drop all ORM-mapped tables from the database — destructive, use with caution.
 
@@ -291,8 +292,9 @@ class DatabaseSession:
             raise RuntimeError("Engine not initialized")
         # Import Base to get all models
         from .base_model import Base
+
         Base.metadata.drop_all(bind=self.engine)
-    
+
     def close(self) -> None:
         """Dispose of the engine and close all pooled connections.
 
@@ -305,7 +307,7 @@ class DatabaseSession:
         # RU: Закрываем все соединения и освобождаем пул.
         if self.engine:
             self.engine.dispose()
-    
+
     def __enter__(self):
         """Return self to support using ``DatabaseSession`` as a context manager.
 
@@ -314,7 +316,7 @@ class DatabaseSession:
         """
         # RU: Возвращаем себя для использования в блоке with.
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Close the engine when leaving the ``with`` block.
 
@@ -380,8 +382,8 @@ def get_db() -> Optional[DatabaseSession]:
 
 
 __all__ = [
-    'ORMConfig',
-    'DatabaseSession',
-    'init_db',
-    'get_db',
+    "ORMConfig",
+    "DatabaseSession",
+    "init_db",
+    "get_db",
 ]

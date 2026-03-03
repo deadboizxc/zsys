@@ -16,6 +16,7 @@ class ChatType(str, Enum):
     Values are lowercase strings to allow direct comparison with
     platform API responses.
     """
+
     # RU: Перечисление типов чатов на платформах обмена сообщениями.
     PRIVATE = "private"
     GROUP = "group"
@@ -37,6 +38,7 @@ class IChat(Protocol):
         - Discord channels
         - Any other messaging platform
     """
+
     # RU: Абстрактный контракт для объектов чата/переписки.
 
     @property

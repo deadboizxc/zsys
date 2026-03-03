@@ -70,7 +70,7 @@ HTTP_RETRY_DELAY: Final[float] = 1.0
 """Default delay between HTTP retries in seconds."""
 
 # =============================================================================
-# LOGGING DEFAULTS  
+# LOGGING DEFAULTS
 # =============================================================================
 
 LOG_MAX_SIZE: Final[int] = 10 * 1024 * 1024  # 10 MB
@@ -88,25 +88,25 @@ LOG_FORMAT: Final[str] = "[%(asctime)s] %(levelname)s - %(message)s"
 
 __all__ = [
     # File names
-    'ENV_FILE_NAME',
-    'DB_DEFAULT_NAME', 
-    'SESSION_DEFAULT_NAME',
-    'BOT_CONFIG_FILE_NAME',
-    'CONFIG_FILE_NAME',
+    "ENV_FILE_NAME",
+    "DB_DEFAULT_NAME",
+    "SESSION_DEFAULT_NAME",
+    "BOT_CONFIG_FILE_NAME",
+    "CONFIG_FILE_NAME",
     # Directories
-    'USERDATA_DIR',
-    'LOGS_DIR',
-    'CACHE_DIR',
-    'TEMP_DIR',
+    "USERDATA_DIR",
+    "LOGS_DIR",
+    "CACHE_DIR",
+    "TEMP_DIR",
     # Database
-    'DB_TIMEOUT',
-    'DB_POOL_SIZE',
+    "DB_TIMEOUT",
+    "DB_POOL_SIZE",
     # HTTP
-    'HTTP_TIMEOUT',
-    'HTTP_MAX_RETRIES',
-    'HTTP_RETRY_DELAY',
+    "HTTP_TIMEOUT",
+    "HTTP_MAX_RETRIES",
+    "HTTP_RETRY_DELAY",
     # Logging
-    'LOG_MAX_SIZE',
-    'LOG_BACKUP_COUNT',
-    'LOG_FORMAT',
+    "LOG_MAX_SIZE",
+    "LOG_BACKUP_COUNT",
+    "LOG_FORMAT",
 ]

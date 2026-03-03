@@ -13,4 +13,4 @@ in your project (e.g. zxc_userbot/core/api/web.py).
 
 from .base import BaseAPI, APIConfig
 
-__all__ = ['BaseAPI', 'APIConfig']
+__all__ = ["BaseAPI", "APIConfig"]

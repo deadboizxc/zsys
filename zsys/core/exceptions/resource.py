@@ -19,6 +19,7 @@ class NotFoundError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при отсутствии запрошенного ресурса.
     pass
 
@@ -33,6 +34,7 @@ class PermissionError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при отсутствии прав для выполнения операции.
     pass
 
@@ -47,6 +49,7 @@ class PermissionDeniedError(BaseException):
         message: Human-readable error description including the action.
         action: The action string that was denied.
     """
+
     # RU: Исключение при отказе в выполнении конкретного именованного действия.
 
     def __init__(self, action: str, code: str | None = None):

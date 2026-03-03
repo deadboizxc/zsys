@@ -18,6 +18,7 @@ class ChatType(str, Enum):
 
     String values match the platform API response strings directly.
     """
+
     # RU: Перечисление поддерживаемых типов чатов.
     PRIVATE = "private"
     GROUP = "group"
@@ -45,6 +46,7 @@ class BaseChat:
         is_restricted: Whether the chat has content restrictions applied.
         created_at: Timestamp when this data record was created locally.
     """
+
     # RU: Платформо-независимая модель чата в памяти.
 
     id: int

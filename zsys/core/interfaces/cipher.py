@@ -23,6 +23,7 @@ class ICipher(Protocol):
         - ECDH + AES-GCM (elliptic curve, ``zsys.crypto.ecc``)
         - ChaCha20-Poly1305 (stream cipher, future)
     """
+
     # RU: Абстрактный контракт для симметричных и асимметричных шифров.
 
     def encrypt(self, data: bytes) -> bytes:

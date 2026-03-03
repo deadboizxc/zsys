@@ -49,8 +49,7 @@ _available: bool = _load_lib()
 def _require_lib() -> ctypes.CDLL:
     if not _available or _lib is None:
         raise RuntimeError(
-            "libzsys shared library not found. "
-            "Build it with: make build-lib"
+            "libzsys shared library not found. Build it with: make build-lib"
         )
     return _lib
 
@@ -65,19 +64,19 @@ class Router:
 
     def __init__(self) -> None:
         lib = _require_lib()
-        lib.zsys_router_new.restype  = ctypes.c_void_p
+        lib.zsys_router_new.restype = ctypes.c_void_p
         lib.zsys_router_new.argtypes = []
-        lib.zsys_router_free.restype  = None
+        lib.zsys_router_free.restype = None
         lib.zsys_router_free.argtypes = [ctypes.c_void_p]
-        lib.zsys_router_add.restype  = ctypes.c_int
+        lib.zsys_router_add.restype = ctypes.c_int
         lib.zsys_router_add.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int]
-        lib.zsys_router_remove.restype  = ctypes.c_int
+        lib.zsys_router_remove.restype = ctypes.c_int
         lib.zsys_router_remove.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-        lib.zsys_router_lookup.restype  = ctypes.c_int
+        lib.zsys_router_lookup.restype = ctypes.c_int
         lib.zsys_router_lookup.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-        lib.zsys_router_count.restype  = ctypes.c_size_t
+        lib.zsys_router_count.restype = ctypes.c_size_t
         lib.zsys_router_count.argtypes = [ctypes.c_void_p]
-        lib.zsys_router_clear.restype  = None
+        lib.zsys_router_clear.restype = None
         lib.zsys_router_clear.argtypes = [ctypes.c_void_p]
         self._lib = lib
         self._ptr = lib.zsys_router_new()
@@ -120,22 +119,25 @@ class Registry:
 
     def __init__(self) -> None:
         lib = _require_lib()
-        lib.zsys_registry_new.restype  = ctypes.c_void_p
+        lib.zsys_registry_new.restype = ctypes.c_void_p
         lib.zsys_registry_new.argtypes = []
-        lib.zsys_registry_free.restype  = None
+        lib.zsys_registry_free.restype = None
         lib.zsys_registry_free.argtypes = [ctypes.c_void_p]
-        lib.zsys_registry_register.restype  = ctypes.c_int
+        lib.zsys_registry_register.restype = ctypes.c_int
         lib.zsys_registry_register.argtypes = [
-            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
-            ctypes.c_char_p, ctypes.c_char_p,
+            ctypes.c_void_p,
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
         ]
-        lib.zsys_registry_unregister.restype  = ctypes.c_int
+        lib.zsys_registry_unregister.restype = ctypes.c_int
         lib.zsys_registry_unregister.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-        lib.zsys_registry_get.restype  = ctypes.c_int
+        lib.zsys_registry_get.restype = ctypes.c_int
         lib.zsys_registry_get.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-        lib.zsys_registry_count.restype  = ctypes.c_size_t
+        lib.zsys_registry_count.restype = ctypes.c_size_t
         lib.zsys_registry_count.argtypes = [ctypes.c_void_p]
-        lib.zsys_registry_name_at.restype  = ctypes.c_char_p
+        lib.zsys_registry_name_at.restype = ctypes.c_char_p
         lib.zsys_registry_name_at.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
         self._lib = lib
         self._ptr = lib.zsys_registry_new()
@@ -147,13 +149,16 @@ class Registry:
             self._lib.zsys_registry_free(self._ptr)
             self._ptr = None
 
-    def register(self, name: str, handler_id: int,
-                 description: str = "", category: str = "") -> int:
+    def register(
+        self, name: str, handler_id: int, description: str = "", category: str = ""
+    ) -> int:
         """Register name → handler_id. Returns 0 on success."""
         return self._lib.zsys_registry_register(
             self._ptr,
-            name.encode(), handler_id,
-            description.encode(), category.encode(),
+            name.encode(),
+            handler_id,
+            description.encode(),
+            category.encode(),
         )
 
     def unregister(self, name: str) -> int:
@@ -183,21 +188,25 @@ class I18n:
 
     def __init__(self) -> None:
         lib = _require_lib()
-        lib.zsys_i18n_new.restype  = ctypes.c_void_p
+        lib.zsys_i18n_new.restype = ctypes.c_void_p
         lib.zsys_i18n_new.argtypes = []
-        lib.zsys_i18n_free.restype  = None
+        lib.zsys_i18n_free.restype = None
         lib.zsys_i18n_free.argtypes = [ctypes.c_void_p]
-        lib.zsys_i18n_load_json.restype  = ctypes.c_int
+        lib.zsys_i18n_load_json.restype = ctypes.c_int
         lib.zsys_i18n_load_json.argtypes = [
-            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p,
+            ctypes.c_void_p,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
         ]
-        lib.zsys_i18n_set_lang.restype  = None
+        lib.zsys_i18n_set_lang.restype = None
         lib.zsys_i18n_set_lang.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-        lib.zsys_i18n_get.restype  = ctypes.c_char_p
+        lib.zsys_i18n_get.restype = ctypes.c_char_p
         lib.zsys_i18n_get.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-        lib.zsys_i18n_get_lang.restype  = ctypes.c_char_p
+        lib.zsys_i18n_get_lang.restype = ctypes.c_char_p
         lib.zsys_i18n_get_lang.argtypes = [
-            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p,
+            ctypes.c_void_p,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
         ]
         self._lib = lib
         self._ptr = lib.zsys_i18n_new()
@@ -226,7 +235,5 @@ class I18n:
 
     def get_lang(self, lang_code: str, key: str) -> str:
         """Translate key in a specific language; returns key if not found."""
-        r = self._lib.zsys_i18n_get_lang(
-            self._ptr, lang_code.encode(), key.encode()
-        )
+        r = self._lib.zsys_i18n_get_lang(self._ptr, lang_code.encode(), key.encode())
         return r.decode() if r else key

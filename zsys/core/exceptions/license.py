@@ -20,5 +20,6 @@ class LicenseError(BaseException):
         message: Human-readable error description.
         code: Optional error code (e.g. ``"LICENSE_EXPIRED"``).
     """
+
     # RU: Исключение при сбое операции с лицензией.
     pass

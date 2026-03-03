@@ -26,6 +26,7 @@ class PickleDBDatabase(Database):
         _path: Absolute string path to the pickle file on disk.
         _db: Underlying ``PickleDB`` instance used for all storage operations.
     """
+
     # RU: Реализация Database на основе PickleDB.
     # RU: Ключи хранятся в формате "module:variable"; каждая запись сразу сохраняется на диск.
 
@@ -48,10 +49,14 @@ class PickleDBDatabase(Database):
         try:
             from pickledb import PickleDB
         except ImportError:
-            raise ImportError("pickledb не установлен. Установите: pip install pickledb")
+            raise ImportError(
+                "pickledb не установлен. Установите: pip install pickledb"
+            )
 
         self._path = str(path)
-        Path(self._path).parent.mkdir(parents=True, exist_ok=True)  # RU: Создаём директории при необходимости.
+        Path(self._path).parent.mkdir(
+            parents=True, exist_ok=True
+        )  # RU: Создаём директории при необходимости.
 
         try:
             self._db = PickleDB(self._path)

@@ -55,6 +55,7 @@ def attach_router(
         return set(router._trigger_map.keys())
 
     if _C_AVAILABLE:
+
         def dynamic_command_filter(_, __, message):
             """Filter messages that match a known command prefix and trigger (C-accelerated).
 
@@ -70,6 +71,7 @@ def attach_router(
             text = message.text or message.caption or ""
             return _c_match_prefix(text, prefixes, _get_trigger_set())
     else:
+
         def dynamic_command_filter(_, __, message):
             """Filter messages that match a known command prefix and trigger (Python fallback).
 
@@ -87,15 +89,23 @@ def attach_router(
                 return False
             for p in prefixes:
                 if text.startswith(p):
-                    cmd_text = text[len(p):].split()[0].lower() if text[len(p):] else ""
+                    cmd_text = (
+                        text[len(p) :].split()[0].lower() if text[len(p) :] else ""
+                    )
                     if cmd_text in router._trigger_map:
                         return True
             for trigger, cmd in router._trigger_map.items():
                 if cmd.prefix:
-                    cmd_prefixes = [cmd.prefix] if isinstance(cmd.prefix, str) else cmd.prefix
+                    cmd_prefixes = (
+                        [cmd.prefix] if isinstance(cmd.prefix, str) else cmd.prefix
+                    )
                     for p in cmd_prefixes:
                         if text.startswith(p):
-                            cmd_text = text[len(p):].split()[0].lower() if text[len(p):] else ""
+                            cmd_text = (
+                                text[len(p) :].split()[0].lower()
+                                if text[len(p) :]
+                                else ""
+                            )
                             if cmd_text == trigger:
                                 return True
             return False
@@ -122,7 +132,7 @@ def attach_router(
         matched = False
         for p in prefixes:
             if cmd_part.startswith(p):
-                cmd_part = cmd_part[len(p):]
+                cmd_part = cmd_part[len(p) :]
                 matched = True
                 break
 
@@ -136,7 +146,7 @@ def attach_router(
                     )
                     for p in cmd_pxs:
                         if cmd_part.startswith(p):
-                            candidate = cmd_part[len(p):].lower()
+                            candidate = cmd_part[len(p) :].lower()
                             if candidate == trigger:
                                 cmd_part = candidate
                                 matched = True
@@ -157,15 +167,23 @@ def attach_router(
 
         if cmd.media_only:
             has_media = (
-                message.photo or message.video or message.document or
-                message.animation or message.audio or message.voice or
-                message.video_note or message.sticker or
-                (message.reply_to_message and (
-                    message.reply_to_message.photo or
-                    message.reply_to_message.video or
-                    message.reply_to_message.document or
-                    message.reply_to_message.animation
-                ))
+                message.photo
+                or message.video
+                or message.document
+                or message.animation
+                or message.audio
+                or message.voice
+                or message.video_note
+                or message.sticker
+                or (
+                    message.reply_to_message
+                    and (
+                        message.reply_to_message.photo
+                        or message.reply_to_message.video
+                        or message.reply_to_message.document
+                        or message.reply_to_message.animation
+                    )
+                )
             )
             if not has_media:
                 await message.edit_text(router._messages["media_required"])

@@ -19,6 +19,7 @@ class BlockchainError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое операции блокчейна.
     pass
 
@@ -33,6 +34,7 @@ class TransactionError(BlockchainError):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое транзакции (создание, подпись или отправка).
     pass
 

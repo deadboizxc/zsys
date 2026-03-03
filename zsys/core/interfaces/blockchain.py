@@ -23,6 +23,7 @@ class IBlockchain(Protocol):
         - EVMChain: Ethereum and EVM-compatible networks
         - BitcoinChain: Bitcoin network (future)
     """
+
     # RU: Абстрактный контракт для реализаций блокчейна.
 
     def add_block(self, data: Any) -> Any:

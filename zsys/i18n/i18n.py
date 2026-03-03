@@ -19,22 +19,23 @@ except ImportError:
 
 class I18N:
     """Internationalization manager for multi-language support.
-    
+
     Example:
         i18n = I18N(Path("./locales"), default_lang="en")
         text = i18n.t("welcome_message")
         i18n.set_language("ru")
     """
+
     # RU: Менеджер интернационализации для поддержки нескольких языков.
-    
+
     def __init__(
         self,
         locales_path: Path,
         default_lang: str = "en",
-        fallback_lang: Optional[str] = None
+        fallback_lang: Optional[str] = None,
     ):
         """Initialize I18N manager.
-        
+
         Args:
             locales_path: Path to locales directory.
             default_lang: Default language code.
@@ -47,7 +48,7 @@ class I18N:
         self.current_lang = default_lang
         self._translations: Dict[str, Dict[str, Any]] = {}
         self._load_all_translations()
-    
+
     @staticmethod
     def _deep_merge_simple(base: dict, override: dict) -> dict:
         """Recursively merge override into base dict.
@@ -57,7 +58,11 @@ class I18N:
         # RU: Рекурсивно объединяет override в base.
         result = dict(base)
         for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            if (
+                key in result
+                and isinstance(result[key], dict)
+                and isinstance(value, dict)
+            ):
                 result[key] = I18N._deep_merge_simple(result[key], value)
             else:
                 result[key] = value
@@ -93,13 +98,13 @@ class I18N:
         # RU: Убеждаемся, что язык по умолчанию существует
         if self.default_lang not in self._translations:
             self._translations[self.default_lang] = {}
-    
+
     def set_language(self, lang: str) -> bool:
         """Set current language.
-        
+
         Args:
             lang: Language code.
-        
+
         Returns:
             True if language is available.
         """
@@ -108,33 +113,33 @@ class I18N:
             self.current_lang = lang
             return True
         return False
-    
+
     def get_language(self) -> str:
         """Get current language code.
-        
+
         Returns:
             Current language code.
         """
         # RU: Возвращает текущий языковой код.
         return self.current_lang
-    
+
     def get_available_languages(self) -> List[str]:
         """Get list of available languages.
-        
+
         Returns:
             List of language codes.
         """
         # RU: Возвращает список доступных языков.
         return list(self._translations.keys())
-    
+
     @lru_cache(maxsize=1024)
     def _get_nested(self, lang: str, key: str) -> Optional[str]:
         """Retrieve a nested translation value by dot-separated key.
-        
+
         Args:
             lang: Language code to look up.
             key: Dot-separated translation key (e.g., "section.subsection.key").
-        
+
         Returns:
             Translated string or None if not found.
         """
@@ -150,45 +155,45 @@ class I18N:
             else:
                 return None
         return value if isinstance(value, str) else None
-    
+
     def t(
         self,
         key: str,
         lang: Optional[str] = None,
         default: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Translate a key.
-        
+
         Args:
             key: Translation key (supports dot notation).
             lang: Language code (uses current if not provided).
             default: Default value if key not found.
             **kwargs: Format arguments for the translation.
-        
+
         Returns:
             Translated string.
-        
+
         Example:
             i18n.t("welcome", name="User")  # "Hello, User!"
         """
         # RU: Переводит ключ на текущий или указанный язык.
         lang = lang or self.current_lang
-        
+
         # Try current language
         # RU: Пробуем текущий язык
         text = self._get_nested(lang, key)
-        
+
         # Try fallback language
         # RU: Пробуем резервный язык
         if text is None and lang != self.fallback_lang:
             text = self._get_nested(self.fallback_lang, key)
-        
+
         # Use default or key
         # RU: Используем значение по умолчанию или сам ключ
         if text is None:
             text = default if default is not None else key
-        
+
         # Format with kwargs
         # RU: Форматируем строку с переданными аргументами
         if kwargs:
@@ -196,12 +201,12 @@ class I18N:
                 text = text.format(**kwargs)
             except (KeyError, ValueError):
                 pass
-        
+
         return text
-    
+
     def add_translation(self, lang: str, key: str, value: str):
         """Add or update a translation.
-        
+
         Args:
             lang: Language code.
             key: Translation key.
@@ -210,23 +215,23 @@ class I18N:
         # RU: Добавляет или обновляет перевод.
         if lang not in self._translations:
             self._translations[lang] = {}
-        
+
         # Handle nested keys
         # RU: Обрабатываем вложенные ключи
         parts = key.split(".")
         current = self._translations[lang]
-        
+
         for part in parts[:-1]:
             if part not in current:
                 current[part] = {}
             current = current[part]
-        
+
         current[parts[-1]] = value
-        
+
         # Clear cache
         # RU: Очищаем кэш
         self._get_nested.cache_clear()
-    
+
     def clear_cache(self):
         """Clear translation cache."""
         # RU: Очищает кэш переводов.
@@ -240,11 +245,11 @@ _global_i18n: Optional[I18N] = None
 
 def init_i18n(locales_path: Path, default_lang: str = "en") -> I18N:
     """Initialize global I18N instance.
-    
+
     Args:
         locales_path: Path to locales directory.
         default_lang: Default language code.
-    
+
     Returns:
         I18N instance.
     """
@@ -256,11 +261,11 @@ def init_i18n(locales_path: Path, default_lang: str = "en") -> I18N:
 
 def get_translation(key: str, **kwargs) -> str:
     """Get translation from global I18N instance.
-    
+
     Args:
         key: Translation key.
         **kwargs: Format arguments.
-    
+
     Returns:
         Translated string.
     """
@@ -272,10 +277,10 @@ def get_translation(key: str, **kwargs) -> str:
 
 def set_language(lang: str) -> bool:
     """Set language in global I18N instance.
-    
+
     Args:
         lang: Language code.
-    
+
     Returns:
         True if language available.
     """
@@ -295,6 +300,7 @@ t = get_translation
 # RU: GlobalI18N — Расширенный I18N с поддержкой CBOR, опциональной БД и прокси
 # ---------------------------------------------------------------------------
 
+
 class GlobalI18N:
     """Extended I18N with CBOR caching, optional DB persistence, and lru_cache.
 
@@ -304,6 +310,7 @@ class GlobalI18N:
             If None, language preference is stored in memory only.
         default_lang: Default language code.
     """
+
     # RU: Расширенный I18N с кэшированием CBOR, опциональным сохранением в БД и lru_cache.
 
     def __init__(
@@ -342,7 +349,11 @@ class GlobalI18N:
         """
         result = dict(base)
         for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            if (
+                key in result
+                and isinstance(result[key], dict)
+                and isinstance(value, dict)
+            ):
                 result[key] = GlobalI18N._deep_merge(result[key], value)
             else:
                 result[key] = value
@@ -359,6 +370,7 @@ class GlobalI18N:
         # RU: Конвертирует JSON-файл локали в формат CBOR для более быстрой загрузки.
         try:
             import cbor2
+
             with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             with open(cbor_path, "wb") as fw:
@@ -379,6 +391,7 @@ class GlobalI18N:
         # RU: Загружает файл локали в формате CBOR.
         try:
             import cbor2
+
             with open(path, "rb") as f:
                 return cbor2.load(f)
         except Exception:
@@ -581,6 +594,7 @@ class _GlobalI18NProxy:
 
     Works before init_i18n() — returns key as-is when not initialized.
     """
+
     # RU: Прокси, делегирующий доступ к атрибутам активному экземпляру GlobalI18N.
 
     def __getattr__(self, name: str):

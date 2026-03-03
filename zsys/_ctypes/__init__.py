@@ -31,6 +31,7 @@ __all__ = ["lib", "User", "Chat", "ClientConfig", "KV"]
 
 # ── locate libzsys_core.so ───────────────────────────────────────────────────
 
+
 def _find_lib() -> ctypes.CDLL:
     """
     Locate and load ``libzsys_core.so`` (or platform equivalent).
@@ -62,6 +63,7 @@ def _find_lib() -> ctypes.CDLL:
             return ctypes.CDLL(str(c))
 
     from ctypes.util import find_library
+
     name = find_library("zsys_core")
     if name:
         return ctypes.CDLL(name)
@@ -83,6 +85,7 @@ except OSError:
 
 # ── ZsysUser ctypes wrapper ──────────────────────────────────────────────────
 
+
 class User:
     """
     Python wrapper around C ``ZsysUser`` struct.
@@ -101,6 +104,7 @@ class User:
         is_bot (bool): True if user is a bot.
         created_at (int): Unix timestamp of account creation.
     """
+
     # RU: Python-обёртка над C ZsysUser. Автоматическое управление памятью.
 
     def __init__(self) -> None:
@@ -268,16 +272,19 @@ class User:
             return result.decode() if result else "{}"
         # Pure Python fallback
         import json
-        return json.dumps({
-            "id": self._id,
-            "username": self._username,
-            "first_name": self._first_name,
-            "last_name": self._last_name,
-            "phone": self._phone,
-            "lang_code": self._lang_code,
-            "is_bot": self._is_bot,
-            "created_at": self._created_at,
-        })
+
+        return json.dumps(
+            {
+                "id": self._id,
+                "username": self._username,
+                "first_name": self._first_name,
+                "last_name": self._last_name,
+                "phone": self._phone,
+                "lang_code": self._lang_code,
+                "is_bot": self._is_bot,
+                "created_at": self._created_at,
+            }
+        )
 
     def __repr__(self) -> str:
         return (
@@ -287,6 +294,7 @@ class User:
 
 
 # ── ZsysChat ctypes wrapper ──────────────────────────────────────────────────
+
 
 class Chat:
     """
@@ -299,6 +307,7 @@ class Chat:
         username (str | None): Chat @username if public.
         member_count (int): Number of members.
     """
+
     # RU: Python-обёртка над C ZsysChat.
 
     TYPES = ("unknown", "private", "group", "supergroup", "channel")
@@ -396,19 +405,23 @@ class Chat:
             result = lib.zsys_chat_to_json(self._ptr)
             return result.decode() if result else "{}"
         import json
-        return json.dumps({
-            "id": self._id,
-            "type": self._type,
-            "title": self._title,
-            "username": self._username,
-            "member_count": self._member_count,
-        })
+
+        return json.dumps(
+            {
+                "id": self._id,
+                "type": self._type,
+                "title": self._title,
+                "username": self._username,
+                "member_count": self._member_count,
+            }
+        )
 
     def __repr__(self) -> str:
         return f"Chat(id={self._id!r}, type={self._type!r}, title={self._title!r})"
 
 
 # ── ZsysClientConfig ctypes wrapper ─────────────────────────────────────────
+
 
 class ClientConfig:
     """
@@ -430,6 +443,7 @@ class ClientConfig:
         sleep_threshold (int): Sleep threshold in seconds (default 60).
         max_concurrent (int): Max concurrent handlers (default 1).
     """
+
     # RU: Python-обёртка над C ZsysClientConfig.
 
     def __init__(self) -> None:
@@ -495,7 +509,10 @@ class ClientConfig:
         self._session_name = value or ""
         if _LIB_AVAILABLE and self._ptr:
             lib.zsys_client_set_session_name.restype = None
-            lib.zsys_client_set_session_name.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+            lib.zsys_client_set_session_name.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_char_p,
+            ]
             lib.zsys_client_set_session_name(self._ptr, self._session_name.encode())
 
     @property
@@ -555,7 +572,10 @@ class ClientConfig:
         self._sleep_threshold = int(value)
         if _LIB_AVAILABLE and self._ptr:
             lib.zsys_client_set_sleep_threshold.restype = None
-            lib.zsys_client_set_sleep_threshold.argtypes = [ctypes.c_void_p, ctypes.c_int32]
+            lib.zsys_client_set_sleep_threshold.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_int32,
+            ]
             lib.zsys_client_set_sleep_threshold(self._ptr, self._sleep_threshold)
 
     @property
@@ -567,7 +587,10 @@ class ClientConfig:
         self._max_concurrent = max(1, int(value))
         if _LIB_AVAILABLE and self._ptr:
             lib.zsys_client_set_max_concurrent.restype = None
-            lib.zsys_client_set_max_concurrent.argtypes = [ctypes.c_void_p, ctypes.c_int32]
+            lib.zsys_client_set_max_concurrent.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_int32,
+            ]
             lib.zsys_client_set_max_concurrent(self._ptr, self._max_concurrent)
 
     def validate(self) -> tuple[bool, str | None]:
@@ -615,17 +638,20 @@ class ClientConfig:
             result = lib.zsys_client_config_to_json(self._ptr)
             return result.decode() if result else "{}"
         import json
-        return json.dumps({
-            "api_id": self._api_id,
-            "session_name": self._session_name,
-            "phone": self._phone,
-            "mode": self._mode,
-            "lang_code": self._lang_code,
-            "device_model": self._device_model,
-            "app_version": self._app_version,
-            "sleep_threshold": self._sleep_threshold,
-            "max_concurrent": self._max_concurrent,
-        })
+
+        return json.dumps(
+            {
+                "api_id": self._api_id,
+                "session_name": self._session_name,
+                "phone": self._phone,
+                "mode": self._mode,
+                "lang_code": self._lang_code,
+                "device_model": self._device_model,
+                "app_version": self._app_version,
+                "sleep_threshold": self._sleep_threshold,
+                "max_concurrent": self._max_concurrent,
+            }
+        )
 
     def __repr__(self) -> str:
         return (
@@ -635,6 +661,7 @@ class ClientConfig:
 
 
 # ── ZsysKV ctypes wrapper ────────────────────────────────────────────────────
+
 
 class KV:
     """
@@ -650,6 +677,7 @@ class KV:
         print(kv["user_id"])   # "123456"
         print(kv.to_json())    # '{"user_id":"123456"}'
     """
+
     # RU: Python-обёртка над C ZsysKV. Совместима с dict. Fallback на dict.
 
     def __init__(self, initial_cap: int = 0) -> None:
@@ -680,7 +708,11 @@ class KV:
     def __setitem__(self, key: str, value: str) -> None:
         if _LIB_AVAILABLE and self._ptr:
             lib.zsys_kv_set.restype = ctypes.c_int
-            lib.zsys_kv_set.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p]
+            lib.zsys_kv_set.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_char_p,
+                ctypes.c_char_p,
+            ]
             rc = lib.zsys_kv_set(self._ptr, key.encode(), value.encode())
             if rc != 0:
                 raise MemoryError("zsys_kv_set() failed")
@@ -758,6 +790,7 @@ class KV:
             result = lib.zsys_kv_to_json(self._ptr)
             return result.decode() if result else "{}"
         import json
+
         return json.dumps(self._fallback)
 
     def from_json(self, json_str: str) -> None:
@@ -776,6 +809,7 @@ class KV:
                 raise ValueError("zsys_kv_from_json() parse error")
         else:
             import json
+
             self._fallback.update(json.loads(json_str))
 
     def __repr__(self) -> str:

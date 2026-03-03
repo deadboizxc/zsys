@@ -1,4 +1,5 @@
 """Permission checks for media operations."""
+
 from typing import TYPE_CHECKING
 
 from zsys.core.exceptions import PermissionDeniedError

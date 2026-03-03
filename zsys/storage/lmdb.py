@@ -30,6 +30,7 @@ class LMDBDatabase(Database):
         _env: Open ``lmdb.Environment`` instance.
         _lock: ``threading.Lock`` guarding concurrent access.
     """
+
     # RU: LMDB-реализация интерфейса Database.
     # RU: Ключи — байты вида "module:variable"; значения сериализуются в JSON.
     # RU: Все операции записи выполняются внутри LMDB-транзакций для атомарности.
@@ -54,11 +55,11 @@ class LMDBDatabase(Database):
             import lmdb
         except ImportError:
             raise ImportError("lmdb не установлен. Установите: pip install lmdb")
-        
+
         self._lmdb = lmdb
         self._path = str(path)
         Path(self._path).parent.mkdir(parents=True, exist_ok=True)
-        
+
         # map_size = 1 GB
         self._env = lmdb.open(self._path, map_size=10**9)
         self._lock = threading.Lock()
@@ -102,7 +103,7 @@ class LMDBDatabase(Database):
         with self._env.begin(write=True) as txn:
             txn.put(
                 f"{module}:{variable}".encode(),
-                json.dumps(value, ensure_ascii=False).encode()
+                json.dumps(value, ensure_ascii=False).encode(),
             )
 
     def remove(self, module: str, variable: str) -> None:

@@ -22,6 +22,7 @@ class IClient(Protocol):
         - ``zsys.telegram.aiogram``: aiogram bot
         - ``zsys.telegram.telebot``: pyTelegramBotAPI bot
     """
+
     # RU: Базовый контракт для всех клиентов платформ обмена сообщениями.
 
     async def start(self) -> None:
@@ -46,12 +47,7 @@ class IClient(Protocol):
         # RU: Отключиться от платформы и освободить все ресурсы.
         ...
 
-    async def send_message(
-        self,
-        chat_id: int | str,
-        text: str,
-        **kwargs: Any
-    ) -> Any:
+    async def send_message(self, chat_id: int | str, text: str, **kwargs: Any) -> Any:
         """Send a text message to the specified chat.
 
         Args:
