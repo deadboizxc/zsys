@@ -19,6 +19,7 @@ class NetworkError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое сетевого соединения или запроса.
     pass
 
@@ -33,6 +34,7 @@ class TimeoutError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при превышении времени ожидания операции.
     pass
 

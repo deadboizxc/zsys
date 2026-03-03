@@ -19,6 +19,7 @@ class MediaError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Базовое исключение для всех ошибок медиафайлов.
     pass
 
@@ -33,6 +34,7 @@ class MediaNotFoundError(MediaError):
         message: Human-readable error description including the media_id.
         media_id: The identifier that was not found.
     """
+
     # RU: Исключение при отсутствии медиафайла с заданным идентификатором.
 
     def __init__(self, media_id: str, code: str | None = None):
@@ -58,6 +60,7 @@ class MediaExistsError(MediaError):
         message: Human-readable error description including the hash.
         hash: Content hash of the duplicate file.
     """
+
     # RU: Исключение при обнаружении дубликата медиафайла по хешу.
 
     def __init__(self, hash_value: str, code: str | None = None):
@@ -82,6 +85,7 @@ class InvalidMediaTypeError(MediaError):
         message: Human-readable error description including the type.
         media_type: The MIME type string that was rejected.
     """
+
     # RU: Исключение при неподдерживаемом или запрещённом типе медиафайла.
 
     def __init__(self, media_type: str, code: str | None = None):

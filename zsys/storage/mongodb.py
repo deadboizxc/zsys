@@ -28,6 +28,7 @@ class MongoDatabase(Database):
         _client: Active ``pymongo.MongoClient`` connection.
         _database: The ``pymongo`` database object for the selected DB.
     """
+
     # RU: Реализация Database на основе MongoDB.
     # RU: Каждый модуль — отдельная коллекция; документы хранятся
     # RU: в формате {"var": ..., "val": ...} и перезаписываются через upsert.
@@ -49,7 +50,7 @@ class MongoDatabase(Database):
             import pymongo
         except ImportError:
             raise ImportError("pymongo не установлен. Установите: pip install pymongo")
-        
+
         self._client = pymongo.MongoClient(url)
         self._database = self._client[db_name]
 
@@ -83,9 +84,7 @@ class MongoDatabase(Database):
         """
         # RU: Сохраняет значение в коллекцию через replace_one с upsert=True.
         self._database[module].replace_one(
-            {"var": variable},
-            {"var": variable, "val": value},
-            upsert=True
+            {"var": variable}, {"var": variable, "val": value}, upsert=True
         )
 
     def remove(self, module: str, variable: str) -> None:
@@ -147,18 +146,22 @@ class MongoDatabase(Database):
         # RU: Экспортирует всю базу данных в JSON-файл с временной меткой.
         try:
             from pathlib import Path
+
             data = {}
             for collection in self._database.list_collection_names():
                 # Exclude MongoDB's internal _id field from the export
                 # RU: Поле _id исключается из экспорта проекцией {"_id": 0}.
                 data[collection] = list(self._database[collection].find({}, {"_id": 0}))
-            
+
             # Build timestamped filename and write JSON
             # RU: Формируем имя файла с меткой времени и записываем JSON.
-            backup_file = Path(target_path) / f"mongodb_backup_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+            backup_file = (
+                Path(target_path)
+                / f"mongodb_backup_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+            )
             with open(backup_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            
+
             self._logger.info(f"MongoDB backup: {backup_file}")
         except Exception as e:
             raise DatabaseError(f"MongoDB backup failed: {e}") from e

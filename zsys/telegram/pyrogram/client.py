@@ -38,6 +38,7 @@ from pydantic import Field
 try:
     from pyrogram import Client, idle, filters, errors
     from pyrogram.types import Message as PyrogramMessage
+
     try:
         from pyrogram.enums import ParseMode
     except ImportError:
@@ -58,6 +59,7 @@ from zsys.log import printer
 # =============================================================================
 # CONFIG
 # =============================================================================
+
 
 class PyrogramConfig(BaseConfig):
     """Configuration for Pyrogram userbot or bot.
@@ -96,6 +98,7 @@ class PyrogramConfig(BaseConfig):
         config = PyrogramConfig(api_id=123456, api_hash="0abc1def")
         client = PyrogramClient(config)
     """
+
     # RU: Конфигурация Pyrogram userbot/bot.
     # RU: Все поля можно переопределить через переменные окружения с префиксом PYROGRAM_.
 
@@ -103,7 +106,9 @@ class PyrogramConfig(BaseConfig):
     api_id: int = Field(description="Telegram API ID")
     api_hash: str = Field(description="Telegram API Hash")
     session_name: str = Field(default="session", description="Имя файла сессии")
-    session_string: Optional[str] = Field(default=None, description="Строка сессии (вместо файла)")
+    session_string: Optional[str] = Field(
+        default=None, description="Строка сессии (вместо файла)"
+    )
     bot_token: Optional[str] = Field(default=None, description="Bot token (если бот)")
     phone_number: Optional[str] = Field(default=None, description="Номер телефона")
 
@@ -136,6 +141,7 @@ class PyrogramConfig(BaseConfig):
 
     class Config:
         """Pydantic config — sets the ``PYROGRAM_`` env-var prefix for all fields."""
+
         # RU: Pydantic-конфиг — устанавливает префикс переменных окружения PYROGRAM_.
         env_prefix = "PYROGRAM_"
 
@@ -143,6 +149,7 @@ class PyrogramConfig(BaseConfig):
 # =============================================================================
 # CLIENT
 # =============================================================================
+
 
 class PyrogramClient(Client):
     """Pyrogram userbot/bot implementing IClient via structural subtyping.
@@ -175,6 +182,7 @@ class PyrogramClient(Client):
         await bot.start()
         await bot.idle()
     """
+
     # RU: Pyrogram userbot/bot с реализацией IClient через структурную типизацию (Protocol).
     # RU: Наследует pyrogram.Client напрямую — все методы Telegram API доступны через self.
 
@@ -385,28 +393,35 @@ class PyrogramClient(Client):
         from zsys.telegram.pyrogram.router import attach_router
 
         cfg = self._zsys_config
-        core_path   = Path(cfg.core_modules_dir)
+        core_path = Path(cfg.core_modules_dir)
         custom_path = Path(cfg.custom_modules_dir)
 
-        core_loaded:   List[str] = []
-        core_failed:   List[str] = []
+        core_loaded: List[str] = []
+        core_failed: List[str] = []
         custom_loaded: List[str] = []
         custom_failed: List[str] = []
 
         def _make_on_load(loaded_list: List[str]):
             def _on_load(info):
                 if info.module is not None:
-                    info.module.app    = self  # type: ignore[attr-defined]
+                    info.module.app = self  # type: ignore[attr-defined]
                     info.module.client = self  # type: ignore[attr-defined]
                     handlers_count = 0
                     for obj in vars(info.module).values():
-                        if callable(obj) and hasattr(obj, "handlers") and isinstance(obj.handlers, (list, tuple)):
+                        if (
+                            callable(obj)
+                            and hasattr(obj, "handlers")
+                            and isinstance(obj.handlers, (list, tuple))
+                        ):
                             for handler, group in obj.handlers:
                                 self.add_handler(handler, group)
                                 handlers_count += 1
-                    printer.info(f"Модуль {info.name} загружен ({handlers_count} handlers)")
+                    printer.info(
+                        f"Модуль {info.name} загружен ({handlers_count} handlers)"
+                    )
                 self._loaded_modules[info.name] = info.module
                 loaded_list.append(info.name)
+
             return _on_load
 
         def _make_on_error(failed_list: List[str]):
@@ -414,29 +429,36 @@ class PyrogramClient(Client):
                 self._failed_modules.append(info.name)
                 failed_list.append(info.name)
                 printer.error(f"Ошибка загрузки модуля {info.name}: {exc}")
+
             return _on_error
 
         loaders = []
         if core_path.exists():
-            loaders.append((
-                ModuleLoader(
-                    core_path,
-                    on_load=_make_on_load(core_loaded),
-                    on_error=_make_on_error(core_failed),
-                ),
-                "core",
-            ))
+            loaders.append(
+                (
+                    ModuleLoader(
+                        core_path,
+                        on_load=_make_on_load(core_loaded),
+                        on_error=_make_on_error(core_failed),
+                    ),
+                    "core",
+                )
+            )
         if custom_path.exists():
-            loaders.append((
-                ModuleLoader(
-                    custom_path,
-                    on_load=_make_on_load(custom_loaded),
-                    on_error=_make_on_error(custom_failed),
-                ),
-                "custom",
-            ))
+            loaders.append(
+                (
+                    ModuleLoader(
+                        custom_path,
+                        on_load=_make_on_load(custom_loaded),
+                        on_error=_make_on_error(custom_failed),
+                    ),
+                    "custom",
+                )
+            )
 
-        core_count   = len(loaders[0][0].discover()) if loaders and loaders[0][1] == "core" else 0
+        core_count = (
+            len(loaders[0][0].discover()) if loaders and loaders[0][1] == "core" else 0
+        )
         custom_count = len(loaders[-1][0].discover()) if len(loaders) > 1 else 0
         printer.info(f"Загрузка {core_count} core и {custom_count} custom модулей...")
 
@@ -450,9 +472,13 @@ class PyrogramClient(Client):
         attach_router(router, self, prefix=cfg.prefix)
 
         if core_loaded or custom_loaded:
-            printer.info("Loaded modules:\n" + self._format_modules(core_loaded, custom_loaded))
+            printer.info(
+                "Loaded modules:\n" + self._format_modules(core_loaded, custom_loaded)
+            )
         if core_failed or custom_failed:
-            printer.warning("Failed modules:\n" + self._format_modules(core_failed, custom_failed))
+            printer.warning(
+                "Failed modules:\n" + self._format_modules(core_failed, custom_failed)
+            )
 
     @property
     def loaded_modules(self) -> Dict[str, Any]:
@@ -494,9 +520,9 @@ class PyrogramClient(Client):
         for c, cu in zip(core, custom):
             lines.append(f"{c.ljust(max_len)} | {cu}")
         if len(core) > len(custom):
-            lines.extend(f"{c.ljust(max_len)} |" for c in core[len(custom):])
+            lines.extend(f"{c.ljust(max_len)} |" for c in core[len(custom) :])
         else:
-            lines.extend(f"{' ' * max_len} | {cu}" for cu in custom[len(core):])
+            lines.extend(f"{' ' * max_len} | {cu}" for cu in custom[len(core) :])
         return "\n".join(lines)
 
     # -------------------------------------------------------------------------
@@ -515,7 +541,10 @@ class PyrogramClient(Client):
         if cfg.enable_api_server:
             try:
                 from implementations.api.fastapi import start_api_server
-                self._api_server = start_api_server(cfg.workdir, port=cfg.api_server_port)
+
+                self._api_server = start_api_server(
+                    cfg.workdir, port=cfg.api_server_port
+                )
                 self._logger.info(f"API сервер запущен на порту {cfg.api_server_port}")
             except Exception as e:
                 self._logger.warning(f"API сервер не запущен: {e}")
@@ -523,6 +552,7 @@ class PyrogramClient(Client):
         if cfg.enable_admin_bot and cfg.admin_bot_token:
             try:
                 from core.admin_bot import start_admin_bot
+
                 self._admin_bot = start_admin_bot(cfg.admin_bot_token, self)
                 self._logger.info("Admin bot запущен")
             except Exception as e:
@@ -537,6 +567,7 @@ class PyrogramClient(Client):
         if self._api_server:
             try:
                 from implementations.api.fastapi import stop_api_server
+
                 stop_api_server()
             except Exception:
                 pass
@@ -544,6 +575,7 @@ class PyrogramClient(Client):
         if self._admin_bot:
             try:
                 from core.admin_bot import stop_admin_bot
+
                 stop_admin_bot()
             except Exception:
                 pass
@@ -561,7 +593,11 @@ class PyrogramClient(Client):
         # RU: Переименовывает сломанный файл сессии.
         try:
             from pathlib import Path
-            session_file = Path(self._zsys_config.workdir) / f"{self._zsys_config.session_name}.session"
+
+            session_file = (
+                Path(self._zsys_config.workdir)
+                / f"{self._zsys_config.session_name}.session"
+            )
             if session_file.exists():
                 session_file.rename(session_file.with_suffix(".session.old"))
                 self._logger.info("Старая сессия переименована в .session.old")
@@ -575,6 +611,7 @@ class PyrogramClient(Client):
         """
         # RU: Перезапуск через exec.
         import sys
+
         await self.stop()
         os.execv(sys.executable, [sys.executable] + sys.argv)
 

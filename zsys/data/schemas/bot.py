@@ -10,19 +10,24 @@ from .base import BaseSchema
 
 class BotBase(BaseSchema):
     """Base bot schema with common fields."""
+
     name: str = Field(..., min_length=1, max_length=100)
-    bot_type: str = Field(..., description="Platform: telegram, instagram, discord, etc.")
+    bot_type: str = Field(
+        ..., description="Platform: telegram, instagram, discord, etc."
+    )
     description: Optional[str] = None
 
 
 class BotCreate(BotBase):
     """Bot creation schema."""
+
     owner_id: int = Field(..., description="ID of the user who owns this bot")
     token: str = Field(..., min_length=10, description="Bot API token")
 
 
 class BotUpdate(BaseSchema):
     """Bot update schema."""
+
     name: Optional[str] = None
     description: Optional[str] = None
     token: Optional[str] = None
@@ -32,6 +37,7 @@ class BotUpdate(BaseSchema):
 
 class BotResponse(BotBase):
     """Bot response schema."""
+
     id: int
     owner_id: int
     is_active: bool = True
@@ -43,7 +49,8 @@ class BotResponse(BotBase):
 
 class BotResponseWithToken(BotResponse):
     """Bot response schema including token (for owner only)."""
+
     token: str
 
 
-__all__ = ['BotBase', 'BotCreate', 'BotUpdate', 'BotResponse', 'BotResponseWithToken']
+__all__ = ["BotBase", "BotCreate", "BotUpdate", "BotResponse", "BotResponseWithToken"]

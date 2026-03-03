@@ -19,8 +19,7 @@ env = environs.Env()
 
 
 def load_env(
-    env_path: Optional[Union[str, Path]] = None,
-    override: bool = False
+    env_path: Optional[Union[str, Path]] = None, override: bool = False
 ) -> bool:
     """Load environment variables from a .env file.
 
@@ -55,8 +54,7 @@ def load_env(
 
 
 def get_env_path(
-    filename: str = ".env",
-    search_dirs: Optional[list] = None
+    filename: str = ".env", search_dirs: Optional[list] = None
 ) -> Optional[Path]:
     """Search for an env file across a list of candidate directories.
 

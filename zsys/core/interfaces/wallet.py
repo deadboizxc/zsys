@@ -25,6 +25,7 @@ class IWallet(Protocol):
         - BitcoinWallet: Bitcoin network (future)
         - HardwareWallet: Ledger/Trezor integrations (future)
     """
+
     # RU: Абстрактный контракт для реализаций криптовалютных кошельков.
 
     @property
@@ -61,12 +62,7 @@ class IWallet(Protocol):
         # RU: Текущий баланс кошелька в нативной валюте цепочки.
         ...
 
-    def create_transaction(
-        self,
-        to: str,
-        amount: float,
-        **kwargs: Any
-    ) -> Any:
+    def create_transaction(self, to: str, amount: float, **kwargs: Any) -> Any:
         """Build an unsigned transaction transferring *amount* to *to*.
 
         Implementations must populate all required fields (nonce, gas, etc.)

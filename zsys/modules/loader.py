@@ -16,7 +16,11 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 
 try:
-    from zsys._core import parse_meta_comments as _c_parse_meta_comments, find_py_modules as _c_find_py_modules, C_AVAILABLE as _C
+    from zsys._core import (
+        parse_meta_comments as _c_parse_meta_comments,
+        find_py_modules as _c_find_py_modules,
+        C_AVAILABLE as _C,
+    )
 except ImportError:
     _c_find_py_modules = None
     _C = False
@@ -25,6 +29,7 @@ except ImportError:
 @dataclass
 class ModuleInfo:
     """Information about a loaded module."""
+
     # RU: Информация о загруженном модуле.
     name: str
     path: Path
@@ -33,7 +38,7 @@ class ModuleInfo:
     loaded: bool = False
     error: Optional[str] = None
     meta: Dict[str, str] = field(default_factory=dict)
-    
+
     @property
     def status(self) -> str:
         """Get module status string."""
@@ -49,24 +54,25 @@ class ModuleInfo:
 
 class ModuleLoader:
     """Generic module loader for dynamic module management.
-    
+
     Example:
         loader = ModuleLoader(Path("./modules"))
         modules = loader.discover()
         for name in modules:
             loader.load(name)
     """
+
     # RU: Универсальный загрузчик модулей для динамического управления модулями.
-    
+
     def __init__(
         self,
         base_path: Path,
         prefix: str = "",
         on_load: Optional[Callable[[ModuleInfo], None]] = None,
-        on_error: Optional[Callable[[ModuleInfo, Exception], None]] = None
+        on_error: Optional[Callable[[ModuleInfo, Exception], None]] = None,
     ):
         """Initialize module loader.
-        
+
         Args:
             base_path: Base directory for modules.
             prefix: Module import prefix (e.g., "custom_modules").
@@ -80,7 +86,7 @@ class ModuleLoader:
         self.on_error = on_error
         self._modules: Dict[str, ModuleInfo] = {}
         self._cache: Dict[str, ModuleType] = {}
-    
+
     def discover(self, pattern: str = "*.py") -> List[str]:
         """Discover available modules in base path."""
         # RU: Обнаруживает доступные модули в базовой директории.
@@ -96,39 +102,39 @@ class ModuleLoader:
             if path.is_file() and not path.name.startswith("_")
         ]
         return sorted(modules)
-    
+
     def is_enabled(self, name: str) -> bool:
         """Check if module is enabled via environment variable.
-        
+
         Args:
             name: Module name.
-        
+
         Returns:
             True if enabled (default), False if explicitly disabled.
         """
         # RU: Проверяет, включён ли модуль через переменную окружения.
         env_var = f"{name.upper()}_ENABLED"
         return os.getenv(env_var, "true").strip().lower() in ("1", "true", "yes", "on")
-    
+
     def get_path(self, name: str) -> Path:
         """Get full path to module file.
-        
+
         Args:
             name: Module name.
-        
+
         Returns:
             Path to module file.
         """
         # RU: Возвращает полный путь к файлу модуля.
         return self.base_path / f"{name}.py"
-    
+
     def load(self, name: str, force: bool = False) -> Optional[ModuleInfo]:
         """Load a module by name.
-        
+
         Args:
             name: Module name.
             force: Force reload even if cached.
-        
+
         Returns:
             ModuleInfo on success, None on failure.
         """
@@ -139,25 +145,21 @@ class ModuleLoader:
             info = self._modules[name]
             if info.loaded:
                 return info
-        
+
         # Create module info
         # RU: Создаём информацию о модуле
         module_path = self.get_path(name)
-        info = ModuleInfo(
-            name=name,
-            path=module_path,
-            enabled=self.is_enabled(name)
-        )
-        
+        info = ModuleInfo(name=name, path=module_path, enabled=self.is_enabled(name))
+
         if not info.enabled:
             self._modules[name] = info
             return info
-        
+
         if not module_path.exists():
             info.error = f"Module file not found: {module_path}"
             self._modules[name] = info
             return info
-        
+
         # Load module
         # RU: Загружаем модуль
         try:
@@ -166,102 +168,102 @@ class ModuleLoader:
             base_str = str(self.base_path)
             if base_str not in sys.path:
                 sys.path.insert(0, base_str)
-            
+
             # Import module
             # RU: Импортируем модуль
             import_name = f"{self.prefix}.{name}" if self.prefix else name
-            
+
             if import_name in sys.modules and force:
                 del sys.modules[import_name]
-            
+
             module = importlib.import_module(import_name)
-            
+
             info.module = module
             info.loaded = True
             info.meta = self._parse_meta(module_path)
-            
+
             self._modules[name] = info
             self._cache[name] = module
-            
+
             if self.on_load:
                 self.on_load(info)
-            
+
             return info
-            
+
         except Exception as e:
             info.error = f"{type(e).__name__}: {str(e)}"
             info.loaded = False
             self._modules[name] = info
-            
+
             if self.on_error:
                 self.on_error(info, e)
-            
+
             return info
-    
+
     def unload(self, name: str) -> bool:
         """Unload a module.
-        
+
         Args:
             name: Module name.
-        
+
         Returns:
             True if unloaded successfully.
         """
         # RU: Выгружает модуль.
         if name in self._modules:
             info = self._modules[name]
-            
+
             import_name = f"{self.prefix}.{name}" if self.prefix else name
             if import_name in sys.modules:
                 del sys.modules[import_name]
-            
+
             if name in self._cache:
                 del self._cache[name]
-            
+
             info.loaded = False
             info.module = None
             return True
-        
+
         return False
-    
+
     def get(self, name: str) -> Optional[ModuleInfo]:
         """Get module info by name.
-        
+
         Args:
             name: Module name.
-        
+
         Returns:
             ModuleInfo or None if not found.
         """
         # RU: Возвращает информацию о модуле по имени.
         return self._modules.get(name)
-    
+
     def get_all(self) -> Dict[str, ModuleInfo]:
         """Get all loaded modules.
-        
+
         Returns:
             Dictionary of module names to ModuleInfo.
         """
         # RU: Возвращает все загруженные модули.
         return self._modules.copy()
-    
+
     def load_all(self) -> List[ModuleInfo]:
         """Discover and load all modules.
-        
+
         Returns:
             List of ModuleInfo for all modules.
         """
         # RU: Обнаруживает и загружает все модули.
         names = self.discover()
         results = []
-        
+
         for name in names:
             info = self.load(name)
             if info:
                 results.append(info)
-        
+
         return results
-    
+
     @lru_cache(maxsize=256)
     def _parse_meta(self, module_path: Path) -> Dict[str, str]:
         """Parse module metadata from comments."""

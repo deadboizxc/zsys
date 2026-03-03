@@ -24,7 +24,7 @@ from .base import Database, DatabaseError
 
 # Allowed characters for table/module names (SQL injection protection)
 # Allow dots for namespaced modules like "core.main"
-_VALID_TABLE_NAME_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_.]*$')
+_VALID_TABLE_NAME_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_.]*$")
 
 
 def _validate_table_name(name: str) -> str:
@@ -76,6 +76,7 @@ class SqliteDatabase(Database):
         _cursor: Reusable :class:`sqlite3.Cursor` for all statements.
         _lock: :class:`threading.Lock` that serialises cursor access.
     """
+
     # RU: Потокобезопасная SQLite-реализация интерфейса Database.
     # RU: Использует WAL-режим; таблицы создаются лениво при первом обращении.
 
@@ -99,7 +100,9 @@ class SqliteDatabase(Database):
         Path(self._file).parent.mkdir(parents=True, exist_ok=True)
 
         self._conn = sqlite3.connect(self._file, check_same_thread=False)
-        self._conn.execute("PRAGMA journal_mode=WAL;")  # RU: WAL для неблокирующего чтения
+        self._conn.execute(
+            "PRAGMA journal_mode=WAL;"
+        )  # RU: WAL для неблокирующего чтения
         self._conn.row_factory = sqlite3.Row
         self._cursor = self._conn.cursor()
         self._lock = threading.Lock()
@@ -133,7 +136,9 @@ class SqliteDatabase(Database):
         else:
             return json.loads(row["val"])  # RU: JSON для dict/list и прочих объектов
 
-    def _execute(self, module: str, sql: str, params: Optional[Dict] = None) -> sqlite3.Cursor:
+    def _execute(
+        self, module: str, sql: str, params: Optional[Dict] = None
+    ) -> sqlite3.Cursor:
         """Execute *sql* against *module*'s table, auto-creating it if absent.
 
         Acquires :attr:`_lock` before delegating to the shared cursor.  If the
@@ -158,7 +163,9 @@ class SqliteDatabase(Database):
                 missing-table condition, or if the retry itself fails.
         """
         # RU: Выполняет SQL с блокировкой; при отсутствии таблицы создаёт её и повторяет запрос.
-        module = _validate_table_name(module)  # RU: Повторная проверка на случай прямого вызова
+        module = _validate_table_name(
+            module
+        )  # RU: Повторная проверка на случай прямого вызова
 
         with self._lock:
             try:
@@ -236,7 +243,10 @@ class SqliteDatabase(Database):
         '''
 
         if isinstance(value, bool):
-            val, typ = "1" if value else "0", "bool"  # RU: bool проверяем до int — bool подкласс int
+            val, typ = (
+                "1" if value else "0",
+                "bool",
+            )  # RU: bool проверяем до int — bool подкласс int
         elif isinstance(value, int):
             val, typ = str(value), "int"
         elif isinstance(value, str):

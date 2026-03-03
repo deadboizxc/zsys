@@ -13,7 +13,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 
 try:
-    from zsys._core import human_time as _c_human_time, parse_duration as _c_parse_duration, C_AVAILABLE as _C
+    from zsys._core import (
+        human_time as _c_human_time,
+        parse_duration as _c_parse_duration,
+        C_AVAILABLE as _C,
+    )
 except ImportError:
     _C = False
 
@@ -29,13 +33,15 @@ __all__ = [
 ]
 
 
-def timestamp_to_date(timestamp: Union[int, float], fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
+def timestamp_to_date(
+    timestamp: Union[int, float], fmt: str = "%Y-%m-%d %H:%M:%S"
+) -> str:
     """Convert Unix timestamp to formatted date string.
-    
+
     Args:
         timestamp: Unix timestamp.
         fmt: Date format string.
-    
+
     Returns:
         str: Formatted date string.
     """
@@ -45,10 +51,10 @@ def timestamp_to_date(timestamp: Union[int, float], fmt: str = "%Y-%m-%d %H:%M:%
 
 def timestamp_to_datetime(timestamp: Union[int, float]) -> datetime:
     """Convert Unix timestamp to datetime object.
-    
+
     Args:
         timestamp: Unix timestamp.
-    
+
     Returns:
         datetime: Datetime object.
     """
@@ -58,11 +64,11 @@ def timestamp_to_datetime(timestamp: Union[int, float]) -> datetime:
 
 def human_time(seconds: Union[int, float], short: bool = True) -> str:
     """Convert seconds to human-readable time string.
-    
+
     Args:
         seconds: Number of seconds.
         short: Use short format (d., h., min., sec.) or long format.
-    
+
     Returns:
         str: Human-readable time string.
     """
@@ -72,11 +78,11 @@ def human_time(seconds: Union[int, float], short: bool = True) -> str:
     seconds = int(seconds)
     delta = timedelta(seconds=seconds)
     parts = []
-    
+
     days = delta.days
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, secs = divmod(remainder, 60)
-    
+
     if short:
         if days:
             parts.append(f"{days} дн.")
@@ -95,17 +101,17 @@ def human_time(seconds: Union[int, float], short: bool = True) -> str:
             parts.append(f"{minutes} {'минута' if minutes == 1 else 'минут'}")
         if secs or not parts:
             parts.append(f"{secs} {'секунда' if secs == 1 else 'секунд'}")
-    
+
     return " ".join(parts)
 
 
 def human_time_delta(td: timedelta, short: bool = True) -> str:
     """Convert timedelta to human-readable string.
-    
+
     Args:
         td: Timedelta object.
         short: Use short format.
-    
+
     Returns:
         str: Human-readable time string.
     """
@@ -115,7 +121,7 @@ def human_time_delta(td: timedelta, short: bool = True) -> str:
 
 def current_timestamp() -> int:
     """Get current Unix timestamp.
-    
+
     Returns:
         int: Current Unix timestamp.
     """
@@ -123,13 +129,15 @@ def current_timestamp() -> int:
     return int(time.time())
 
 
-def time_difference(timestamp1: Union[int, float], timestamp2: Union[int, float]) -> int:
+def time_difference(
+    timestamp1: Union[int, float], timestamp2: Union[int, float]
+) -> int:
     """Calculate absolute difference between two timestamps.
-    
+
     Args:
         timestamp1: First timestamp.
         timestamp2: Second timestamp.
-    
+
     Returns:
         int: Absolute difference in seconds.
     """
@@ -139,12 +147,12 @@ def time_difference(timestamp1: Union[int, float], timestamp2: Union[int, float]
 
 def parse_duration(text: str) -> Optional[int]:
     """Parse duration string to seconds.
-    
+
     Supports formats like: 1h, 30m, 1d, 2w, 1h30m
-    
+
     Args:
         text: Duration string.
-    
+
     Returns:
         int: Duration in seconds, or None if invalid.
     """
@@ -152,7 +160,7 @@ def parse_duration(text: str) -> Optional[int]:
     if _C:
         return _c_parse_duration(text)
     import re
-    
+
     units = {
         "s": 1,
         "m": 60,
@@ -160,14 +168,14 @@ def parse_duration(text: str) -> Optional[int]:
         "d": 86400,
         "w": 604800,
     }
-    
+
     # Try single unit: "30m", "2h"
     # RU: Пробуем формат с одной единицей: "30m", "2h"
     match = re.match(r"^(\d+)([smhdw])$", text.lower())
     if match:
         value, unit = match.groups()
         return int(value) * units[unit]
-    
+
     # Try combined: "1h30m", "2d12h"
     # RU: Пробуем комбинированный формат: "1h30m", "2d12h"
     total = 0
@@ -177,16 +185,16 @@ def parse_duration(text: str) -> Optional[int]:
         for value, unit in matches:
             total += int(value) * units[unit]
         return total if total > 0 else None
-    
+
     return None
 
 
 def format_uptime(start_time: Union[int, float]) -> str:
     """Format uptime from start timestamp.
-    
+
     Args:
         start_time: Start Unix timestamp.
-    
+
     Returns:
         str: Human-readable uptime string.
     """

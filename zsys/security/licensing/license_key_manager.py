@@ -5,20 +5,24 @@ signatures using pycryptodome. This module is superseded by LicenseManager in
 manager.py but is kept for backward compatibility.
 Requires: pip install pycryptodome.
 """
+
 # RU: Устаревший менеджер лицензионных ключей с RSA-подписью и AES-шифрованием.
 # RU: Заменён LicenseManager в manager.py, сохранён для обратной совместимости.
 import os
 import base64
 import hashlib
+import hmac
 import struct
 import uuid
 from datetime import datetime, timedelta
+from hashlib import sha512
 
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA512, HMAC
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
+
 
 # Хеширование данных (без соли)
 def hash_data(data):
@@ -28,6 +32,7 @@ def hash_data(data):
     :return: Хешированные данные (байты).
     """
     return hashlib.sha512(data).digest()
+
 
 # Шифрование данных с использованием AES
 def encrypt_data(data, key):
@@ -41,6 +46,7 @@ def encrypt_data(data, key):
     ct_bytes = cipher.encrypt(pad(data, AES.block_size))
     return cipher.iv + ct_bytes
 
+
 # Дешифрование данных с использованием AES
 def decrypt_data(encrypted_data, key):
     """
@@ -49,10 +55,11 @@ def decrypt_data(encrypted_data, key):
     :param key: Ключ шифрования (байты).
     :return: Расшифрованные данные (байты).
     """
-    iv = encrypted_data[:AES.block_size]
-    ct = encrypted_data[AES.block_size:]
+    iv = encrypted_data[: AES.block_size]
+    ct = encrypted_data[AES.block_size :]
     cipher = AES.new(key, AES.MODE_CBC, iv)
     return unpad(cipher.decrypt(ct), AES.block_size)
+
 
 # Генерация HMAC
 def generate_hmac(data, key):
@@ -64,6 +71,7 @@ def generate_hmac(data, key):
     """
     return HMAC.new(key, data, digestmod=sha512).digest()
 
+
 # Проверка HMAC
 def verify_hmac(data, hmac_value, key):
     """
@@ -74,6 +82,7 @@ def verify_hmac(data, hmac_value, key):
     :return: True, если HMAC совпадает, иначе False.
     """
     return hmac.compare_digest(generate_hmac(data, key), hmac_value)
+
 
 # Генерация главного ключа
 def generate_main_key(file_name, suffix="bin"):
@@ -89,13 +98,16 @@ def generate_main_key(file_name, suffix="bin"):
 
     # Сохранение ключа
     if suffix == "txt":
-        main_key = base64.b64encode(main_key).decode('utf-8')  # Кодировка в Base64 для текстового формата
+        main_key = base64.b64encode(main_key).decode(
+            "utf-8"
+        )  # Кодировка в Base64 для текстового формата
         with open(full_file_name, "w") as f:
             f.write(main_key)
     else:
         with open(full_file_name, "wb") as f:
             f.write(main_key)
     print(f"Главный ключ сохранён в {full_file_name}.")
+
 
 # Расчет времени истечения срока действия
 def calculate_expiration(duration_str):
@@ -107,6 +119,7 @@ def calculate_expiration(duration_str):
     duration = parse_duration(duration_str)
     expiration_time = int((datetime.now() + duration).timestamp())
     return expiration_time
+
 
 # Разбор строки с продолжительностью
 def parse_duration(duration_str):
@@ -125,23 +138,32 @@ def parse_duration(duration_str):
     """
     # RU: Regex ищет пары (число, единица); y=365d, m=30d; суммирует timedelta.
     import re
-    pattern = re.compile(r'(\d+)([ymd])')
+
+    pattern = re.compile(r"(\d+)([ymd])")
     match = pattern.findall(duration_str)
     duration = timedelta(days=0)
 
     for value, unit in match:
         value = int(value)
-        if unit == 'y':
+        if unit == "y":
             duration += timedelta(days=value * 365)
-        elif unit == 'm':
+        elif unit == "m":
             duration += timedelta(days=value * 30)
-        elif unit == 'd':
+        elif unit == "d":
             duration += timedelta(days=value)
 
     return duration
 
+
 # Генерация лицензионного ключа с user_id и UUID
-def generate_license_key(main_key_file, license_key_file, hash_storage_file, duration_str, user_id, suffix="bin"):
+def generate_license_key(
+    main_key_file,
+    license_key_file,
+    hash_storage_file,
+    duration_str,
+    user_id,
+    suffix="bin",
+):
     """Generate, hash, and persist a license key for a user.
 
     Reads the main key from *main_key_file*, computes an expiration timestamp,
@@ -173,18 +195,20 @@ def generate_license_key(main_key_file, license_key_file, hash_storage_file, dur
 
     # Формирование лицензионного ключа (main_key + user_id + UUID + expiration_time)
     license_key_data = (
-        user_id.encode('utf-8') +  # user_id (в байтах)
-        main_key +  # Главный ключ (512 байт)
-        license_uuid +  # UUID (16 байт)
-        struct.pack('I', expiration_time)  # Время истечения (4 байта)
+        user_id.encode("utf-8")  # user_id (в байтах)
+        + main_key  # Главный ключ (512 байт)
+        + license_uuid  # UUID (16 байт)
+        + struct.pack("I", expiration_time)  # Время истечения (4 байта)
     )
 
     # Хеширование лицензионного ключа
-    license_key_hash = hash_data(license_key_data)  # Используем hash_data вместо hash_with_salt
+    license_key_hash = hash_data(
+        license_key_data
+    )  # Используем hash_data вместо hash_with_salt
 
     # Сохранение лицензионного ключа в отдельный файл
     if suffix == "txt":
-        license_key_data = base64.b64encode(license_key_data).decode('utf-8')
+        license_key_data = base64.b64encode(license_key_data).decode("utf-8")
         with open(full_license_key_file, "w") as file:
             file.write(license_key_data)
     else:
@@ -195,6 +219,7 @@ def generate_license_key(main_key_file, license_key_file, hash_storage_file, dur
     save_hash_to_storage(hash_storage_file, license_key_file, license_key_hash, suffix)
 
     print(f"Лицензионный ключ сохранён в {full_license_key_file}.")
+
 
 # Сохранение хеша в общий файл
 def save_hash_to_storage(hash_storage_file, key_name, key_hash, suffix="bin"):
@@ -212,16 +237,23 @@ def save_hash_to_storage(hash_storage_file, key_name, key_hash, suffix="bin"):
 
     if suffix == "txt":
         # Сохраняем хеш в текстовом формате (Base64)
-        key_hash_base64 = base64.b64encode(key_hash).decode('utf-8')
-        with open(full_hash_storage_file, "a") as file:  # 'a' для добавления в конец файла
+        key_hash_base64 = base64.b64encode(key_hash).decode("utf-8")
+        with open(
+            full_hash_storage_file, "a"
+        ) as file:  # 'a' для добавления в конец файла
             file.write(f"{key_hash_base64}\n")
     else:
         # Сохраняем хеш в бинарном формате
-        with open(full_hash_storage_file, "ab") as file:  # 'ab' для добавления в бинарном режиме
+        with open(
+            full_hash_storage_file, "ab"
+        ) as file:  # 'ab' для добавления в бинарном режиме
             file.write(key_hash)
 
     print(f"Хеш для ключа '{key_name}' добавлен в {full_hash_storage_file}.")
-    print(f"Хеш (в Base64): {base64.b64encode(key_hash).decode('utf-8')}")  # Отладочная информация
+    print(
+        f"Хеш (в Base64): {base64.b64encode(key_hash).decode('utf-8')}"
+    )  # Отладочная информация
+
 
 # Проверка лицензии с user_id и UUID
 def check_license(license_key_file, hash_storage_file, user_id, suffix="bin"):
@@ -251,9 +283,13 @@ def check_license(license_key_file, hash_storage_file, user_id, suffix="bin"):
                 license_key_data = base64.b64decode(license_key_data)
 
         # Извлечение user_id и UUID из лицензионного ключа
-        user_id_length = len(user_id.encode('utf-8'))  # Длина user_id в байтах
-        user_id_from_key = license_key_data[512:512 + user_id_length].decode('utf-8')  # Извлечение user_id
-        license_uuid = license_key_data[512 + user_id_length:528 + user_id_length]  # Извлечение UUID
+        user_id_length = len(user_id.encode("utf-8"))  # Длина user_id в байтах
+        user_id_from_key = license_key_data[512 : 512 + user_id_length].decode(
+            "utf-8"
+        )  # Извлечение user_id
+        license_uuid = license_key_data[  # noqa: F841
+            512 + user_id_length : 528 + user_id_length
+        ]  # Извлечение UUID
 
         # Проверка user_id
         if user_id_from_key != user_id:
@@ -261,24 +297,35 @@ def check_license(license_key_file, hash_storage_file, user_id, suffix="bin"):
             return False, None
 
         # Хеширование текущего ключа
-        current_hash = hash_data(license_key_data)  # Используем hash_data вместо hash_with_salt
-        print(f"Текущий хеш (в Base64): {base64.b64encode(current_hash).decode('utf-8')}")  # Отладочная информация
+        current_hash = hash_data(
+            license_key_data
+        )  # Используем hash_data вместо hash_with_salt
+        print(
+            f"Текущий хеш (в Base64): {base64.b64encode(current_hash).decode('utf-8')}"
+        )  # Отладочная информация
 
         # Чтение хешей из общего файла
         with open(hash_storage_file, "rb" if suffix == "bin" else "r") as file:
             if suffix == "txt":
                 stored_hashes = file.readlines()
-                stored_hashes = [base64.b64decode(line.strip()) for line in stored_hashes]
+                stored_hashes = [
+                    base64.b64decode(line.strip()) for line in stored_hashes
+                ]
             else:
                 stored_hashes = file.read()
                 hash_length = 64  # Длина хеша SHA-512
-                stored_hashes = [stored_hashes[i:i + hash_length] for i in range(0, len(stored_hashes), hash_length)]
+                stored_hashes = [
+                    stored_hashes[i : i + hash_length]
+                    for i in range(0, len(stored_hashes), hash_length)
+                ]
 
         # Проверка хеша
         if current_hash in stored_hashes:
-            expiration_time = struct.unpack('I', license_key_data[-4:])[0]
+            expiration_time = struct.unpack("I", license_key_data[-4:])[0]
             current_time = int(datetime.now().timestamp())
-            expiration_date = datetime.fromtimestamp(expiration_time).strftime("%Y-%m-%d")
+            expiration_date = datetime.fromtimestamp(expiration_time).strftime(
+                "%Y-%m-%d"
+            )
             if current_time > expiration_time:
                 print(f"❌ Лицензия просрочена! Дата окончания: {expiration_date}")
                 return False, expiration_date
@@ -287,11 +334,14 @@ def check_license(license_key_file, hash_storage_file, user_id, suffix="bin"):
                 return True, expiration_date
         else:
             print("❌ Хеш лицензионного ключа не найден в общем файле!")
-            print(f"Сохранённые хеши: {[base64.b64encode(h).decode('utf-8') for h in stored_hashes]}")  # Отладочная информация
+            print(
+                f"Сохранённые хеши: {[base64.b64encode(h).decode('utf-8') for h in stored_hashes]}"
+            )  # Отладочная информация
             return False, None
     except Exception as e:
         print(f"Ошибка при проверке лицензии: {e}")
         return False, None
+
 
 # Генерация ключей RSA
 def generate_rsa_keys(public_key_file, private_key_file):
@@ -310,6 +360,7 @@ def generate_rsa_keys(public_key_file, private_key_file):
     print(f"Публичный ключ сохранён в {public_key_file}.")
     print(f"Приватный ключ сохранён в {private_key_file}.")
 
+
 # Генерация цифровой подписи
 def generate_signature(data, private_key_file, signature_file, suffix="bin"):
     """Sign *data* with RSA PKCS1v15 + SHA-512 and save the signature.
@@ -326,7 +377,9 @@ def generate_signature(data, private_key_file, signature_file, suffix="bin"):
     # RU: RSA PKCS1v15 + SHA512; "txt" → Base64; "bin" → бинарный файл.
     # Проверка существования файла с приватным ключом
     if not os.path.exists(private_key_file):
-        raise FileNotFoundError(f"Файл с приватным ключом {private_key_file} не найден.")
+        raise FileNotFoundError(
+            f"Файл с приватным ключом {private_key_file} не найден."
+        )
 
     with open(private_key_file, "rb") as file:
         private_key = RSA.import_key(file.read())
@@ -338,7 +391,7 @@ def generate_signature(data, private_key_file, signature_file, suffix="bin"):
     # Сохранение подписи
     if suffix == "txt":
         # Сохранение в текстовом формате (Base64)
-        signature_base64 = base64.b64encode(signature).decode('utf-8')
+        signature_base64 = base64.b64encode(signature).decode("utf-8")
         with open(f"{signature_file}.{suffix}", "w") as file:
             file.write(signature_base64)
     else:
@@ -346,6 +399,7 @@ def generate_signature(data, private_key_file, signature_file, suffix="bin"):
         with open(f"{signature_file}.{suffix}", "wb") as file:
             file.write(signature)
     print(f"Цифровая подпись сохранена в {signature_file}.{suffix}.")
+
 
 # Проверка цифровой подписи
 def verify_signature(data, signature_file, public_key_file, suffix="bin"):
@@ -395,6 +449,7 @@ def verify_signature(data, signature_file, public_key_file, suffix="bin"):
         print("❌ Цифровая подпись недействительна.")
         return False
 
+
 # Основной блок
 if __name__ == "__main__":
     # Пример использования
@@ -407,10 +462,19 @@ if __name__ == "__main__":
 
     # Генерация ключей
     generate_main_key(main_key_file, suffix)
-    generate_license_key(f"{main_key_file}.{suffix}", license_key_file, hash_storage_file, duration_str, user_id, suffix)
+    generate_license_key(
+        f"{main_key_file}.{suffix}",
+        license_key_file,
+        hash_storage_file,
+        duration_str,
+        user_id,
+        suffix,
+    )
 
     # Проверка лицензии
-    check_license(f"{license_key_file}.{suffix}", f"{hash_storage_file}.{suffix}", user_id, suffix)
+    check_license(
+        f"{license_key_file}.{suffix}", f"{hash_storage_file}.{suffix}", user_id, suffix
+    )
 
     # Генерация RSA ключей
     generate_rsa_keys("public_key.pem", "private_key.pem")

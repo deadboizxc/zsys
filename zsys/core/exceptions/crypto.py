@@ -20,6 +20,7 @@ class CryptoError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое криптографической операции.
     pass
 

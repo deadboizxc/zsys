@@ -8,6 +8,7 @@ from .base import BaseSchema
 
 class MediaBase(BaseSchema):
     """Base media schema."""
+
     filename: str
     mime_type: str
     size: int = Field(..., gt=0)
@@ -16,18 +17,21 @@ class MediaBase(BaseSchema):
 
 class MediaCreate(MediaBase):
     """Media creation schema."""
+
     url: str
     storage_path: Optional[str] = None
 
 
 class MediaUpdate(BaseSchema):
     """Media update schema."""
+
     filename: Optional[str] = None
     media_type: Optional[str] = None
 
 
 class MediaResponse(MediaBase):
     """Media response schema."""
+
     id: int
     url: str
     storage_path: Optional[str] = None
@@ -39,6 +43,7 @@ class MediaResponse(MediaBase):
 
 class PaginationMeta(BaseSchema):
     """Pagination metadata."""
+
     total: int
     limit: int
     offset: int
@@ -47,5 +52,6 @@ class PaginationMeta(BaseSchema):
 
 class MediaListResponse(BaseSchema):
     """Response for media list."""
+
     items: List[MediaResponse]
     meta: PaginationMeta

@@ -17,6 +17,7 @@ try:
         generate_license_key,
         check_license,
     )
+
     LICENSING_AVAILABLE = True
 except ImportError:
     LICENSING_AVAILABLE = False

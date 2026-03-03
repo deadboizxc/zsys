@@ -43,33 +43,28 @@ class BaseConfig(BaseModel):
         log_level: Minimum log level string; must be one of DEBUG/INFO/WARNING/ERROR/CRITICAL.
         work_dir: Working directory path (defaults to the current directory).
     """
+
     # RU: Универсальный базовый класс конфигурации ZSYS на Pydantic.
 
     # === Common fields ===
 
-    app_name: str = Field(
-        default="ZSYS",
-        description="Application name"
-    )
+    app_name: str = Field(default="ZSYS", description="Application name")
 
-    debug: bool = Field(
-        default=False,
-        description="Debug mode"
-    )
+    debug: bool = Field(default=False, description="Debug mode")
 
     log_level: str = Field(
         default="INFO",
         description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-        pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$"
+        pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$",
     )
 
     work_dir: Path = Field(
-        default_factory=lambda: Path.cwd(),
-        description="Working directory"
+        default_factory=lambda: Path.cwd(), description="Working directory"
     )
 
     class Config:
         """Pydantic model configuration."""
+
         case_sensitive = False
         env_file = ".env"
         env_file_encoding = "utf-8"

@@ -17,6 +17,7 @@ class MessageType(str, Enum):
 
     Values are lowercase strings that match common platform API responses.
     """
+
     # RU: Перечисление поддерживаемых типов содержимого сообщений.
     TEXT = "text"
     PHOTO = "photo"
@@ -54,6 +55,7 @@ class BaseMessage:
         media_file_id: Platform storage file ID; None if no media.
         raw_data: Raw platform-specific message object for advanced use.
     """
+
     # RU: Платформо-независимая модель сообщения в памяти.
 
     id: int

@@ -26,7 +26,7 @@ from zsys.modules import command, Context, modules_help
 async def say_cmd(ctx: Context):
     """Send text as code block."""
     text = ctx.arg
-    
+
     # Reply mode with !
     if ctx.is_reply and text.startswith("!"):
         text = text[1:].strip()

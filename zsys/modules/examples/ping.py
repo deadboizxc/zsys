@@ -21,11 +21,13 @@ from zsys.modules import command, Context, modules_help
 async def ping_cmd(ctx: Context):
     """Measure and display response latency."""
     start = time.perf_counter()
-    msg = await ctx.reply("🏓 Pong!")
+    msg = await ctx.reply("🏓 Pong!")  # noqa: F841
     end = time.perf_counter()
-    
+
     latency_ms = (end - start) * 1000
-    await ctx.edit(f"🏓 <b>Pong!</b>\n⚡ <code>{latency_ms:.2f}ms</code>", parse_mode="html")
+    await ctx.edit(
+        f"🏓 <b>Pong!</b>\n⚡ <code>{latency_ms:.2f}ms</code>", parse_mode="html"
+    )
 
 
 @command(

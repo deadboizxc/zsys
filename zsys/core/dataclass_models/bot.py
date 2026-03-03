@@ -29,6 +29,7 @@ class BaseBot:
         is_active: Whether the bot is enabled and allowed to operate.
         is_running: Whether the bot is currently connected and polling.
     """
+
     # RU: Платформо-независимая модель данных бота в памяти.
 
     id: int
@@ -44,4 +45,4 @@ class BaseBot:
 # Backward compatible alias
 Bot = BaseBot
 
-__all__ = ['BaseBot', 'Bot']
+__all__ = ["BaseBot", "Bot"]

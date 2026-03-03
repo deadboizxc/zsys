@@ -178,3 +178,288 @@ impl Drop for I18n {
         }
     }
 }
+
+// ── User ──────────────────────────────────────────────────────────────────
+
+/// Safe wrapper over `ZsysUser` (heap-allocated Telegram user/account).
+pub struct User(*mut ffi::ZsysUser);
+
+impl User {
+    /// Allocate a new, zero-initialised User, or return `None` on failure.
+    pub fn new() -> Option<Self> {
+        let ptr = unsafe { ffi::zsys_user_new() };
+        if ptr.is_null() { None } else { Some(User(ptr)) }
+    }
+
+    /// Return the Telegram user ID.
+    pub fn id(&self) -> i64 {
+        unsafe { (*self.0).id }
+    }
+
+    /// Return true if this is a bot account.
+    pub fn is_bot(&self) -> bool {
+        unsafe { (*self.0).is_bot != 0 }
+    }
+
+    /// Return true if the user has Telegram Premium.
+    pub fn is_premium(&self) -> bool {
+        unsafe { (*self.0).is_premium != 0 }
+    }
+
+    /// Set the `username` field (strdup). Returns 0 on success.
+    pub fn set_username(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_user_set_username(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `first_name` field. Returns 0 on success.
+    pub fn set_first_name(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_user_set_first_name(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `last_name` field. Returns 0 on success.
+    pub fn set_last_name(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_user_set_last_name(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `phone` field. Returns 0 on success.
+    pub fn set_phone(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_user_set_phone(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `lang_code` field. Returns 0 on success.
+    pub fn set_lang_code(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_user_set_lang_code(self.0, cv.as_ptr()) }
+    }
+
+    /// Serialise to a flat JSON string. Frees the C-allocated string automatically.
+    pub fn to_json(&self) -> String {
+        let r = unsafe { ffi::zsys_user_to_json(self.0) };
+        if r.is_null() { return "{}".to_owned(); }
+        let s = unsafe { CStr::from_ptr(r) }.to_string_lossy().into_owned();
+        unsafe { ffi::zsys_free(r as *mut _) };
+        s
+    }
+}
+
+impl Drop for User {
+    fn drop(&mut self) {
+        if !self.0.is_null() {
+            unsafe { ffi::zsys_user_free(self.0) };
+        }
+    }
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────
+
+/// Chat type, mirrors `ZsysChatType`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChatType {
+    Private    = 0,
+    Group      = 1,
+    Supergroup = 2,
+    Channel    = 3,
+    Bot        = 4,
+}
+
+/// Safe wrapper over `ZsysChat` (heap-allocated Telegram chat/group/channel).
+pub struct Chat(*mut ffi::ZsysChat);
+
+impl Chat {
+    /// Allocate a new, zero-initialised Chat, or return `None` on failure.
+    pub fn new() -> Option<Self> {
+        let ptr = unsafe { ffi::zsys_chat_new() };
+        if ptr.is_null() { None } else { Some(Chat(ptr)) }
+    }
+
+    /// Return the Telegram chat ID.
+    pub fn id(&self) -> i64 {
+        unsafe { (*self.0).id }
+    }
+
+    /// Return the chat type.
+    pub fn chat_type(&self) -> ChatType {
+        match unsafe { (*self.0).type_ } {
+            1 => ChatType::Group,
+            2 => ChatType::Supergroup,
+            3 => ChatType::Channel,
+            4 => ChatType::Bot,
+            _ => ChatType::Private,
+        }
+    }
+
+    /// Return the member count (-1 = unknown).
+    pub fn member_count(&self) -> i32 {
+        unsafe { (*self.0).member_count }
+    }
+
+    /// Set the `title` field. Returns 0 on success.
+    pub fn set_title(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_chat_set_title(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `username` field. Returns 0 on success.
+    pub fn set_username(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_chat_set_username(self.0, cv.as_ptr()) }
+    }
+
+    /// Serialise to a flat JSON string.
+    pub fn to_json(&self) -> String {
+        let r = unsafe { ffi::zsys_chat_to_json(self.0) };
+        if r.is_null() { return "{}".to_owned(); }
+        let s = unsafe { CStr::from_ptr(r) }.to_string_lossy().into_owned();
+        unsafe { ffi::zsys_free(r as *mut _) };
+        s
+    }
+}
+
+impl Drop for Chat {
+    fn drop(&mut self) {
+        if !self.0.is_null() {
+            unsafe { ffi::zsys_chat_free(self.0) };
+        }
+    }
+}
+
+// ── ClientConfig ──────────────────────────────────────────────────────────
+
+/// Client mode, mirrors `ZsysClientMode`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClientMode {
+    User = 0,
+    Bot  = 1,
+}
+
+/// Safe wrapper over `ZsysClientConfig` (Telegram session credentials).
+pub struct ClientConfig(*mut ffi::ZsysClientConfig);
+
+impl ClientConfig {
+    /// Allocate a config with sensible defaults, or return `None` on failure.
+    /// Defaults: mode=User, lang_code="en", sleep_threshold=60, max_concurrent=1.
+    pub fn new() -> Option<Self> {
+        let ptr = unsafe { ffi::zsys_client_config_new() };
+        if ptr.is_null() { None } else { Some(ClientConfig(ptr)) }
+    }
+
+    /// Return the Telegram API ID.
+    pub fn api_id(&self) -> i32 {
+        unsafe { (*self.0).api_id }
+    }
+
+    /// Return the client mode (user or bot).
+    pub fn mode(&self) -> ClientMode {
+        match unsafe { (*self.0).mode } {
+            1 => ClientMode::Bot,
+            _ => ClientMode::User,
+        }
+    }
+
+    /// Set the `api_hash` field. Returns 0 on success.
+    pub fn set_api_hash(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_client_config_set_api_hash(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `session_name` field. Returns 0 on success.
+    pub fn set_session_name(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_client_config_set_session_name(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `phone` field (user mode). Returns 0 on success.
+    pub fn set_phone(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_client_config_set_phone(self.0, cv.as_ptr()) }
+    }
+
+    /// Set the `bot_token` field (bot mode). Returns 0 on success.
+    pub fn set_bot_token(&mut self, v: &str) -> i32 {
+        let cv = CString::new(v).unwrap_or_default();
+        unsafe { ffi::zsys_client_config_set_bot_token(self.0, cv.as_ptr()) }
+    }
+
+    /// Serialise to a flat JSON string (sensitive fields may be redacted).
+    pub fn to_json(&self) -> String {
+        let r = unsafe { ffi::zsys_client_config_to_json(self.0) };
+        if r.is_null() { return "{}".to_owned(); }
+        let s = unsafe { CStr::from_ptr(r) }.to_string_lossy().into_owned();
+        unsafe { ffi::zsys_free(r as *mut _) };
+        s
+    }
+}
+
+impl Drop for ClientConfig {
+    fn drop(&mut self) {
+        if !self.0.is_null() {
+            unsafe { ffi::zsys_client_config_free(self.0) };
+        }
+    }
+}
+
+// ── KV Store ──────────────────────────────────────────────────────────────
+
+/// Safe wrapper over `ZsysKV` (open-addressing string key-value store).
+pub struct KV(*mut ffi::ZsysKV);
+
+impl KV {
+    /// Allocate a new KV store. `initial_cap=0` uses the default (16 slots).
+    pub fn new(initial_cap: usize) -> Option<Self> {
+        let ptr = unsafe { ffi::zsys_kv_new(initial_cap) };
+        if ptr.is_null() { None } else { Some(KV(ptr)) }
+    }
+
+    /// Insert or update `key → value`. Returns 0 on success.
+    pub fn set(&mut self, key: &str, value: &str) -> i32 {
+        let ck = CString::new(key).unwrap_or_default();
+        let cv = CString::new(value).unwrap_or_default();
+        unsafe { ffi::zsys_kv_set(self.0, ck.as_ptr(), cv.as_ptr()) }
+    }
+
+    /// Return the value for `key`, or `None` if not found.
+    pub fn get(&self, key: &str) -> Option<String> {
+        let ck = CString::new(key).unwrap_or_default();
+        let r = unsafe { ffi::zsys_kv_get(self.0, ck.as_ptr()) };
+        if r.is_null() { return None; }
+        Some(unsafe { CStr::from_ptr(r) }.to_string_lossy().into_owned())
+    }
+
+    /// Delete `key`. Returns 0 on success, -1 if not found.
+    pub fn del(&mut self, key: &str) -> i32 {
+        let ck = CString::new(key).unwrap_or_default();
+        unsafe { ffi::zsys_kv_del(self.0, ck.as_ptr()) }
+    }
+
+    /// Return true if `key` exists.
+    pub fn has(&self, key: &str) -> bool {
+        let ck = CString::new(key).unwrap_or_default();
+        unsafe { ffi::zsys_kv_has(self.0, ck.as_ptr()) != 0 }
+    }
+
+    /// Return the number of stored entries.
+    pub fn count(&self) -> usize {
+        unsafe { ffi::zsys_kv_count(self.0) }
+    }
+
+    /// Serialise all entries to a flat JSON object.
+    pub fn to_json(&self) -> String {
+        let r = unsafe { ffi::zsys_kv_to_json(self.0) };
+        if r.is_null() { return "{}".to_owned(); }
+        let s = unsafe { CStr::from_ptr(r) }.to_string_lossy().into_owned();
+        unsafe { ffi::zsys_free(r as *mut _) };
+        s
+    }
+}
+
+impl Drop for KV {
+    fn drop(&mut self) {
+        if !self.0.is_null() {
+            unsafe { ffi::zsys_kv_free(self.0) };
+        }
+    }
+}

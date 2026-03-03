@@ -8,6 +8,7 @@ from .base import BaseSchema
 
 class UserBase(BaseSchema):
     """Base user schema."""
+
     username: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     first_name: Optional[str] = None
@@ -17,11 +18,13 @@ class UserBase(BaseSchema):
 
 class UserCreate(UserBase):
     """User creation schema."""
+
     pass
 
 
 class UserUpdate(BaseSchema):
     """User update schema."""
+
     email: Optional[EmailStr] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -30,6 +33,7 @@ class UserUpdate(BaseSchema):
 
 class UserResponse(UserBase):
     """User response schema."""
+
     id: int
     is_bot: bool = False
     is_premium: bool = False

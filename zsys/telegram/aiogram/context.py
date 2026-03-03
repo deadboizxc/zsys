@@ -62,17 +62,18 @@ class AiogramContext(Context):
         await ctx.reply("Hello!")
         await ctx.set_state(MyStates.waiting)
     """
+
     # RU: Полнофункциональный контекст aiogram 3.x на основе унифицированного Context.
-    
+
     platform: str = "aiogram"
-    
+
     def __init__(
         self,
         message: "Message",
         bot: "Bot",
         command: str = "",
         args: List[str] = None,
-        state: "FSMContext" = None
+        state: "FSMContext" = None,
     ):
         """Initialise the context from an aiogram message, bot, and optional FSM state.
 
@@ -93,11 +94,11 @@ class AiogramContext(Context):
         self.state = state
         self._user: Optional[User] = None
         self._chat: Optional[Chat] = None
-    
+
     # ==========================================================================
     # PROPERTIES
     # ==========================================================================
-    
+
     @property
     def user(self) -> User:
         """Return the sender as a unified ``User`` dataclass.
@@ -125,10 +126,10 @@ class AiogramContext(Context):
                     last_name=u.last_name,
                     is_bot=u.is_bot,
                     language_code=u.language_code,
-                    is_premium=getattr(u, 'is_premium', False),
+                    is_premium=getattr(u, "is_premium", False),
                 )
         return self._user
-    
+
     @property
     def chat(self) -> Chat:
         """Return the chat as a unified ``Chat`` dataclass.
@@ -152,7 +153,7 @@ class AiogramContext(Context):
                 username=c.username,
             )
         return self._chat
-    
+
     @property
     def message_id(self) -> int:
         """Return the integer ID of the incoming message.
@@ -166,7 +167,7 @@ class AiogramContext(Context):
         """
         # RU: Возвращает целочисленный идентификатор входящего сообщения.
         return self.raw.message_id
-    
+
     @property
     def is_reply(self) -> bool:
         """Indicate whether the incoming message is a reply to another message.
@@ -181,7 +182,7 @@ class AiogramContext(Context):
         """
         # RU: Возвращает True, если сообщение является ответом на другое сообщение.
         return self.raw.reply_to_message is not None
-    
+
     @property
     def has_media(self) -> bool:
         """Indicate whether the message contains any media attachment.
@@ -199,11 +200,16 @@ class AiogramContext(Context):
         """
         # RU: Возвращает True, если сообщение содержит медиавложение любого типа.
         return bool(
-            self.raw.photo or self.raw.video or self.raw.document or
-            self.raw.audio or self.raw.voice or self.raw.sticker or
-            self.raw.animation or self.raw.video_note
+            self.raw.photo
+            or self.raw.video
+            or self.raw.document
+            or self.raw.audio
+            or self.raw.voice
+            or self.raw.sticker
+            or self.raw.animation
+            or self.raw.video_note
         )
-    
+
     @property
     def media_type(self) -> Optional[str]:
         """Return the media type of the message as a string, or ``None``.
@@ -235,11 +241,11 @@ class AiogramContext(Context):
         elif self.raw.video_note:
             return "video_note"
         return None
-    
+
     # ==========================================================================
     # CORE METHODS
     # ==========================================================================
-    
+
     def _parse_mode(self, mode: Optional[str]) -> Optional[str]:
         """Convert a unified parse-mode string to the aiogram format.
 
@@ -256,14 +262,14 @@ class AiogramContext(Context):
         elif mode == "html":
             return "HTML"
         return None
-    
+
     async def reply(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         disable_preview: bool = True,
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Reply to the incoming message with text.
 
@@ -291,22 +297,22 @@ class AiogramContext(Context):
         if parse_mode == "markdown":
             # Use HTML instead to avoid escaping issues
             parse_mode = "html"
-        
+
         return await self.raw.reply(
             text,
             parse_mode=self._parse_mode(parse_mode),
             disable_web_page_preview=disable_preview,
             reply_markup=reply_markup,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def edit(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         disable_preview: bool = True,
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Edit the text of the current message in-place.
 
@@ -327,15 +333,15 @@ class AiogramContext(Context):
         # RU: Редактирует текст текущего сообщения.
         if parse_mode == "markdown":
             parse_mode = "html"
-        
+
         return await self.raw.edit_text(
             text,
             parse_mode=self._parse_mode(parse_mode),
             disable_web_page_preview=disable_preview,
             reply_markup=reply_markup,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def delete(self) -> bool:
         """Delete the current message.
 
@@ -353,12 +359,9 @@ class AiogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def answer(
-        self,
-        text: str,
-        parse_mode: Optional[str] = "markdown",
-        **kwargs
+        self, text: str, parse_mode: Optional[str] = "markdown", **kwargs
     ) -> "Message":
         """Send a reply to the message (alias for :meth:`reply`).
 
@@ -378,13 +381,13 @@ class AiogramContext(Context):
         """
         # RU: Отправляет ответное сообщение (псевдоним reply).
         return await self.reply(text, parse_mode=parse_mode, **kwargs)
-    
+
     async def send(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a new independent message to the current chat (not a reply).
 
@@ -404,19 +407,19 @@ class AiogramContext(Context):
         # RU: Отправляет новое самостоятельное сообщение в текущий чат.
         if parse_mode == "markdown":
             parse_mode = "html"
-        
+
         return await self.bot.send_message(
             self.chat.id,
             text,
             parse_mode=self._parse_mode(parse_mode),
             reply_markup=reply_markup,
-            **kwargs
+            **kwargs,
         )
-    
+
     # ==========================================================================
     # MEDIA METHODS
     # ==========================================================================
-    
+
     def _prepare_file(self, file: Union[str, Path, BinaryIO]):
         """Wrap a local file path in ``FSInputFile``; pass through other types.
 
@@ -430,10 +433,11 @@ class AiogramContext(Context):
         """
         # RU: Оборачивает путь к файлу в FSInputFile для отправки через aiogram.
         from aiogram.types import FSInputFile
+
         if isinstance(file, (str, Path)) and Path(file).exists():
             return FSInputFile(file)
         return file
-    
+
     async def send_photo(
         self,
         photo: Union[str, Path, BinaryIO],
@@ -441,7 +445,7 @@ class AiogramContext(Context):
         parse_mode: Optional[str] = "markdown",
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
         spoiler: bool = False,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a photo as a reply to the current message.
 
@@ -463,22 +467,22 @@ class AiogramContext(Context):
         # RU: Отправляет фото в ответ на текущее сообщение.
         if parse_mode == "markdown":
             parse_mode = "html"
-        
+
         return await self.raw.reply_photo(
             self._prepare_file(photo),
             caption=caption,
             parse_mode=self._parse_mode(parse_mode),
             reply_markup=reply_markup,
             has_spoiler=spoiler,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_document(
         self,
         document: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
         parse_mode: Optional[str] = "markdown",
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a document as a reply to the current message.
 
@@ -498,14 +502,14 @@ class AiogramContext(Context):
         # RU: Отправляет документ в ответ на текущее сообщение.
         if parse_mode == "markdown":
             parse_mode = "html"
-        
+
         return await self.raw.reply_document(
             self._prepare_file(document),
             caption=caption,
             parse_mode=self._parse_mode(parse_mode),
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_video(
         self,
         video: Union[str, Path, BinaryIO],
@@ -515,7 +519,7 @@ class AiogramContext(Context):
         width: Optional[int] = None,
         height: Optional[int] = None,
         spoiler: bool = False,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a video as a reply to the current message.
 
@@ -539,7 +543,7 @@ class AiogramContext(Context):
         # RU: Отправляет видео в ответ на текущее сообщение.
         if parse_mode == "markdown":
             parse_mode = "html"
-        
+
         return await self.raw.reply_video(
             self._prepare_file(video),
             caption=caption,
@@ -548,9 +552,9 @@ class AiogramContext(Context):
             width=width,
             height=height,
             has_spoiler=spoiler,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_audio(
         self,
         audio: Union[str, Path, BinaryIO],
@@ -558,7 +562,7 @@ class AiogramContext(Context):
         duration: Optional[int] = None,
         performer: Optional[str] = None,
         title: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send an audio file as a reply to the current message.
 
@@ -584,15 +588,15 @@ class AiogramContext(Context):
             duration=duration,
             performer=performer,
             title=title,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_voice(
         self,
         voice: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
         duration: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a voice message as a reply to the current message.
 
@@ -611,18 +615,15 @@ class AiogramContext(Context):
         """
         # RU: Отправляет голосовое сообщение в ответ на текущее.
         return await self.raw.reply_voice(
-            self._prepare_file(voice),
-            caption=caption,
-            duration=duration,
-            **kwargs
+            self._prepare_file(voice), caption=caption, duration=duration, **kwargs
         )
-    
+
     async def send_video_note(
         self,
         video_note: Union[str, Path, BinaryIO],
         duration: Optional[int] = None,
         length: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a round video note as a reply to the current message.
 
@@ -641,17 +642,10 @@ class AiogramContext(Context):
         """
         # RU: Отправляет круглое видео (video note) в ответ на текущее сообщение.
         return await self.raw.reply_video_note(
-            self._prepare_file(video_note),
-            duration=duration,
-            length=length,
-            **kwargs
+            self._prepare_file(video_note), duration=duration, length=length, **kwargs
         )
-    
-    async def send_sticker(
-        self,
-        sticker: Union[str, BinaryIO],
-        **kwargs
-    ) -> "Message":
+
+    async def send_sticker(self, sticker: Union[str, BinaryIO], **kwargs) -> "Message":
         """Send a sticker as a reply to the current message.
 
         Args:
@@ -667,15 +661,17 @@ class AiogramContext(Context):
         """
         # RU: Отправляет стикер в ответ на текущее сообщение.
         return await self.raw.reply_sticker(
-            self._prepare_file(sticker) if isinstance(sticker, (str, Path)) else sticker,
-            **kwargs
+            self._prepare_file(sticker)
+            if isinstance(sticker, (str, Path))
+            else sticker,
+            **kwargs,
         )
-    
+
     async def send_animation(
         self,
         animation: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a GIF or animation as a reply to the current message.
 
@@ -693,16 +689,16 @@ class AiogramContext(Context):
         """
         # RU: Отправляет GIF-анимацию в ответ на текущее сообщение.
         return await self.raw.reply_animation(
-            self._prepare_file(animation),
-            caption=caption,
-            **kwargs
+            self._prepare_file(animation), caption=caption, **kwargs
         )
-    
+
     # ==========================================================================
     # MESSAGE OPERATIONS
     # ==========================================================================
-    
-    async def forward(self, chat_id: int, disable_notification: bool = False) -> "Message":
+
+    async def forward(
+        self, chat_id: int, disable_notification: bool = False
+    ) -> "Message":
         """Forward the current message to another chat.
 
         Args:
@@ -717,14 +713,11 @@ class AiogramContext(Context):
             await ctx.forward(chat_id=-100123456789)
         """
         # RU: Пересылает текущее сообщение в другой чат.
-        return await self.raw.forward(chat_id, disable_notification=disable_notification)
-    
-    async def copy(
-        self,
-        chat_id: int,
-        caption: Optional[str] = None,
-        **kwargs
-    ) -> Any:
+        return await self.raw.forward(
+            chat_id, disable_notification=disable_notification
+        )
+
+    async def copy(self, chat_id: int, caption: Optional[str] = None, **kwargs) -> Any:
         """Copy the current message to another chat without a forward header.
 
         Args:
@@ -741,7 +734,7 @@ class AiogramContext(Context):
         """
         # RU: Копирует сообщение в другой чат без заголовка пересылки.
         return await self.raw.copy_to(chat_id, caption=caption, **kwargs)
-    
+
     async def pin(self, disable_notification: bool = False) -> bool:
         """Pin the current message in the chat.
 
@@ -761,7 +754,7 @@ class AiogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def unpin(self) -> bool:
         """Unpin the current message in the chat.
 
@@ -778,7 +771,7 @@ class AiogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def react(self, emoji: str) -> bool:
         """Add an emoji reaction to the current message.
 
@@ -795,19 +788,18 @@ class AiogramContext(Context):
         # RU: Устанавливает эмодзи-реакцию на текущее сообщение.
         try:
             from aiogram.types import ReactionTypeEmoji
+
             await self.bot.set_message_reaction(
-                self.chat.id,
-                self.message_id,
-                [ReactionTypeEmoji(emoji=emoji)]
+                self.chat.id, self.message_id, [ReactionTypeEmoji(emoji=emoji)]
             )
             return True
         except Exception:
             return False
-    
+
     # ==========================================================================
     # REPLY MESSAGE
     # ==========================================================================
-    
+
     async def get_reply_message(self) -> Optional["AiogramContext"]:
         """Return the message being replied to, wrapped in a new context.
 
@@ -828,14 +820,14 @@ class AiogramContext(Context):
                 self.bot,
                 command="",
                 args=[],
-                state=self.state
+                state=self.state,
             )
         return None
-    
+
     # ==========================================================================
     # MEDIA DOWNLOAD
     # ==========================================================================
-    
+
     async def download_media(self, path: Optional[str] = None) -> Optional[str]:
         """Download the media attachment of the current message to disk.
 
@@ -855,7 +847,7 @@ class AiogramContext(Context):
         """
         # RU: Скачивает медиавложение сообщения на диск.
         file_id = None
-        
+
         if self.raw.photo:
             file_id = self.raw.photo[-1].file_id
         elif self.raw.video:
@@ -872,19 +864,19 @@ class AiogramContext(Context):
             file_id = self.raw.animation.file_id
         elif self.raw.video_note:
             file_id = self.raw.video_note.file_id
-        
+
         if not file_id:
             return None
-        
+
         file = await self.bot.get_file(file_id)
         destination = path or f"downloads/{file_id}"
         await self.bot.download_file(file.file_path, destination)
         return destination
-    
+
     # ==========================================================================
     # CHAT ACTIONS
     # ==========================================================================
-    
+
     async def typing(self):
         """Send a ``typing`` chat action indicator to the current chat.
 
@@ -894,7 +886,7 @@ class AiogramContext(Context):
         """
         # RU: Показывает индикатор «печатает…» в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "typing")
-    
+
     async def upload_photo(self):
         """Send an ``upload_photo`` chat action indicator to the current chat.
 
@@ -904,7 +896,7 @@ class AiogramContext(Context):
         """
         # RU: Показывает индикатор загрузки фото в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "upload_photo")
-    
+
     async def upload_video(self):
         """Send an ``upload_video`` chat action indicator to the current chat.
 
@@ -914,7 +906,7 @@ class AiogramContext(Context):
         """
         # RU: Показывает индикатор загрузки видео в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "upload_video")
-    
+
     async def upload_document(self):
         """Send an ``upload_document`` chat action indicator to the current chat.
 
@@ -924,7 +916,7 @@ class AiogramContext(Context):
         """
         # RU: Показывает индикатор загрузки документа в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "upload_document")
-    
+
     async def record_voice(self):
         """Send a ``record_voice`` chat action indicator to the current chat.
 
@@ -934,7 +926,7 @@ class AiogramContext(Context):
         """
         # RU: Показывает индикатор записи голосового сообщения в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "record_voice")
-    
+
     async def record_video(self):
         """Send a ``record_video`` chat action indicator to the current chat.
 
@@ -944,11 +936,11 @@ class AiogramContext(Context):
         """
         # RU: Показывает индикатор записи видео в текущем чате.
         await self.bot.send_chat_action(self.chat.id, "record_video")
-    
+
     # ==========================================================================
     # USER/CHAT INFO
     # ==========================================================================
-    
+
     async def get_chat_member(self, user_id: Optional[int] = None) -> Any:
         """Fetch chat-member status for a user in the current chat.
 
@@ -966,7 +958,7 @@ class AiogramContext(Context):
         # RU: Получает информацию об участнике текущего чата.
         uid = user_id or self.user.id
         return await self.bot.get_chat_member(self.chat.id, uid)
-    
+
     async def is_admin(self, user_id: Optional[int] = None) -> bool:
         """Check whether a user holds admin privileges in the current chat.
 
@@ -991,7 +983,7 @@ class AiogramContext(Context):
             return member.status in ("administrator", "creator")
         except Exception:
             return False
-    
+
     async def is_owner(self, user_id: Optional[int] = None) -> bool:
         """Check whether a user is the owner (creator) of the current chat.
 
@@ -1016,12 +1008,14 @@ class AiogramContext(Context):
             return member.status == "creator"
         except Exception:
             return False
-    
+
     # ==========================================================================
     # MODERATION
     # ==========================================================================
-    
-    async def ban_user(self, user_id: Optional[int] = None, until_date: int = 0) -> bool:
+
+    async def ban_user(
+        self, user_id: Optional[int] = None, until_date: int = 0
+    ) -> bool:
         """Ban a user from the current chat.
 
         Args:
@@ -1038,11 +1032,13 @@ class AiogramContext(Context):
         # RU: Банит пользователя в текущем чате.
         try:
             uid = user_id or self.user.id
-            await self.bot.ban_chat_member(self.chat.id, uid, until_date=until_date or None)
+            await self.bot.ban_chat_member(
+                self.chat.id, uid, until_date=until_date or None
+            )
             return True
         except Exception:
             return False
-    
+
     async def unban_user(self, user_id: Optional[int] = None) -> bool:
         """Unban a previously banned user from the current chat.
 
@@ -1063,7 +1059,7 @@ class AiogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def kick_user(self, user_id: Optional[int] = None) -> bool:
         """Kick a user by banning and immediately unbanning them.
 
@@ -1082,11 +1078,11 @@ class AiogramContext(Context):
         if await self.ban_user(uid):
             return await self.unban_user(uid)
         return False
-    
+
     # ==========================================================================
     # FSM STATES
     # ==========================================================================
-    
+
     async def get_state(self) -> Optional[str]:
         """Return the current FSM state key as a string.
 
@@ -1102,7 +1098,7 @@ class AiogramContext(Context):
         if self.state:
             return await self.state.get_state()
         return None
-    
+
     async def set_state(self, state: Any = None):
         """Set the FSM state.
 
@@ -1117,7 +1113,7 @@ class AiogramContext(Context):
         # RU: Устанавливает состояние FSM.
         if self.state:
             await self.state.set_state(state)
-    
+
     async def clear_state(self):
         """Clear the current FSM state and all associated data.
 
@@ -1128,7 +1124,7 @@ class AiogramContext(Context):
         # RU: Сбрасывает состояние FSM и связанные данные.
         if self.state:
             await self.state.clear()
-    
+
     async def get_data(self) -> dict:
         """Return the FSM context data dictionary.
 
@@ -1145,7 +1141,7 @@ class AiogramContext(Context):
         if self.state:
             return await self.state.get_data()
         return {}
-    
+
     async def set_data(self, **data):
         """Replace the FSM context data with the provided key-value pairs.
 
@@ -1159,7 +1155,7 @@ class AiogramContext(Context):
         # RU: Заменяет данные FSM-контекста переданными значениями.
         if self.state:
             await self.state.set_data(data)
-    
+
     async def update_data(self, **data):
         """Merge new key-value pairs into the existing FSM context data.
 
@@ -1173,11 +1169,11 @@ class AiogramContext(Context):
         # RU: Обновляет данные FSM-контекста, сохраняя существующие ключи.
         if self.state:
             await self.state.update_data(**data)
-    
+
     # ==========================================================================
     # INLINE KEYBOARDS
     # ==========================================================================
-    
+
     @staticmethod
     def button(text: str, callback_data: str = None, url: str = None):
         """Create a single ``InlineKeyboardButton``.
@@ -1198,10 +1194,11 @@ class AiogramContext(Context):
         """
         # RU: Создаёт кнопку инлайн-клавиатуры.
         from aiogram.types import InlineKeyboardButton
+
         if url:
             return InlineKeyboardButton(text=text, url=url)
         return InlineKeyboardButton(text=text, callback_data=callback_data or text)
-    
+
     @staticmethod
     def keyboard(*rows: List):
         """Build an ``InlineKeyboardMarkup`` from rows of buttons.
@@ -1222,18 +1219,19 @@ class AiogramContext(Context):
         """
         # RU: Собирает InlineKeyboardMarkup из строк кнопок.
         from aiogram.types import InlineKeyboardMarkup
+
         return InlineKeyboardMarkup(inline_keyboard=[list(row) for row in rows])
-    
+
     # ==========================================================================
     # CALLBACK QUERIES
     # ==========================================================================
-    
+
     async def answer_callback(
         self,
         text: str = "",
         show_alert: bool = False,
         url: Optional[str] = None,
-        cache_time: int = 0
+        cache_time: int = 0,
     ) -> bool:
         """Answer a callback query originating from this context.
 
@@ -1257,13 +1255,10 @@ class AiogramContext(Context):
         """
         # RU: Отвечает на callback-запрос; снимает индикатор загрузки с кнопки.
         # This is typically called from CallbackQuery handler
-        if hasattr(self.raw, 'answer'):
+        if hasattr(self.raw, "answer"):
             try:
                 await self.raw.answer(
-                    text=text,
-                    show_alert=show_alert,
-                    url=url,
-                    cache_time=cache_time
+                    text=text, show_alert=show_alert, url=url, cache_time=cache_time
                 )
                 return True
             except Exception:

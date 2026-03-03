@@ -19,6 +19,7 @@ class DatabaseError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое операции с базой данных.
     pass
 
@@ -33,6 +34,7 @@ class StorageError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое операции с хранилищем ключ-значение.
     pass
 
