@@ -33,6 +33,7 @@ class BaseWallet:
         created_at: Timestamp when this wallet record was created.
         last_updated: Timestamp when the balance was last refreshed.
     """
+
     # RU: Платформо-независимая модель криптовалютного кошелька.
 
     address: str

@@ -19,6 +19,7 @@ class ClientError(BaseException):
         message: Human-readable error description.
         code: Optional platform-specific error code.
     """
+
     # RU: Исключение при сбое операции бот- или юзербот-клиента.
     pass
 
@@ -33,6 +34,7 @@ class AuthenticationError(BaseException):
         message: Human-readable error description.
         code: Optional error code (e.g. ``"INVALID_TOKEN"``).
     """
+
     # RU: Исключение при сбое аутентификации или авторизации.
     pass
 
@@ -47,6 +49,7 @@ class SessionError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое управления сессией.
     pass
 

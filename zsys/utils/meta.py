@@ -11,7 +11,7 @@ Supports two formats:
 import re
 from typing import Dict
 
-__all__ = ['parse_meta_comments', 'extract_docstring_meta']
+__all__ = ["parse_meta_comments", "extract_docstring_meta"]
 
 try:
     from zsys._core import parse_meta_comments as _c_parse_meta, C_AVAILABLE as _C
@@ -21,14 +21,10 @@ except ImportError:
 # Compile regex once at module load (используются только при C_AVAILABLE=False)
 # RU: Компиляция регулярных выражений на этапе загрузки модуля экономит время на повторных вызовах.
 META_COMMENT_REGEX = re.compile(
-    r"^ *# *meta: *([^\s=]+) *= *(.*?) *$",
-    re.MULTILINE | re.IGNORECASE
+    r"^ *# *meta: *([^\s=]+) *= *(.*?) *$", re.MULTILINE | re.IGNORECASE
 )
 
-LEGACY_META_REGEX = re.compile(
-    r"^ *# *meta +(\S+) *: *(.*?)\s*$",
-    re.MULTILINE
-)
+LEGACY_META_REGEX = re.compile(r"^ *# *meta +(\S+) *: *(.*?)\s*$", re.MULTILINE)
 
 
 def parse_meta_comments(code: str) -> Dict[str, str]:
@@ -67,21 +63,21 @@ def parse_meta_comments(code: str) -> Dict[str, str]:
 def extract_docstring_meta(code: str) -> Dict[str, str]:
     """
     Extract metadata from module docstring.
-    
+
     Looks for key-value pairs in format:
     Key: Value
-    
+
     Args:
         code: Source code as string
-        
+
     Returns:
         Dictionary with extracted metadata
-        
+
     Examples:
         >>> code = '''
         ... \"\"\"
         ... Module description.
-        ... 
+        ...
         ... Author: John Doe
         ... Version: 1.0.0
         ... \"\"\"
@@ -91,20 +87,20 @@ def extract_docstring_meta(code: str) -> Dict[str, str]:
     """
     # RU: Ищет первый докстринг в файле и извлекает из него пары «ключ: значение».
     meta: Dict[str, str] = {}
-    
+
     # Find docstring
-    docstring_match = re.search(r'^(\'\'\'|\"\"\")(.*?)\1', code, re.DOTALL)
+    docstring_match = re.search(r"^(\'\'\'|\"\"\")(.*?)\1", code, re.DOTALL)
     if not docstring_match:
         return meta
-    
+
     docstring = docstring_match.group(2)
-    
+
     # Extract key-value pairs
-    for line in docstring.split('\n'):
-        match = re.match(r'^\s*(\w+):\s*(.+?)\s*$', line)
+    for line in docstring.split("\n"):
+        match = re.match(r"^\s*(\w+):\s*(.+?)\s*$", line)
         if match:
             key = match.group(1).lower()
             value = match.group(2)
             meta[key] = value
-    
+
     return meta

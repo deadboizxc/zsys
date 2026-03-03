@@ -79,7 +79,7 @@ def attach_router(
 
                 cmd_part = parts[0]
                 if cmd_part.startswith(prefix):
-                    cmd_part = cmd_part[len(prefix):]
+                    cmd_part = cmd_part[len(prefix) :]
 
                 args = parts[1].split() if len(parts) > 1 else []
 

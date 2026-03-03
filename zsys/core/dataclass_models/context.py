@@ -28,6 +28,7 @@ class User:
         language_code: BCP-47 language code (e.g. ``"en"``); None if unknown.
         is_premium: True if the user has premium status.
     """
+
     # RU: Унифицированное представление пользователя для всех платформ.
     id: int
     username: Optional[str] = None
@@ -86,6 +87,7 @@ class Chat:
         description: Chat description text; None if not set.
         members_count: Total member count; None if not available.
     """
+
     # RU: Унифицированное представление чата для всех платформ.
     id: int
     type: str  # "private", "group", "supergroup", "channel"
@@ -151,146 +153,134 @@ class Context(ABC):
         text: Full original message text.
         platform: Platform identifier string (``"pyrogram"``, ``"aiogram"``, etc.).
     """
+
     # RU: Абстрактный базовый контекст для унифицированных обработчиков команд.
-    
+
     # Core attributes (set by subclasses)
     raw: Any = None  # Original message object
     client: Any = None  # Original client object
-    
+
     # Parsed command data
     command: str = ""
     args: List[str] = field(default_factory=list)
     text: str = ""
-    
+
     # Platform info
     platform: str = "unknown"  # "pyrogram", "aiogram", "telebot", "api"
-    
+
     # ==========================================================================
     # PROPERTIES
     # ==========================================================================
-    
+
     @property
     @abstractmethod
     def user(self) -> User:
         """Get the user who sent the message."""
         pass
-    
+
     @property
     @abstractmethod
     def chat(self) -> Chat:
         """Get the chat where the message was sent."""
         pass
-    
+
     @property
     @abstractmethod
     def message_id(self) -> int:
         """Get the message ID."""
         pass
-    
+
     @property
     def arg(self) -> str:
         """Get all arguments as a single string."""
         return " ".join(self.args)
-    
+
     @property
     def has_args(self) -> bool:
         """Check if command has arguments."""
         return len(self.args) > 0
-    
+
     @property
     def is_reply(self) -> bool:
         """Check if message is a reply."""
         return False  # Override in subclasses
-    
+
     @property
     def is_private(self) -> bool:
         """Check if in private chat."""
         return self.chat.is_private
-    
+
     @property
     def is_group(self) -> bool:
         """Check if in group chat."""
         return self.chat.is_group
-    
+
     # ==========================================================================
     # ABSTRACT METHODS - Must be implemented
     # ==========================================================================
-    
+
     @abstractmethod
     async def reply(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         disable_preview: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """Reply to the message."""
         pass
-    
+
     @abstractmethod
     async def edit(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         disable_preview: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """Edit the original message (if possible)."""
         pass
-    
+
     @abstractmethod
     async def delete(self) -> bool:
         """Delete the original message."""
         pass
-    
+
     @abstractmethod
     async def send_photo(
-        self,
-        photo: Union[str, Path, BinaryIO],
-        caption: Optional[str] = None,
-        **kwargs
+        self, photo: Union[str, Path, BinaryIO], caption: Optional[str] = None, **kwargs
     ) -> Any:
         """Send a photo."""
         pass
-    
+
     @abstractmethod
     async def send_document(
         self,
         document: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Any:
         """Send a document."""
         pass
-    
+
     @abstractmethod
     async def send_video(
-        self,
-        video: Union[str, Path, BinaryIO],
-        caption: Optional[str] = None,
-        **kwargs
+        self, video: Union[str, Path, BinaryIO], caption: Optional[str] = None, **kwargs
     ) -> Any:
         """Send a video."""
         pass
-    
+
     @abstractmethod
-    async def send_sticker(
-        self,
-        sticker: Union[str, BinaryIO],
-        **kwargs
-    ) -> Any:
+    async def send_sticker(self, sticker: Union[str, BinaryIO], **kwargs) -> Any:
         """Send a sticker."""
         pass
-    
+
     # ==========================================================================
     # COMMON METHODS - Default implementations
     # ==========================================================================
-    
+
     async def answer(
-        self,
-        text: str,
-        parse_mode: Optional[str] = "markdown",
-        **kwargs
+        self, text: str, parse_mode: Optional[str] = "markdown", **kwargs
     ) -> Any:
         """
         Smart answer - edit if userbot, reply if bot.
@@ -300,68 +290,65 @@ class Context(ABC):
             return await self.edit(text, parse_mode=parse_mode, **kwargs)
         except Exception:
             return await self.reply(text, parse_mode=parse_mode, **kwargs)
-    
+
     async def send(
-        self,
-        text: str,
-        parse_mode: Optional[str] = "markdown",
-        **kwargs
+        self, text: str, parse_mode: Optional[str] = "markdown", **kwargs
     ) -> Any:
         """Send a new message to the chat (not reply)."""
         return await self.reply(text, parse_mode=parse_mode, **kwargs)
-    
+
     async def react(self, emoji: str) -> bool:
         """Add reaction to message. Override if platform supports it."""
         return False
-    
+
     async def get_reply_message(self) -> Optional["Context"]:
         """Get the message being replied to. Override in implementations."""
         return None
-    
+
     async def download_media(self, path: Optional[str] = None) -> Optional[str]:
         """Download media from message. Override in implementations."""
         return None
-    
+
     async def forward(self, chat_id: int) -> Any:
         """Forward message to another chat. Override in implementations."""
         raise NotImplementedError("forward not supported on this platform")
-    
+
     async def copy(self, chat_id: int) -> Any:
         """Copy message to another chat. Override in implementations."""
         raise NotImplementedError("copy not supported on this platform")
-    
+
     async def pin(self, disable_notification: bool = False) -> bool:
         """Pin the message. Override in implementations."""
         return False
-    
+
     async def unpin(self) -> bool:
         """Unpin the message. Override in implementations."""
         return False
-    
+
     # ==========================================================================
     # UTILITY METHODS
     # ==========================================================================
-    
+
     def get_arg(self, index: int, default: str = "") -> str:
         """Get argument by index safely."""
         if index < len(self.args):
             return self.args[index]
         return default
-    
+
     def get_args_after(self, index: int) -> str:
         """Get all arguments after index as string."""
         if index < len(self.args):
             return " ".join(self.args[index:])
         return ""
-    
+
     def require_args(self, min_count: int = 1) -> bool:
         """Check if minimum number of arguments provided."""
         return len(self.args) >= min_count
-    
+
     async def require_reply(self) -> Optional["Context"]:
         """
         Get reply message or None.
-        
+
         Usage:
             reply = await ctx.require_reply()
             if not reply:

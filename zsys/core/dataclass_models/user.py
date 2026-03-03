@@ -30,6 +30,7 @@ class BaseUser:
         phone_number: Phone number in E.164 format; None if not available.
         created_at: Timestamp when this data record was created locally.
     """
+
     # RU: Платформо-независимая модель пользователя в памяти.
 
     id: int

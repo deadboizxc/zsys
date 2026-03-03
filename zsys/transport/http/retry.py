@@ -32,6 +32,7 @@ class RetryConfig:
 
         config = RetryConfig(max_retries=5, backoff_factor=1.0)
     """
+
     # RU: Конфигурация retry-логики для HTTP-запросов.
     max_retries: int = 3
     retry_statuses: Set[int] = field(default_factory=lambda: {429, 500, 502, 503, 504})
@@ -41,7 +42,7 @@ class RetryConfig:
     retry_exceptions: Tuple[type, ...] = field(
         default_factory=lambda: (ConnectionError, TimeoutError, asyncio.TimeoutError)
     )
-    
+
     def get_delay(self, attempt: int) -> float:
         """Compute the wait duration before the next retry attempt.
 
@@ -56,15 +57,15 @@ class RetryConfig:
             Delay in seconds as a float.
         """
         # RU: Вычисляет задержку по формуле backoff_factor * 2**attempt с ограничением max_backoff.
-        delay = self.backoff_factor * (2 ** attempt)
+        delay = self.backoff_factor * (2**attempt)
         delay = min(delay, self.max_backoff)
-        
+
         if self.jitter:
             # RU: Добавляем случайный jitter в диапазоне [0.5, 1.5) для распределения нагрузки.
             delay = delay * (0.5 + random.random())
-        
+
         return delay
-    
+
     def should_retry_status(self, status: int) -> bool:
         """Return ``True`` if the given HTTP status code warrants a retry.
 
@@ -76,7 +77,7 @@ class RetryConfig:
         """
         # RU: Возвращает True если статус-код входит в список для retry.
         return status in self.retry_statuses
-    
+
     def should_retry_exception(self, exc: Exception) -> bool:
         """Return ``True`` if the given exception warrants a retry.
 
@@ -90,12 +91,7 @@ class RetryConfig:
         return isinstance(exc, self.retry_exceptions)
 
 
-async def retry_request(
-    func: Callable,
-    config: RetryConfig,
-    *args,
-    **kwargs
-) -> Any:
+async def retry_request(func: Callable, config: RetryConfig, *args, **kwargs) -> Any:
     """Execute *func* with automatic retry on failure.
 
     On each attempt, calls ``await func(*args, **kwargs)``.  If the response
@@ -124,33 +120,39 @@ async def retry_request(
     """
     # RU: Выполняет async-функцию с повторными попытками согласно config.
     last_exception: Optional[Exception] = None
-    
+
     for attempt in range(config.max_retries + 1):
         try:
             response = await func(*args, **kwargs)
-            
+
             # RU: Проверяем HTTP статус ответа (aiohttp → .status, httpx → .status_code).
-            status = getattr(response, "status", None) or getattr(response, "status_code", None)
-            
-            if status and config.should_retry_status(status) and attempt < config.max_retries:
+            status = getattr(response, "status", None) or getattr(
+                response, "status_code", None
+            )
+
+            if (
+                status
+                and config.should_retry_status(status)
+                and attempt < config.max_retries
+            ):
                 delay = config.get_delay(attempt)
                 await asyncio.sleep(delay)
                 continue
-            
+
             return response
-            
+
         except Exception as e:
             last_exception = e
-            
+
             if not config.should_retry_exception(e):
                 raise  # RU: Немедленно пробрасываем не-retryable исключения.
-            
+
             if attempt < config.max_retries:
                 delay = config.get_delay(attempt)
                 await asyncio.sleep(delay)
             else:
                 raise  # RU: Все попытки исчерпаны — пробрасываем последнее исключение.
-    
+
     if last_exception:
         raise last_exception
 

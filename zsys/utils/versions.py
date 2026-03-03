@@ -26,6 +26,7 @@ class PythonVersion(NamedTuple):
         >>> v.formatted
         '3.11.0'
     """
+
     # RU: Именованный кортеж — описывает компоненты версии Python-интерпретатора.
     major: int
     minor: int
@@ -78,26 +79,31 @@ class VersionInfo:
         >>> VersionInfo.get_info()['core_version']
         '1.0.0'
     """
+
     # RU: Хранит версии Python и ядра zsys в виде классовых констант — инстанцирование не нужно.
-    
+
     # Python version
     PYTHON: Final[PythonVersion] = PythonVersion(
         major=version_info.major,
         minor=version_info.minor,
         micro=version_info.micro,
         releaselevel=version_info.releaselevel,
-        serial=version_info.serial
+        serial=version_info.serial,
     )
-    
+
     # Core version
     CORE: Final[str] = "1.0.0"
-    
+
     # Development stage
     STAGE: Final[str] = "stable"
-    
+
     # Compatible Python versions
     PYTHON_COMPATIBLE: Final[Tuple[Tuple[int, int], ...]] = (
-        (3, 8), (3, 9), (3, 10), (3, 11), (3, 12)
+        (3, 8),
+        (3, 9),
+        (3, 10),
+        (3, 11),
+        (3, 12),
     )
 
     @classmethod
@@ -112,7 +118,7 @@ class VersionInfo:
         """
         # RU: Проверяет наличие пары (major, minor) текущего Python в списке совместимых версий.
         return (cls.PYTHON.major, cls.PYTHON.minor) in cls.PYTHON_COMPATIBLE
-    
+
     @classmethod
     def get_info(cls) -> dict:
         """Get version information as a dictionary.
@@ -126,7 +132,7 @@ class VersionInfo:
             "python_version": cls.PYTHON.formatted,
             "core_version": cls.CORE,
             "stage": cls.STAGE,
-            "is_compatible": cls.check_compatibility()
+            "is_compatible": cls.check_compatibility(),
         }
 
 

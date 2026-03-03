@@ -7,6 +7,7 @@ from .base import BaseSchema
 
 class ErrorResponse(BaseSchema):
     """Error response schema."""
+
     error: str
     code: str
     detail: Optional[str] = None
@@ -14,11 +15,13 @@ class ErrorResponse(BaseSchema):
 
 class TokenRequest(BaseSchema):
     """Token generation request."""
+
     user_id: str
 
 
 class TokenResponse(BaseSchema):
     """Token response."""
+
     token: str
     token_type: str = "bearer"
     expires_in: int
@@ -26,6 +29,7 @@ class TokenResponse(BaseSchema):
 
 class ListResponse(BaseSchema):
     """Generic list response."""
+
     items: list
     total: int
     skip: int

@@ -18,6 +18,7 @@ class ModuleError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое загрузки или работы плагин-модуля.
     pass
 
@@ -32,5 +33,6 @@ class FileError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при сбое файловой операции.
     pass

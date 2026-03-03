@@ -29,6 +29,7 @@ class TinyDBDatabase(Database):
         _db: Live ``TinyDB`` instance connected to ``_path``.
         _Query: Cached reference to the TinyDB ``Query`` factory class.
     """
+
     # RU: TinyDB-реализация интерфейса Database.
     # RU: Данные хранятся в JSON-файле; каждый модуль — отдельная таблица.
 
@@ -51,11 +52,13 @@ class TinyDBDatabase(Database):
             from tinydb import TinyDB, Query
         except ImportError:
             raise ImportError("tinydb не установлен. Установите: pip install tinydb")
-        
+
         self._Query = Query
         self._path = str(path)
-        Path(self._path).parent.mkdir(parents=True, exist_ok=True)  # RU: создаём родительские директории при необходимости
-        
+        Path(self._path).parent.mkdir(
+            parents=True, exist_ok=True
+        )  # RU: создаём родительские директории при необходимости
+
         self._db = TinyDB(self._path)
 
     def get(self, module: str, variable: str, default: Any = None) -> Any:
@@ -71,7 +74,9 @@ class TinyDBDatabase(Database):
         """
         # RU: Возвращает значение переменной из таблицы модуля.
         table = self._db.table(module)
-        data = table.get(self._Query().name == variable)  # RU: Query().name — поиск по полю «name»
+        data = table.get(
+            self._Query().name == variable
+        )  # RU: Query().name — поиск по полю «name»
         return data["value"] if data else default
 
     def set(self, module: str, variable: str, value: Any) -> None:
@@ -151,6 +156,7 @@ class TinyDBDatabase(Database):
             shutil.copy(self._path, str(target_path))
             self._logger.info(f"TinyDB backup: {target_path}")
             from tinydb import TinyDB
+
             self._db = TinyDB(self._path)  # RU: переоткрываем БД после копирования
         except Exception as e:
             raise DatabaseError(f"TinyDB backup failed: {e}") from e

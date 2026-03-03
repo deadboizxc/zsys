@@ -57,10 +57,11 @@ from .env import env, load_env, get_env_path
 # Import BaseConfig from core - this is the single source of truth
 from zsys.core.config import BaseConfig
 
+
 def load_base_config(
     config_class: type,
     env_file: Optional[Path] = None,
-    env_prefix: Optional[str] = None
+    env_prefix: Optional[str] = None,
 ) -> BaseConfig:
     """Instantiate a BaseConfig subclass, optionally loading a .env file first.
 
@@ -129,21 +130,34 @@ def export_config_constants(config: BaseConfig) -> dict:
 
 
 # Import constants
-from .constants import (
-    ENV_FILE_NAME, DB_DEFAULT_NAME, SESSION_DEFAULT_NAME,
-    BOT_CONFIG_FILE_NAME, CONFIG_FILE_NAME,
-    USERDATA_DIR, LOGS_DIR, CACHE_DIR, TEMP_DIR,
-    DB_TIMEOUT, DB_POOL_SIZE,
-    HTTP_TIMEOUT, HTTP_MAX_RETRIES, HTTP_RETRY_DELAY,
-    LOG_MAX_SIZE, LOG_BACKUP_COUNT, LOG_FORMAT,
+from .constants import (  # noqa: E402
+    ENV_FILE_NAME,
+    DB_DEFAULT_NAME,
+    SESSION_DEFAULT_NAME,
+    BOT_CONFIG_FILE_NAME,
+    CONFIG_FILE_NAME,
+    USERDATA_DIR,
+    LOGS_DIR,
+    CACHE_DIR,
+    TEMP_DIR,
+    DB_TIMEOUT,
+    DB_POOL_SIZE,
+    HTTP_TIMEOUT,
+    HTTP_MAX_RETRIES,
+    HTTP_RETRY_DELAY,
+    LOG_MAX_SIZE,
+    LOG_BACKUP_COUNT,
+    LOG_FORMAT,
 )
 
 # Export Pydantic utilities for convenience
 try:
     from pydantic import Field, validator, root_validator
+
     _HAS_ROOT_VALIDATOR = True
 except ImportError:
     from pydantic import Field, validator
+
     root_validator = None  # type: ignore
     _HAS_ROOT_VALIDATOR = False
 

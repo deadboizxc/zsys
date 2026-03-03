@@ -17,11 +17,11 @@ if TYPE_CHECKING:
 def get_module_path(module_name: str = "", core: bool = False) -> Path:
     """
     Get the path to a module file.
-    
+
     Args:
         module_name: Name of the module (without .py extension)
         core: If True, look in core modules directory
-    
+
     Returns:
         Path to module file (or directory if module_name is empty)
     """
@@ -45,25 +45,29 @@ def get_module_dir(module_name: str = "", core: bool = False) -> Path:
 def find_modules(directory: Optional[Path] = None) -> List[str]:
     """
     Find all modules in a directory.
-    
+
     Args:
         directory: Directory to search (defaults to modules/)
-    
+
     Returns:
         List of module names
     """
     # RU: Найти все модули в директории.
     if directory is None:
         directory = Path.cwd() / "modules"
-    
+
     modules = []
     if directory.exists():
         for item in directory.iterdir():
-            if item.is_file() and item.suffix == ".py" and not item.name.startswith("__"):
+            if (
+                item.is_file()
+                and item.suffix == ".py"
+                and not item.name.startswith("__")
+            ):
                 modules.append(item.stem)
             elif item.is_dir() and (item / "__init__.py").exists():
                 modules.append(item.name)
-    
+
     return modules
 
 
@@ -89,14 +93,15 @@ async def load_module(
     # Search for the module as a .py file or as a package directory
     # RU: Ищем файл или пакет
     file_path = base_dir / f"{module_name}.py"
-    pkg_path  = base_dir / module_name / "__init__.py"
+    pkg_path = base_dir / module_name / "__init__.py"
 
     try:
         if file_path.exists():
             spec = importlib.util.spec_from_file_location(module_name, file_path)
         elif pkg_path.exists():
             spec = importlib.util.spec_from_file_location(
-                module_name, pkg_path,
+                module_name,
+                pkg_path,
                 submodule_search_locations=[str(base_dir / module_name)],
             )
         else:
@@ -110,7 +115,7 @@ async def load_module(
         # Expose the client inside the loaded module's namespace
         # RU: Делаем client доступным внутри модуля
         if client is not None:
-            module.app    = client  # type: ignore[attr-defined]
+            module.app = client  # type: ignore[attr-defined]
             module.client = client  # type: ignore[attr-defined]
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
@@ -118,7 +123,11 @@ async def load_module(
         # Register old-style @Client.on_message handlers with the client
         if client is not None:
             for obj in vars(module).values():
-                if callable(obj) and hasattr(obj, "handlers") and isinstance(obj.handlers, (list, tuple)):
+                if (
+                    callable(obj)
+                    and hasattr(obj, "handlers")
+                    and isinstance(obj.handlers, (list, tuple))
+                ):
                     for handler, group in obj.handlers:
                         try:
                             client.add_handler(handler, group)
@@ -149,7 +158,11 @@ async def unload_module(module_name: str, client: Optional[Any] = None) -> bool:
             mod = sys.modules.get(module_name)
             if mod:
                 for obj in vars(mod).values():
-                    if callable(obj) and hasattr(obj, "handlers") and isinstance(obj.handlers, (list, tuple)):
+                    if (
+                        callable(obj)
+                        and hasattr(obj, "handlers")
+                        and isinstance(obj.handlers, (list, tuple))
+                    ):
                         for handler, group in obj.handlers:
                             try:
                                 client.remove_handler(handler, group)
@@ -224,7 +237,7 @@ async def reload_modules(
 def reload_all_modules(client=None) -> Dict[str, bool]:
     """
     Reload all loaded modules.
-    
+
     Returns:
         Dictionary of results {module_name: success}
     """
@@ -256,19 +269,18 @@ def is_module_enabled(module_name: str, core: bool = False) -> bool:
     # RU: Поддержка disabled-файлов (module.disabled)
     if (base_dir / f"{module_name}.disabled").exists():
         return False
-    return (
-        (base_dir / f"{module_name}.py").exists()
-        or (base_dir / module_name / "__init__.py").exists()
-    )
+    return (base_dir / f"{module_name}.py").exists() or (
+        base_dir / module_name / "__init__.py"
+    ).exists()
 
 
 def is_package_installed(package_name: str) -> bool:
     """
     Check if a package is installed.
-    
+
     Args:
         package_name: Name of package
-    
+
     Returns:
         True if package is installed
     """
@@ -283,19 +295,20 @@ def is_package_installed(package_name: str) -> bool:
 def install_requirements(requirements_file: str) -> bool:
     """
     Install requirements from a file.
-    
+
     Args:
         requirements_file: Path to requirements.txt
-    
+
     Returns:
         True if successful
     """
     # RU: Установить зависимости из файла требований.
     try:
         import subprocess
+
         subprocess.run(
             [sys.executable, "-m", "pip", "install", "-r", requirements_file],
-            check=True
+            check=True,
         )
         return True
     except Exception as e:
@@ -306,10 +319,10 @@ def install_requirements(requirements_file: str) -> bool:
 def import_library(library_name: str) -> Optional[Any]:
     """
     Dynamically import a library.
-    
+
     Args:
         library_name: Name of library to import
-    
+
     Returns:
         Imported library or None if failed
     """

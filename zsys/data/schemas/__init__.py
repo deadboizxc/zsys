@@ -20,7 +20,14 @@ Usage:
 """
 
 # Base schema class (single source of truth)
-from .base import BaseSchema, TimestampMixin, IdMixin, BaseEntitySchema, PagedResponse, ApiResponse
+from .base import (
+    BaseSchema,
+    TimestampMixin,
+    IdMixin,
+    BaseEntitySchema,
+    PagedResponse,
+    ApiResponse,
+)
 
 # User schemas
 from .user import UserBase, UserCreate, UserUpdate, UserResponse
@@ -56,54 +63,45 @@ from .common import ErrorResponse, TokenRequest, TokenResponse, ListResponse
 
 __all__ = [
     # Base
-    'BaseSchema',
-    
+    "BaseSchema",
     # User
-    'UserBase',
-    'UserCreate',
-    'UserUpdate',
-    'UserResponse',
-    
+    "UserBase",
+    "UserCreate",
+    "UserUpdate",
+    "UserResponse",
     # Client
-    'ClientBase',
-    'ClientCreate',
-    'ClientUpdate',
-    'ClientResponse',
-    
+    "ClientBase",
+    "ClientCreate",
+    "ClientUpdate",
+    "ClientResponse",
     # Chat
-    'ChatBase',
-    'ChatCreate',
-    'ChatResponse',
-    
+    "ChatBase",
+    "ChatCreate",
+    "ChatResponse",
     # Bot
-    'BotBase',
-    'BotCreate',
-    'BotUpdate',
-    'BotResponse',
-    'BotResponseWithToken',
-    
+    "BotBase",
+    "BotCreate",
+    "BotUpdate",
+    "BotResponse",
+    "BotResponseWithToken",
     # Message
-    'MessageBase',
-    'MessageCreate',
-    'MessageResponse',
-    
+    "MessageBase",
+    "MessageCreate",
+    "MessageResponse",
     # Wallet
-    'WalletBase',
-    'WalletCreate',
-    'WalletResponse',
-    
+    "WalletBase",
+    "WalletCreate",
+    "WalletResponse",
     # Media
-    'MediaBase',
-    'MediaCreate',
-    'MediaUpdate',
-    'MediaResponse',
-    'PaginationMeta',
-    'MediaListResponse',
-    
+    "MediaBase",
+    "MediaCreate",
+    "MediaUpdate",
+    "MediaResponse",
+    "PaginationMeta",
+    "MediaListResponse",
     # Common
-    'ErrorResponse',
-    'TokenRequest',
-    'TokenResponse',
-    'ListResponse',
+    "ErrorResponse",
+    "TokenRequest",
+    "TokenResponse",
+    "ListResponse",
 ]
-

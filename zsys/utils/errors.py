@@ -14,6 +14,7 @@ except ImportError:
 
 class BaseException(Exception):
     """Base exception for all zsys errors."""
+
     # RU: Базовое исключение для всех ошибок zsys.
 
     def __init__(self, message: str, details: dict = None):
@@ -27,7 +28,7 @@ class BaseException(Exception):
         super().__init__(message)
         self.message = message
         self.details = details or {}
-    
+
     def __str__(self) -> str:
         """Return string representation of the error, including details if present."""
         # RU: Возвращает строковое представление ошибки, включая детали если есть.
@@ -39,18 +40,21 @@ class BaseException(Exception):
 
 class ConfigError(BaseException):
     """Configuration-related errors."""
+
     # RU: Ошибки конфигурации.
     pass
 
 
 class DatabaseError(BaseException):
     """Database operation errors."""
+
     # RU: Ошибки операций с базой данных.
     pass
 
 
 class APIError(BaseException):
     """API/HTTP request errors."""
+
     # RU: Ошибки API/HTTP-запросов.
 
     def __init__(self, message: str, status_code: int = None, details: dict = None):
@@ -68,18 +72,21 @@ class APIError(BaseException):
 
 class BotError(BaseException):
     """Bot operation errors."""
+
     # RU: Ошибки работы бота.
     pass
 
 
 class AuthenticationError(BaseException):
     """Authentication/authorization errors."""
+
     # RU: Ошибки аутентификации/авторизации.
     pass
 
 
 class ValidationError(BaseException):
     """Data validation errors."""
+
     # RU: Ошибки валидации данных.
 
     def __init__(self, message: str, field: str = None, details: dict = None):
@@ -97,30 +104,35 @@ class ValidationError(BaseException):
 
 class NetworkError(BaseException):
     """Network/connectivity errors."""
+
     # RU: Ошибки сети/подключения.
     pass
 
 
 class ModuleError(BaseException):
     """Module loading/execution errors."""
+
     # RU: Ошибки загрузки/выполнения модуля.
     pass
 
 
 class FileError(BaseException):
     """File operation errors."""
+
     # RU: Ошибки файловых операций.
     pass
 
 
 class LicenseError(BaseException):
     """Licensing-related errors."""
+
     # RU: Ошибки лицензирования.
     pass
 
 
 class SessionError(BaseException):
     """Session-related errors."""
+
     # RU: Ошибки сессии.
     pass
 
@@ -130,14 +142,17 @@ class SessionError(BaseException):
 # RU: ОШИБКИ МЕДИАФАЙЛОВ/CDN (из qp-media)
 # =============================================================================
 
+
 class MediaError(BaseException):
     """Base media operation error."""
+
     # RU: Базовая ошибка работы с медиафайлами.
     pass
 
 
 class MediaNotFoundError(MediaError):
     """Media not found."""
+
     # RU: Медиафайл не найден.
     def __init__(self, media_id: str, details: dict = None):
         """Initialize media not found error.
@@ -153,6 +168,7 @@ class MediaNotFoundError(MediaError):
 
 class MediaExistsError(MediaError):
     """Media already exists (duplicate hash)."""
+
     # RU: Медиафайл уже существует (дубликат хеша).
     def __init__(self, hash_value: str, details: dict = None):
         """Initialize duplicate media error.
@@ -168,6 +184,7 @@ class MediaExistsError(MediaError):
 
 class InvalidMediaTypeError(MediaError):
     """Invalid media type."""
+
     # RU: Недопустимый тип медиафайла.
     def __init__(self, media_type: str, details: dict = None):
         """Initialize invalid media type error.
@@ -183,12 +200,14 @@ class InvalidMediaTypeError(MediaError):
 
 class StorageError(BaseException):
     """Storage operation error."""
+
     # RU: Ошибка операции хранилища.
     pass
 
 
 class PermissionDeniedError(BaseException):
     """Permission denied."""
+
     # RU: Отказано в доступе.
     def __init__(self, action: str, details: dict = None):
         """Initialize permission denied error.
@@ -207,6 +226,7 @@ class PermissionDeniedError(BaseException):
 # RU: УТИЛИТЫ ФОРМАТИРОВАНИЯ ОШИБОК
 # =============================================================================
 
+
 def handle_error(error: Exception, default_message: str = "An error occurred") -> str:
     """Format error for display to user.
 
@@ -221,11 +241,11 @@ def handle_error(error: Exception, default_message: str = "An error occurred") -
     if isinstance(error, BaseException):
         msg = f"<b>❌ {error.__class__.__name__}</b>\n\n{error.message}"
         if error.details:
-            msg += f"\n\n<b>Details:</b>\n"
+            msg += "\n\n<b>Details:</b>\n"
             for key, value in error.details.items():
                 msg += f"• {key}: {value}\n"
         return msg
-    
+
     return f"<b>❌ Error</b>\n\n{default_message}\n\n<code>{str(error)}</code>"
 
 
@@ -235,7 +255,7 @@ def format_exc(
     max_length: int = 4000,
     include_cause: bool = True,
     escape_html: bool = True,
-    show_traceback: bool = False
+    show_traceback: bool = False,
 ) -> str:
     """
     Format exception for display (HTML).
@@ -254,7 +274,7 @@ def format_exc(
     # RU: Форматирует исключение для отображения (HTML).
     import traceback as tb
     from html import escape as html_escape
-    
+
     if show_traceback:
         tb.print_exc()
 
@@ -262,6 +282,7 @@ def format_exc(
     # RU: Проверяем на наличие ошибок Telegram RPC API
     try:
         from pyrogram import errors as pyrogram_errors
+
         if isinstance(e, pyrogram_errors.RPCError):
             return _format_telegram_rpc_error(e)
     except ImportError:
@@ -277,24 +298,30 @@ def format_exc(
 
     if _C and escape_html:
         return _c_format_exc_html(
-            error_type, error_text,
-            cause_type, cause_text,
-            suffix, max_length,
+            error_type,
+            error_text,
+            cause_type,
+            cause_text,
+            suffix,
+            max_length,
         )
 
     # Python fallback (or escape_html=False path)
     # RU: Запасной путь Python (или путь с escape_html=False)
     def _escape(text: str) -> str:
         from html import escape as _he
+
         return _he(text) if escape_html else text
 
-    error_msg = f"<b>Error!</b>\n<code>{_escape(error_type)}: {_escape(error_text)}</code>"
+    error_msg = (
+        f"<b>Error!</b>\n<code>{_escape(error_type)}: {_escape(error_text)}</code>"
+    )
     if cause_type:
         error_msg += f"\n<b>Caused by:</b> <code>{_escape(cause_type)}: {_escape(cause_text)}</code>"
     if suffix:
         error_msg += f"\n\n<b>{_escape(suffix)}</b>"
     if max_length and len(error_msg) > max_length:
-        error_msg = error_msg[:max_length - 3] + "..."
+        error_msg = error_msg[: max_length - 3] + "..."
     return error_msg
 
 
@@ -311,10 +338,12 @@ def _format_telegram_rpc_error(e) -> str:
     error_details = {
         "code": getattr(e, "CODE", "UNKNOWN"),
         "id": getattr(e, "ID", getattr(e, "NAME", "UNKNOWN")),
-        "message": getattr(e, "MESSAGE", "Unknown error").format(value=getattr(e, "value", "")),
-        "description": getattr(e, "description", "")
+        "message": getattr(e, "MESSAGE", "Unknown error").format(
+            value=getattr(e, "value", "")
+        ),
+        "description": getattr(e, "description", ""),
     }
-    
+
     return (
         "<b>Telegram API Error!</b>\n"
         f"<code>"
@@ -324,11 +353,7 @@ def _format_telegram_rpc_error(e) -> str:
     )
 
 
-def print_exc(
-    e: Exception,
-    context: str = None,
-    show_traceback: bool = True
-) -> None:
+def print_exc(e: Exception, context: str = None, show_traceback: bool = True) -> None:
     """
     Print exception to console with optional context.
 
@@ -340,16 +365,19 @@ def print_exc(
     # RU: Выводит исключение в консоль с необязательным контекстом.
     import traceback
     import sys
-    
+
     if context:
         print(f"Error in {context}:", file=sys.stderr)
     else:
         print("Error occurred:", file=sys.stderr)
-    
+
     if show_traceback:
         traceback.print_exc()
     else:
         print(f"{e.__class__.__name__}: {str(e)}", file=sys.stderr)
-    
+
     if e.__cause__:
-        print(f"Caused by: {e.__cause__.__class__.__name__}: {str(e.__cause__)}", file=sys.stderr)
+        print(
+            f"Caused by: {e.__cause__.__class__.__name__}: {str(e.__cause__)}",
+            file=sys.stderr,
+        )

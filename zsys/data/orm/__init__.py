@@ -21,11 +21,11 @@ Usage:
     from zsys.models import Base, BaseModel, User, Chat
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    
+
     # Setup database
     engine = create_engine("sqlite:///zsys.db")
     Base.metadata.create_all(engine)
-    
+
     # Create user in database
     Session = sessionmaker(bind=engine)
     with Session() as session:
@@ -49,24 +49,22 @@ from .media_file import BaseMediaFile, MediaFile
 
 __all__ = [
     # Core base classes
-    'Base',
-    'BaseModel',
-    
+    "Base",
+    "BaseModel",
     # Base models (preferred)
-    'BaseUser',
-    'BaseClient',
-    'BaseChat',
-    'BaseBot',
-    'BaseWallet',
-    'BaseMessage',
-    'BaseMediaFile',
-    
+    "BaseUser",
+    "BaseClient",
+    "BaseChat",
+    "BaseBot",
+    "BaseWallet",
+    "BaseMessage",
+    "BaseMediaFile",
     # Backward compatible aliases
-    'User',
-    'Client',
-    'Chat',
-    'Bot',
-    'Wallet',
-    'Message',
-    'MediaFile',
+    "User",
+    "Client",
+    "Chat",
+    "Bot",
+    "Wallet",
+    "Message",
+    "MediaFile",
 ]

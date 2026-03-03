@@ -15,10 +15,10 @@ from .control import (
 )
 
 __all__ = [
-    'restart_process',
-    'stop_process',
-    'replace_executable', 
-    'get_current_file',
-    'find_new_file',
-    'is_frozen',
+    "restart_process",
+    "stop_process",
+    "replace_executable",
+    "get_current_file",
+    "find_new_file",
+    "is_frozen",
 ]

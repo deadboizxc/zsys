@@ -64,18 +64,19 @@ class PyrogramContext(Context):
             reply_ctx = await ctx.get_reply_message()
             await ctx.answer(f"Replied to: {reply_ctx.text if reply_ctx else 'nothing'}")
     """
+
     # RU: Полнофункциональный контекст сообщения Pyrogram, реализующий интерфейс Context.
     # RU: Оборачивает pyrogram.types.Message и pyrogram.Client, предоставляя все операции
     # RU: Telegram через единый асинхронный API.
-    
+
     platform: str = "pyrogram"
-    
+
     def __init__(
         self,
         client: "Client",
         message: "Message",
         command: str = "",
-        args: List[str] = None
+        args: List[str] = None,
     ):
         """Initialise the context from a live client and a raw Pyrogram message.
 
@@ -93,11 +94,11 @@ class PyrogramContext(Context):
         self.text = message.text or message.caption or ""
         self._user: Optional[User] = None
         self._chat: Optional[Chat] = None
-    
+
     # ==========================================================================
     # PROPERTIES
     # ==========================================================================
-    
+
     @property
     def user(self) -> User:
         """Return lazily-built User dataclass from the message sender.
@@ -119,10 +120,10 @@ class PyrogramContext(Context):
                     last_name=u.last_name,
                     is_bot=u.is_bot,
                     language_code=u.language_code,
-                    is_premium=getattr(u, 'is_premium', False),
+                    is_premium=getattr(u, "is_premium", False),
                 )
         return self._user
-    
+
     @property
     def chat(self) -> Chat:
         """Return lazily-built Chat dataclass from the message chat.
@@ -134,17 +135,17 @@ class PyrogramContext(Context):
         # RU: Вернуть лениво построенный объект Chat из чата сообщения.
         if self._chat is None:
             c = self.raw.chat
-            chat_type = c.type.value if hasattr(c.type, 'value') else str(c.type)
+            chat_type = c.type.value if hasattr(c.type, "value") else str(c.type)
             self._chat = Chat(
                 id=c.id,
                 type=chat_type,
                 title=c.title,
                 username=c.username,
-                description=getattr(c, 'description', None),
-                members_count=getattr(c, 'members_count', None),
+                description=getattr(c, "description", None),
+                members_count=getattr(c, "members_count", None),
             )
         return self._chat
-    
+
     @property
     def message_id(self) -> int:
         """Return the integer ID of the triggering message.
@@ -154,7 +155,7 @@ class PyrogramContext(Context):
         """
         # RU: Вернуть целочисленный ID инициирующего сообщения.
         return self.raw.id
-    
+
     @property
     def is_reply(self) -> bool:
         """Check whether this message is a reply to another message.
@@ -164,7 +165,7 @@ class PyrogramContext(Context):
         """
         # RU: Проверить, является ли сообщение ответом на другое сообщение.
         return self.raw.reply_to_message is not None
-    
+
     @property
     def is_self(self) -> bool:
         """Check whether the message was sent by the userbot owner.
@@ -174,7 +175,7 @@ class PyrogramContext(Context):
         """
         # RU: Проверить, отправлено ли сообщение владельцем userbot-а.
         return self.raw.from_user and self.raw.from_user.is_self
-    
+
     @property
     def has_media(self) -> bool:
         """Check whether the message contains any media attachment.
@@ -184,7 +185,7 @@ class PyrogramContext(Context):
         """
         # RU: Проверить, содержит ли сообщение медиавложение.
         return self.raw.media is not None
-    
+
     @property
     def media_type(self) -> Optional[str]:
         """Return the string name of the media type, or ``None`` if no media.
@@ -195,13 +196,17 @@ class PyrogramContext(Context):
         """
         # RU: Вернуть строковое имя типа медиа или None, если медиа отсутствует.
         if self.raw.media:
-            return self.raw.media.value if hasattr(self.raw.media, 'value') else str(self.raw.media)
+            return (
+                self.raw.media.value
+                if hasattr(self.raw.media, "value")
+                else str(self.raw.media)
+            )
         return None
-    
+
     # ==========================================================================
     # CORE METHODS
     # ==========================================================================
-    
+
     def _parse_mode(self, mode: Optional[str]):
         """Convert a string parse-mode name to the corresponding Pyrogram enum value.
 
@@ -214,19 +219,20 @@ class PyrogramContext(Context):
         """
         # RU: Преобразовать строковое название режима разбора в enum Pyrogram.
         from pyrogram.enums import ParseMode
+
         if mode == "markdown":
             return ParseMode.MARKDOWN
         elif mode == "html":
             return ParseMode.HTML
         return ParseMode.DISABLED
-    
+
     async def reply(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         disable_preview: bool = True,
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a reply to the current message.
 
@@ -253,16 +259,16 @@ class PyrogramContext(Context):
             parse_mode=self._parse_mode(parse_mode),
             disable_web_page_preview=disable_preview,
             reply_markup=reply_markup,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def edit(
         self,
         text: str,
         parse_mode: Optional[str] = "markdown",
         disable_preview: bool = True,
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Edit the current message in place.
 
@@ -292,9 +298,9 @@ class PyrogramContext(Context):
             parse_mode=self._parse_mode(parse_mode),
             disable_web_page_preview=disable_preview,
             reply_markup=reply_markup,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def delete(self, revoke: bool = True) -> bool:
         """Delete the current message.
 
@@ -315,12 +321,9 @@ class PyrogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def answer(
-        self,
-        text: str,
-        parse_mode: Optional[str] = "markdown",
-        **kwargs
+        self, text: str, parse_mode: Optional[str] = "markdown", **kwargs
     ) -> "Message":
         """Smart-reply — edit if message is from the userbot, reply otherwise.
 
@@ -345,11 +348,11 @@ class PyrogramContext(Context):
         if self.is_self:
             return await self.edit(text, parse_mode=parse_mode, **kwargs)
         return await self.reply(text, parse_mode=parse_mode, **kwargs)
-    
+
     # ==========================================================================
     # MEDIA METHODS
     # ==========================================================================
-    
+
     async def send_photo(
         self,
         photo: Union[str, Path, BinaryIO],
@@ -357,7 +360,7 @@ class PyrogramContext(Context):
         parse_mode: Optional[str] = "markdown",
         reply_markup: Optional["InlineKeyboardMarkup"] = None,
         spoiler: bool = False,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a photo as a reply to the current message.
 
@@ -383,16 +386,16 @@ class PyrogramContext(Context):
             parse_mode=self._parse_mode(parse_mode),
             reply_markup=reply_markup,
             has_spoiler=spoiler,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_document(
         self,
         document: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
         parse_mode: Optional[str] = "markdown",
         thumb: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a file/document as a reply to the current message.
 
@@ -416,9 +419,9 @@ class PyrogramContext(Context):
             caption=caption,
             parse_mode=self._parse_mode(parse_mode),
             thumb=thumb,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_video(
         self,
         video: Union[str, Path, BinaryIO],
@@ -429,7 +432,7 @@ class PyrogramContext(Context):
         height: int = 0,
         thumb: Optional[str] = None,
         spoiler: bool = False,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a video as a reply to the current message.
 
@@ -461,9 +464,9 @@ class PyrogramContext(Context):
             height=height,
             thumb=thumb,
             has_spoiler=spoiler,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_audio(
         self,
         audio: Union[str, Path, BinaryIO],
@@ -471,7 +474,7 @@ class PyrogramContext(Context):
         duration: int = 0,
         performer: Optional[str] = None,
         title: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send an audio file as a reply to the current message.
 
@@ -497,15 +500,15 @@ class PyrogramContext(Context):
             duration=duration,
             performer=performer,
             title=title,
-            **kwargs
+            **kwargs,
         )
-    
+
     async def send_voice(
         self,
         voice: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
         duration: int = 0,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a voice message as a reply to the current message.
 
@@ -524,18 +527,15 @@ class PyrogramContext(Context):
         """
         # RU: Отправить голосовое сообщение как ответ на текущее сообщение.
         return await self.raw.reply_voice(
-            voice,
-            caption=caption,
-            duration=duration,
-            **kwargs
+            voice, caption=caption, duration=duration, **kwargs
         )
-    
+
     async def send_video_note(
         self,
         video_note: Union[str, Path, BinaryIO],
         duration: int = 0,
         length: int = 1,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a round video note as a reply to the current message.
 
@@ -555,17 +555,10 @@ class PyrogramContext(Context):
         """
         # RU: Отправить круглое видео-заметку как ответ на текущее сообщение.
         return await self.raw.reply_video_note(
-            video_note,
-            duration=duration,
-            length=length,
-            **kwargs
+            video_note, duration=duration, length=length, **kwargs
         )
-    
-    async def send_sticker(
-        self,
-        sticker: Union[str, BinaryIO],
-        **kwargs
-    ) -> "Message":
+
+    async def send_sticker(self, sticker: Union[str, BinaryIO], **kwargs) -> "Message":
         """Send a sticker as a reply to the current message.
 
         Args:
@@ -582,12 +575,12 @@ class PyrogramContext(Context):
         """
         # RU: Отправить стикер как ответ на текущее сообщение.
         return await self.raw.reply_sticker(sticker, **kwargs)
-    
+
     async def send_animation(
         self,
         animation: Union[str, Path, BinaryIO],
         caption: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> "Message":
         """Send a GIF or animation as a reply to the current message.
 
@@ -605,12 +598,8 @@ class PyrogramContext(Context):
         """
         # RU: Отправить GIF или анимацию как ответ на текущее сообщение.
         return await self.raw.reply_animation(animation, caption=caption, **kwargs)
-    
-    async def send_media_group(
-        self,
-        media: List[Any],
-        **kwargs
-    ) -> List["Message"]:
+
+    async def send_media_group(self, media: List[Any], **kwargs) -> List["Message"]:
         """Send a media group (album) as a reply to the current message.
 
         Args:
@@ -631,17 +620,16 @@ class PyrogramContext(Context):
         """
         # RU: Отправить медиагруппу (альбом) как ответ на текущее сообщение.
         return await self.client.send_media_group(
-            self.chat.id,
-            media,
-            reply_to_message_id=self.message_id,
-            **kwargs
+            self.chat.id, media, reply_to_message_id=self.message_id, **kwargs
         )
-    
+
     # ==========================================================================
     # MESSAGE OPERATIONS
     # ==========================================================================
-    
-    async def forward(self, chat_id: int, disable_notification: bool = False) -> "Message":
+
+    async def forward(
+        self, chat_id: int, disable_notification: bool = False
+    ) -> "Message":
         """Forward the current message to another chat.
 
         Args:
@@ -656,13 +644,12 @@ class PyrogramContext(Context):
             await ctx.forward(chat_id=-1001234567890)
         """
         # RU: Переслать текущее сообщение в другой чат.
-        return await self.raw.forward(chat_id, disable_notification=disable_notification)
-    
+        return await self.raw.forward(
+            chat_id, disable_notification=disable_notification
+        )
+
     async def copy(
-        self,
-        chat_id: int,
-        caption: Optional[str] = None,
-        **kwargs
+        self, chat_id: int, caption: Optional[str] = None, **kwargs
     ) -> "Message":
         """Copy the current message to another chat without the forwarded-from tag.
 
@@ -680,8 +667,10 @@ class PyrogramContext(Context):
         """
         # RU: Скопировать текущее сообщение в другой чат без тега «переслано от».
         return await self.raw.copy(chat_id, caption=caption, **kwargs)
-    
-    async def pin(self, disable_notification: bool = False, both_sides: bool = False) -> bool:
+
+    async def pin(
+        self, disable_notification: bool = False, both_sides: bool = False
+    ) -> bool:
         """Pin the current message in the chat.
 
         Args:
@@ -697,11 +686,13 @@ class PyrogramContext(Context):
         """
         # RU: Закрепить текущее сообщение в чате.
         try:
-            await self.raw.pin(disable_notification=disable_notification, both_sides=both_sides)
+            await self.raw.pin(
+                disable_notification=disable_notification, both_sides=both_sides
+            )
             return True
         except Exception:
             return False
-    
+
     async def unpin(self) -> bool:
         """Unpin the current message in the chat.
 
@@ -718,7 +709,7 @@ class PyrogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def react(self, emoji: str) -> bool:
         """Add an emoji reaction to the current message.
 
@@ -738,11 +729,11 @@ class PyrogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     # ==========================================================================
     # REPLY MESSAGE
     # ==========================================================================
-    
+
     async def get_reply_message(self) -> Optional["PyrogramContext"]:
         """Retrieve the message that the current message is replying to.
 
@@ -759,13 +750,10 @@ class PyrogramContext(Context):
         # RU: Получить сообщение, на которое отвечает текущее сообщение.
         if self.raw.reply_to_message:
             return PyrogramContext(
-                self.client,
-                self.raw.reply_to_message,
-                command="",
-                args=[]
+                self.client, self.raw.reply_to_message, command="", args=[]
             )
         return None
-    
+
     async def get_reply_or_self(self) -> "PyrogramContext":
         """Return the replied-to context, falling back to self if not a reply.
 
@@ -781,15 +769,13 @@ class PyrogramContext(Context):
         # RU: Вернуть контекст ответа или себя, если не является ответом.
         reply = await self.get_reply_message()
         return reply or self
-    
+
     # ==========================================================================
     # MEDIA DOWNLOAD
     # ==========================================================================
-    
+
     async def download_media(
-        self,
-        path: Optional[str] = None,
-        progress: Optional[callable] = None
+        self, path: Optional[str] = None, progress: Optional[callable] = None
     ) -> Optional[str]:
         """Download the media attached to the current message to disk.
 
@@ -811,11 +797,11 @@ class PyrogramContext(Context):
         if not self.raw.media:
             return None
         return await self.raw.download(file_name=path, progress=progress)
-    
+
     # ==========================================================================
     # CHAT ACTIONS
     # ==========================================================================
-    
+
     async def typing(self):
         """Send the ``TYPING`` chat action to indicate the bot is composing a message.
 
@@ -827,8 +813,9 @@ class PyrogramContext(Context):
         """
         # RU: Отправить действие «печатает» в текущий чат.
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.TYPING)
-    
+
     async def upload_photo(self):
         """Send the ``UPLOAD_PHOTO`` chat action to indicate a photo is being uploaded.
 
@@ -838,8 +825,9 @@ class PyrogramContext(Context):
         """
         # RU: Отправить действие «загружает фото» в текущий чат.
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.UPLOAD_PHOTO)
-    
+
     async def upload_video(self):
         """Send the ``UPLOAD_VIDEO`` chat action to indicate a video is being uploaded.
 
@@ -849,8 +837,9 @@ class PyrogramContext(Context):
         """
         # RU: Отправить действие «загружает видео» в текущий чат.
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.UPLOAD_VIDEO)
-    
+
     async def upload_document(self):
         """Send the ``UPLOAD_DOCUMENT`` chat action to indicate a file is being uploaded.
 
@@ -860,8 +849,9 @@ class PyrogramContext(Context):
         """
         # RU: Отправить действие «загружает документ» в текущий чат.
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.UPLOAD_DOCUMENT)
-    
+
     async def record_voice(self):
         """Send the ``RECORD_VOICE`` chat action to indicate a voice message is being recorded.
 
@@ -871,8 +861,9 @@ class PyrogramContext(Context):
         """
         # RU: Отправить действие «записывает голосовое» в текущий чат.
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.RECORD_VOICE)
-    
+
     async def record_video(self):
         """Send the ``RECORD_VIDEO`` chat action to indicate a video note is being recorded.
 
@@ -882,8 +873,9 @@ class PyrogramContext(Context):
         """
         # RU: Отправить действие «записывает видео» в текущий чат.
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.RECORD_VIDEO)
-    
+
     async def cancel_action(self):
         """Cancel any active chat action, removing the typing/uploading indicator.
 
@@ -893,12 +885,13 @@ class PyrogramContext(Context):
         """
         # RU: Отменить любое активное действие в чате (убрать индикатор).
         from pyrogram.enums import ChatAction
+
         await self.client.send_chat_action(self.chat.id, ChatAction.CANCEL)
-    
+
     # ==========================================================================
     # USER/CHAT INFO
     # ==========================================================================
-    
+
     async def get_user_info(self, user_id: Optional[int] = None) -> Any:
         """Fetch full Pyrogram user object for a given user.
 
@@ -916,7 +909,7 @@ class PyrogramContext(Context):
         # RU: Получить полный объект пользователя Pyrogram по ID.
         uid = user_id or self.user.id
         return await self.client.get_users(uid)
-    
+
     async def get_chat_info(self, chat_id: Optional[int] = None) -> Any:
         """Fetch full Pyrogram chat object for a given chat.
 
@@ -935,7 +928,7 @@ class PyrogramContext(Context):
         # RU: Получить полный объект чата Pyrogram по ID.
         cid = chat_id or self.chat.id
         return await self.client.get_chat(cid)
-    
+
     async def get_chat_member(self, user_id: Optional[int] = None) -> Any:
         """Fetch chat member info for a user in the current chat.
 
@@ -956,7 +949,7 @@ class PyrogramContext(Context):
         # RU: Получить информацию об участнике текущего чата по ID.
         uid = user_id or self.user.id
         return await self.client.get_chat_member(self.chat.id, uid)
-    
+
     async def is_admin(self, user_id: Optional[int] = None) -> bool:
         """Check whether a user has administrator or owner status in the current chat.
 
@@ -978,10 +971,14 @@ class PyrogramContext(Context):
         try:
             member = await self.get_chat_member(user_id)
             from pyrogram.enums import ChatMemberStatus
-            return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
+
+            return member.status in (
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.OWNER,
+            )
         except Exception:
             return False
-    
+
     async def is_owner(self, user_id: Optional[int] = None) -> bool:
         """Check whether a user is the owner of the current chat.
 
@@ -1003,14 +1000,15 @@ class PyrogramContext(Context):
         try:
             member = await self.get_chat_member(user_id)
             from pyrogram.enums import ChatMemberStatus
+
             return member.status == ChatMemberStatus.OWNER
         except Exception:
             return False
-    
+
     # ==========================================================================
     # MODERATION
     # ==========================================================================
-    
+
     async def ban_user(self, user_id: Optional[int] = None) -> bool:
         """Permanently ban a user from the current chat.
 
@@ -1031,7 +1029,7 @@ class PyrogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def unban_user(self, user_id: Optional[int] = None) -> bool:
         """Unban a previously banned user, allowing them to rejoin the chat.
 
@@ -1052,7 +1050,7 @@ class PyrogramContext(Context):
             return True
         except Exception:
             return False
-    
+
     async def kick_user(self, user_id: Optional[int] = None) -> bool:
         """Kick a user from the chat by banning then immediately unbanning them.
 
@@ -1071,11 +1069,9 @@ class PyrogramContext(Context):
         if await self.ban_user(uid):
             return await self.unban_user(uid)
         return False
-    
+
     async def mute_user(
-        self,
-        user_id: Optional[int] = None,
-        until_date: int = 0
+        self, user_id: Optional[int] = None, until_date: int = 0
     ) -> bool:
         """Restrict a user so they cannot send messages in the current chat.
 
@@ -1095,17 +1091,15 @@ class PyrogramContext(Context):
         # RU: Ограничить пользователя в правах на отправку сообщений в чате.
         try:
             from pyrogram.types import ChatPermissions
+
             uid = user_id or self.user.id
             await self.client.restrict_chat_member(
-                self.chat.id,
-                uid,
-                ChatPermissions(),
-                until_date=until_date
+                self.chat.id, uid, ChatPermissions(), until_date=until_date
             )
             return True
         except Exception:
             return False
-    
+
     async def unmute_user(self, user_id: Optional[int] = None) -> bool:
         """Restore full message permissions for a muted user in the current chat.
 
@@ -1122,6 +1116,7 @@ class PyrogramContext(Context):
         # RU: Восстановить права на отправку сообщений для пользователя в чате.
         try:
             from pyrogram.types import ChatPermissions
+
             uid = user_id or self.user.id
             await self.client.restrict_chat_member(
                 self.chat.id,
@@ -1130,17 +1125,17 @@ class PyrogramContext(Context):
                     can_send_messages=True,
                     can_send_media_messages=True,
                     can_send_other_messages=True,
-                    can_add_web_page_previews=True
-                )
+                    can_add_web_page_previews=True,
+                ),
             )
             return True
         except Exception:
             return False
-    
+
     # ==========================================================================
     # INLINE KEYBOARDS
     # ==========================================================================
-    
+
     @staticmethod
     def button(text: str, callback_data: str = None, url: str = None):
         """Create a single inline keyboard button.
@@ -1162,10 +1157,11 @@ class PyrogramContext(Context):
         """
         # RU: Создать одну кнопку встроенной клавиатуры.
         from pyrogram.types import InlineKeyboardButton
+
         if url:
             return InlineKeyboardButton(text, url=url)
         return InlineKeyboardButton(text, callback_data=callback_data or text)
-    
+
     @staticmethod
     def keyboard(*rows: List):
         """Build an inline keyboard markup from rows of buttons.
@@ -1186,12 +1182,13 @@ class PyrogramContext(Context):
         """
         # RU: Собрать разметку встроенной клавиатуры из строк кнопок.
         from pyrogram.types import InlineKeyboardMarkup
+
         return InlineKeyboardMarkup([list(row) for row in rows])
-    
+
     # ==========================================================================
     # INLINE QUERIES (for callback handling)
     # ==========================================================================
-    
+
     async def answer_callback(self, text: str = "", show_alert: bool = False) -> bool:
         """Answer a callback query attached to the current context, if applicable.
 
@@ -1209,7 +1206,7 @@ class PyrogramContext(Context):
             await ctx.answer_callback("Processing…", show_alert=False)
         """
         # RU: Ответить на callback-запрос, если текущий контекст является callback-запросом.
-        if hasattr(self.raw, 'answer'):
+        if hasattr(self.raw, "answer"):
             try:
                 await self.raw.answer(text, show_alert=show_alert)
                 return True

@@ -20,6 +20,7 @@ class ConfigError(BaseException):
         message: Human-readable error description.
         code: Optional error code string.
     """
+
     # RU: Исключение при невалидной или не загружаемой конфигурации.
     pass
 

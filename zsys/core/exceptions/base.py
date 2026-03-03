@@ -21,13 +21,14 @@ class BaseException(Exception):
         code: Optional machine-readable error code (e.g. ``"INVALID_TOKEN"``).
         details: Dictionary of additional structured error context.
     """
+
     # RU: Корневой класс исключений ZSYS. Все остальные исключения наследуют его.
 
     def __init__(
         self,
         message: str,
         code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """Initialise the exception with a message, optional code and details.
 
@@ -60,7 +61,9 @@ class BaseException(Exception):
             String with class name, message, and code for debugging.
         """
         # RU: Вернуть отладочное представление с именем класса, сообщением и кодом.
-        return f"{self.__class__.__name__}(message={self.message!r}, code={self.code!r})"
+        return (
+            f"{self.__class__.__name__}(message={self.message!r}, code={self.code!r})"
+        )
 
 
 __all__ = [

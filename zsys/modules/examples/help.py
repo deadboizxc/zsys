@@ -8,7 +8,13 @@
 Unified help system - displays registered commands and modules.
 """
 
-from zsys.modules import command, Context, modules_help, get_modules_help, get_default_router
+from zsys.modules import (
+    command,
+    Context,
+    modules_help,
+    get_modules_help,
+    get_default_router,
+)
 
 
 @command(
@@ -21,26 +27,26 @@ from zsys.modules import command, Context, modules_help, get_modules_help, get_d
 async def help_cmd(ctx: Context):
     """Show help for modules and commands."""
     router = get_default_router()
-    
+
     if ctx.has_args:
         # Show help for specific module
         module_name = ctx.args[0].lower()
-        
+
         # Check modules_help dict first
         if module_name in modules_help:
             help_data = modules_help[module_name]
             lines = [f"📖 <b>{module_name}</b>\n"]
-            
+
             for cmd, desc in help_data.items():
                 # Parse command format: "cmd [args]*" -> cmd, args, required
                 parts = cmd.split("[", 1)
                 cmd_name = parts[0].strip()
                 args = f"[{parts[1]}" if len(parts) > 1 else ""
                 lines.append(f"  <code>.{cmd_name}</code> {args}\n    {desc}")
-            
+
             await ctx.edit("\n".join(lines), parse_mode="html")
             return
-        
+
         # Check router commands
         cmd_obj = router.get_command(module_name)
         if cmd_obj:
@@ -54,20 +60,23 @@ async def help_cmd(ctx: Context):
             )
             await ctx.edit(text, parse_mode="html")
             return
-        
-        await ctx.edit(f"❌ Модуль или команда <code>{module_name}</code> не найдена", parse_mode="html")
+
+        await ctx.edit(
+            f"❌ Модуль или команда <code>{module_name}</code> не найдена",
+            parse_mode="html",
+        )
         return
-    
+
     # Show all modules/commands
     lines = ["📚 <b>Справка по модулям</b>\n"]
-    
+
     # From modules_help dict
     if modules_help:
         lines.append("<b>📦 Модули:</b>")
         for module_name in sorted(modules_help.keys()):
             cmd_count = len(modules_help[module_name])
             lines.append(f"  • <code>{module_name}</code> ({cmd_count} команд)")
-    
+
     # From router
     categories = get_modules_help()
     if categories:
@@ -77,9 +86,9 @@ async def help_cmd(ctx: Context):
             if len(commands) > 5:
                 cmd_names += f" (+{len(commands) - 5})"
             lines.append(f"  • <b>{category}</b>: {cmd_names}")
-    
+
     lines.append("\n💡 <code>.help [модуль]</code> - подробнее о модуле")
-    
+
     await ctx.edit("\n".join(lines), parse_mode="html")
 
 
@@ -94,18 +103,18 @@ async def modules_cmd(ctx: Context):
     if not modules_help:
         await ctx.edit("📦 Модулей не загружено")
         return
-    
+
     lines = ["📦 <b>Загруженные модули:</b>\n"]
-    
+
     # Count total commands
     total_cmds = sum(len(cmds) for cmds in modules_help.values())
-    
+
     for name in sorted(modules_help.keys()):
         cmd_count = len(modules_help[name])
         lines.append(f"  • <code>{name}</code> ({cmd_count})")
-    
+
     lines.append(f"\n📊 Всего: {len(modules_help)} модулей, {total_cmds} команд")
-    
+
     await ctx.edit("\n".join(lines), parse_mode="html")
 
 

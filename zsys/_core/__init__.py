@@ -9,43 +9,90 @@ Falls back transparently to a pure-Python implementation with an identical API.
 
 __all__ = [
     "C_AVAILABLE",
-    "escape_html", "strip_html", "strip_markdown",
-    "truncate_text", "split_text", "get_args",
-    "format_bytes", "format_duration",
-    "format_bold", "format_italic", "format_code", "format_mono",
-    "format_pre", "format_link", "format_mention",
-    "format_underline", "format_strikethrough", "format_spoiler",
-    "format_quote", "format_preformatted",
-    "build_help_text", "build_modules_list",
-    "ansi_color", "format_json_log",
+    "escape_html",
+    "strip_html",
+    "strip_markdown",
+    "truncate_text",
+    "split_text",
+    "get_args",
+    "format_bytes",
+    "format_duration",
+    "format_bold",
+    "format_italic",
+    "format_code",
+    "format_mono",
+    "format_pre",
+    "format_link",
+    "format_mention",
+    "format_underline",
+    "format_strikethrough",
+    "format_spoiler",
+    "format_quote",
+    "format_preformatted",
+    "build_help_text",
+    "build_modules_list",
+    "ansi_color",
+    "format_json_log",
     "parse_meta_comments",
-    "match_prefix", "nested_get",
-    "human_time", "parse_duration",
-    "print_box_str", "print_separator_str", "print_table_str", "print_progress_str",
-    "format_exc_html", "router_lookup",
-    "get_proc_mem_mb", "get_proc_cpu_pct", "find_py_modules",
+    "match_prefix",
+    "nested_get",
+    "human_time",
+    "parse_duration",
+    "print_box_str",
+    "print_separator_str",
+    "print_table_str",
+    "print_progress_str",
+    "format_exc_html",
+    "router_lookup",
+    "get_proc_mem_mb",
+    "get_proc_cpu_pct",
+    "find_py_modules",
 ]
 
 C_AVAILABLE: bool = False
 
 try:
     from zsys._core._zsys_core import (
-        escape_html, strip_html, strip_markdown,
-        truncate_text, split_text, get_args,
-        format_bytes, format_duration,
-        format_bold, format_italic, format_code, format_mono,
-        format_pre, format_link, format_mention,
-        format_underline, format_strikethrough, format_spoiler,
-        format_quote, format_preformatted,
-        build_help_text, build_modules_list,
-        ansi_color, format_json_log,
+        escape_html,
+        strip_html,
+        strip_markdown,
+        truncate_text,
+        split_text,
+        get_args,
+        format_bytes,
+        format_duration,
+        format_bold,
+        format_italic,
+        format_code,
+        format_mono,
+        format_pre,
+        format_link,
+        format_mention,
+        format_underline,
+        format_strikethrough,
+        format_spoiler,
+        format_quote,
+        format_preformatted,
+        build_help_text,
+        build_modules_list,
+        ansi_color,
+        format_json_log,
         parse_meta_comments,
-        match_prefix, nested_get,
-        human_time, parse_duration,
-        print_box_str, print_separator_str, print_table_str, print_progress_str,
-        format_exc_html, router_lookup,
-        get_proc_mem_mb, get_proc_cpu_pct, find_py_modules,
+        match_prefix,
+        nested_get,
+        human_time,
+        parse_duration,
+        print_box_str,
+        print_separator_str,
+        print_table_str,
+        print_progress_str,
+        format_exc_html,
+        router_lookup,
+        get_proc_mem_mb,
+        get_proc_cpu_pct,
+        find_py_modules,
     )
+
     C_AVAILABLE = True
 
 except ImportError:
@@ -75,7 +122,7 @@ except ImportError:
             Plain text with all tags removed and entities decoded.
         """
         # RU: Удалить HTML-теги из строки и раскодировать HTML-сущности.
-        return _html.unescape(_re.sub(r'<[^>]+>', '', text))
+        return _html.unescape(_re.sub(r"<[^>]+>", "", text))
 
     def strip_markdown(text: str) -> str:
         """Remove Markdown formatting syntax from a string.
@@ -87,13 +134,13 @@ except ImportError:
             Plain text with code blocks, bold, italic, and link syntax removed.
         """
         # RU: Удалить Markdown-форматирование из строки.
-        text = _re.sub(r'```[\s\S]*?```', '', text)
-        text = _re.sub(r'`(.+?)`', r'\1', text)
-        text = _re.sub(r'\*\*(.+?)\*\*', r'\1', text)
-        text = _re.sub(r'__(.+?)__', r'\1', text)
-        text = _re.sub(r'\*(.+?)\*', r'\1', text)
-        text = _re.sub(r'_(.+?)_', r'\1', text)
-        text = _re.sub(r'\[(.+?)\]\(.+?\)', r'\1', text)
+        text = _re.sub(r"```[\s\S]*?```", "", text)
+        text = _re.sub(r"`(.+?)`", r"\1", text)
+        text = _re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+        text = _re.sub(r"__(.+?)__", r"\1", text)
+        text = _re.sub(r"\*(.+?)\*", r"\1", text)
+        text = _re.sub(r"_(.+?)_", r"\1", text)
+        text = _re.sub(r"\[(.+?)\]\(.+?\)", r"\1", text)
         return text
 
     def truncate_text(text: str, max_length: int = 4096, suffix: str = "...") -> str:
@@ -110,7 +157,7 @@ except ImportError:
         # RU: Обрезать текст до максимальной длины, добавив суффикс.
         if len(text) <= max_length:
             return text
-        return text[:max_length - len(suffix)] + suffix
+        return text[: max_length - len(suffix)] + suffix
 
     def split_text(text: str, max_length: int = 4096) -> list:
         """Split text into chunks that each fit within max_length characters.
@@ -126,18 +173,18 @@ except ImportError:
         if len(text) <= max_length:
             return [text]
         chunks, current = [], ""
-        for line in text.split('\n'):
+        for line in text.split("\n"):
             if len(current) + len(line) + 1 <= max_length:
-                current += line + '\n'
+                current += line + "\n"
             else:
                 if current:
                     chunks.append(current)
                 if len(line) > max_length:
                     for i in range(0, len(line), max_length):
-                        chunks.append(line[i:i + max_length])
+                        chunks.append(line[i : i + max_length])
                     current = ""
                 else:
-                    current = line + '\n'
+                    current = line + "\n"
         if current:
             chunks.append(current)
         return chunks
@@ -167,7 +214,7 @@ except ImportError:
         """
         # RU: Форматировать количество байт в читаемую строку с единицей измерения.
         val = float(size)
-        for unit in ('B', 'KB', 'MB', 'GB', 'TB'):
+        for unit in ("B", "KB", "MB", "GB", "TB"):
             if val < 1024.0:
                 return f"{val:.1f} {unit}"
             val /= 1024.0
@@ -186,8 +233,10 @@ except ImportError:
         total = int(seconds)
         h, rem = divmod(total, 3600)
         m, s = divmod(rem, 60)
-        if h > 0: return f"{h}h {m}m {s}s"
-        if m > 0: return f"{m}m {s}s"
+        if h > 0:
+            return f"{h}h {m}m {s}s"
+        if m > 0:
+            return f"{m}m {s}s"
         return f"{s}s"
 
     def format_bold(text: str, escape: bool = True) -> str:
@@ -352,12 +401,15 @@ except ImportError:
             JSON string with keys: level, message, ts.
         """
         # RU: Сериализовать запись лога в JSON-строку.
-        return _json.dumps({"level": level, "message": message, "ts": ts},
-                           ensure_ascii=False)
+        return _json.dumps(
+            {"level": level, "message": message, "ts": ts}, ensure_ascii=False
+        )
 
-    _META_RE     = _re.compile(r"^ *# *meta: *([^\s=]+) *= *(.*?) *$", _re.MULTILINE | _re.IGNORECASE)
-    _LEGACY_RE   = _re.compile(r"^ *# *meta +(\S+) *: *(.*?)\s*$", _re.MULTILINE)
-    _AT_RE       = _re.compile(r"^ *# *@(\S+) +(.*?) *$", _re.MULTILINE)
+    _META_RE = _re.compile(
+        r"^ *# *meta: *([^\s=]+) *= *(.*?) *$", _re.MULTILINE | _re.IGNORECASE
+    )
+    _LEGACY_RE = _re.compile(r"^ *# *meta +(\S+) *: *(.*?)\s*$", _re.MULTILINE)
+    _AT_RE = _re.compile(r"^ *# *@(\S+) +(.*?) *$", _re.MULTILINE)
 
     def parse_meta_comments(code: str) -> dict:
         """Parse meta-comment annotations from Python source code.
@@ -403,7 +455,7 @@ except ImportError:
             return False
         for p in prefixes:
             if text.startswith(p):
-                rest = text[len(p):]
+                rest = text[len(p) :]
                 word = rest.split()[0].lower() if rest.split() else ""
                 if word in trigger_set:
                     return True
@@ -531,16 +583,27 @@ except ImportError:
 
         parts = []
         if short:
-            if days:    parts.append(f"{days} дн.")
-            if hours:   parts.append(f"{hours} ч.")
-            if minutes: parts.append(f"{minutes} мин.")
-            if secs or not parts: parts.append(f"{secs} сек.")
-        else:
-            if days:    parts.append(f"{days} {_ru_plural(days, ('день','дня','дней'))}")
-            if hours:   parts.append(f"{hours} {_ru_plural(hours, ('час','часа','часов'))}")
-            if minutes: parts.append(f"{minutes} {_ru_plural(minutes, ('минута','минуты','минут'))}")
+            if days:
+                parts.append(f"{days} дн.")
+            if hours:
+                parts.append(f"{hours} ч.")
+            if minutes:
+                parts.append(f"{minutes} мин.")
             if secs or not parts:
-                parts.append(f"{secs} {_ru_plural(secs, ('секунда','секунды','секунд'))}")
+                parts.append(f"{secs} сек.")
+        else:
+            if days:
+                parts.append(f"{days} {_ru_plural(days, ('день', 'дня', 'дней'))}")
+            if hours:
+                parts.append(f"{hours} {_ru_plural(hours, ('час', 'часа', 'часов'))}")
+            if minutes:
+                parts.append(
+                    f"{minutes} {_ru_plural(minutes, ('минута', 'минуты', 'минут'))}"
+                )
+            if secs or not parts:
+                parts.append(
+                    f"{secs} {_ru_plural(secs, ('секунда', 'секунды', 'секунд'))}"
+                )
         return " ".join(parts)
 
     def parse_duration(text: str):
@@ -557,6 +620,7 @@ except ImportError:
         """
         # RU: Разобрать строку длительности в общее количество секунд.
         import re as _re2
+
         units = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
         matches = _re2.compile(r"(\d+)([smhdw])").findall(text.lower())
         if not matches:
@@ -619,14 +683,29 @@ except ImportError:
         top = "┌" + "┬".join("─" * (w + 2) for w in col_widths) + "┐"
         sep = "├" + "┼".join("─" * (w + 2) for w in col_widths) + "┤"
         bot = "└" + "┴".join("─" * (w + 2) for w in col_widths) + "┘"
-        hdr = "│" + "│".join(f" {str(h).ljust(col_widths[i])} " for i, h in enumerate(headers)) + "│"
+        hdr = (
+            "│"
+            + "│".join(
+                f" {str(h).ljust(col_widths[i])} " for i, h in enumerate(headers)
+            )
+            + "│"
+        )
         lines = [top, hdr, sep]
         for row in rows:
-            lines.append("│" + "│".join(f" {str(row[i] if i < len(row) else '').ljust(col_widths[i])} " for i in range(len(headers))) + "│")
+            lines.append(
+                "│"
+                + "│".join(
+                    f" {str(row[i] if i < len(row) else '').ljust(col_widths[i])} "
+                    for i in range(len(headers))
+                )
+                + "│"
+            )
         lines.append(bot)
         return "\n".join(lines)
 
-    def print_progress_str(current: int, total: int, prefix: str = "Progress", length: int = 40) -> str:
+    def print_progress_str(
+        current: int, total: int, prefix: str = "Progress", length: int = 40
+    ) -> str:
         """Render a text progress bar string.
 
         Args:
@@ -639,7 +718,8 @@ except ImportError:
             Progress bar string like "Progress: |████░░░░| 50.0% (5/10)".
         """
         # RU: Отобразить текстовый индикатор прогресса.
-        if total <= 0: total = 1
+        if total <= 0:
+            total = 1
         percent = 100.0 * current / total
         filled = int(length * current / total)
         filled = max(0, min(filled, length))
@@ -647,9 +727,12 @@ except ImportError:
         return f"{prefix}: |{bar}| {percent:.1f}% ({current}/{total})"
 
     def format_exc_html(
-        error_type: str, error_text: str,
-        cause_type: str = "", cause_text: str = "",
-        suffix: str = "", max_length: int = 4000
+        error_type: str,
+        error_text: str,
+        cause_type: str = "",
+        cause_text: str = "",
+        suffix: str = "",
+        max_length: int = 4000,
     ) -> str:
         """Format an exception as an HTML message suitable for sending via Telegram.
 
@@ -666,6 +749,7 @@ except ImportError:
         """
         # RU: Форматировать исключение в HTML-сообщение для отправки через Telegram.
         import html as _h
+
         def _e(s):
             """HTML-escape a string using the locally imported html module.
 
@@ -677,13 +761,16 @@ except ImportError:
             """
             # RU: Экранировать строку HTML с помощью локально импортированного модуля html.
             return _h.escape(s)
+
         msg = f"<b>Error!</b>\n<code>{_e(error_type)}: {_e(error_text)}</code>"
         if cause_type:
-            msg += f"\n<b>Caused by:</b> <code>{_e(cause_type)}: {_e(cause_text)}</code>"
+            msg += (
+                f"\n<b>Caused by:</b> <code>{_e(cause_type)}: {_e(cause_text)}</code>"
+            )
         if suffix:
             msg += f"\n\n<b>{_e(suffix)}</b>"
         if max_length > 0 and len(msg) > max_length:
-            msg = msg[:max_length - 3] + "..."
+            msg = msg[: max_length - 3] + "..."
         return msg
 
     def router_lookup(trigger_map: dict, trigger: str):
@@ -707,7 +794,9 @@ except ImportError:
         """
         # RU: Получить объём резидентной памяти текущего процесса в мегабайтах.
         try:
-            import os, psutil
+            import os
+            import psutil
+
             p = psutil.Process(os.getpid())
             return round(p.memory_info().rss / 1024 / 1024, 2)
         except Exception:
@@ -721,7 +810,9 @@ except ImportError:
         """
         # RU: Получить загрузку CPU текущего процесса в процентах.
         try:
-            import os, psutil
+            import os
+            import psutil
+
             return psutil.Process(os.getpid()).cpu_percent()
         except Exception:
             return 0.0
@@ -738,9 +829,11 @@ except ImportError:
         """
         # RU: Найти имена всех Python-модулей (не приватных .py-файлов) в директории.
         import os
+
         try:
             return sorted(
-                f[:-3] for f in os.listdir(path)
+                f[:-3]
+                for f in os.listdir(path)
                 if f.endswith(".py") and not f.startswith("_")
             )
         except OSError:

@@ -26,6 +26,7 @@ class IBot(Protocol):
         - Discord (discord.py)
         - Other bot platforms
     """
+
     # RU: Абстрактный контракт для бот-клиентов (не юзерботов).
 
     # ===== Lifecycle Management =====
@@ -60,12 +61,7 @@ class IBot(Protocol):
 
     # ===== Basic Messaging =====
 
-    async def send_message(
-        self,
-        chat_id: int | str,
-        text: str,
-        **kwargs: Any
-    ) -> Any:
+    async def send_message(self, chat_id: int | str, text: str, **kwargs: Any) -> Any:
         """Send a text message to a chat.
 
         Args:
@@ -79,11 +75,7 @@ class IBot(Protocol):
         # RU: Отправить текстовое сообщение в чат.
         ...
 
-    async def delete_message(
-        self,
-        chat_id: int | str,
-        message_id: int
-    ) -> bool:
+    async def delete_message(self, chat_id: int | str, message_id: int) -> bool:
         """Delete a message from a chat.
 
         Args:

@@ -28,22 +28,23 @@ class IStorage(Protocol):
     - Pattern matching (keys)
     - Metadata (size, info)
     """
+
     # RU: Интерфейс обобщённого хранилища ключ-значение.
-    
+
     # ===== Connection Management =====
-    
+
     async def connect(self) -> None:
         """Establish connection to storage."""
         # RU: Установить соединение с хранилищем.
         ...
-    
+
     async def disconnect(self) -> None:
         """Close connection to storage."""
         # RU: Закрыть соединение с хранилищем.
         ...
-    
+
     # ===== Basic Operations =====
-    
+
     async def get(self, key: str) -> Optional[Any]:
         """Get value by key.
 
@@ -52,13 +53,8 @@ class IStorage(Protocol):
         """
         # RU: Получить значение по ключу. Возвращает None, если ключ отсутствует.
         ...
-    
-    async def set(
-        self, 
-        key: str, 
-        value: Any, 
-        expire: int | None = None
-    ) -> None:
+
+    async def set(self, key: str, value: Any, expire: int | None = None) -> None:
         """Set key-value pair.
 
         Args:
@@ -68,7 +64,7 @@ class IStorage(Protocol):
         """
         # RU: Сохранить пару «ключ–значение» с необязательным временем жизни.
         ...
-    
+
     async def delete(self, key: str) -> bool:
         """Delete key from storage.
 
@@ -77,17 +73,17 @@ class IStorage(Protocol):
         """
         # RU: Удалить ключ. Возвращает True, если ключ был удалён.
         ...
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists in storage."""
         # RU: Проверить наличие ключа в хранилище.
         ...
-    
+
     async def clear(self) -> None:
         """Clear all data from storage."""
         # RU: Очистить все данные из хранилища.
         ...
-    
+
     async def keys(self, pattern: str = "*") -> list[str]:
         """Get all keys matching pattern.
 
@@ -99,9 +95,9 @@ class IStorage(Protocol):
         """
         # RU: Получить список ключей, совпадающих с шаблоном (glob).
         ...
-    
+
     # ===== Batch Operations =====
-    
+
     async def mget(self, keys: list[str]) -> list[Optional[Any]]:
         """Get multiple values by keys.
 
@@ -116,7 +112,7 @@ class IStorage(Protocol):
         """
         # RU: Получить несколько значений по списку ключей.
         ...
-    
+
     async def mset(self, mapping: dict[str, Any]) -> None:
         """Set multiple key-value pairs.
 
@@ -128,7 +124,7 @@ class IStorage(Protocol):
         """
         # RU: Сохранить несколько пар «ключ–значение» за одну операцию.
         ...
-    
+
     async def mdelete(self, keys: list[str]) -> int:
         """Delete multiple keys.
 
@@ -143,9 +139,9 @@ class IStorage(Protocol):
         """
         # RU: Удалить несколько ключей. Возвращает количество фактически удалённых.
         ...
-    
+
     # ===== TTL Operations =====
-    
+
     async def expire(self, key: str, seconds: int) -> bool:
         """Set expiration time for a key.
 
@@ -158,7 +154,7 @@ class IStorage(Protocol):
         """
         # RU: Установить время жизни для ключа в секундах.
         ...
-    
+
     async def ttl(self, key: str) -> int:
         """Get remaining time to live for a key.
 
@@ -170,7 +166,7 @@ class IStorage(Protocol):
         """
         # RU: Получить оставшееся время жизни ключа (-1 — без TTL, -2 — ключ отсутствует).
         ...
-    
+
     async def persist(self, key: str) -> bool:
         """Remove expiration from a key.
 
@@ -182,9 +178,9 @@ class IStorage(Protocol):
         """
         # RU: Снять TTL с ключа, сделав его постоянным.
         ...
-    
+
     # ===== Atomic Operations =====
-    
+
     async def increment(self, key: str, delta: int = 1) -> int:
         """Increment numeric value by delta.
 
@@ -201,7 +197,7 @@ class IStorage(Protocol):
         """
         # RU: Атомарно увеличить числовое значение ключа на delta.
         ...
-    
+
     async def decrement(self, key: str, delta: int = 1) -> int:
         """Decrement numeric value by delta.
 
@@ -214,9 +210,9 @@ class IStorage(Protocol):
         """
         # RU: Атомарно уменьшить числовое значение ключа на delta.
         ...
-    
+
     # ===== Metadata =====
-    
+
     async def size(self) -> int:
         """Get number of keys in storage.
 
@@ -225,7 +221,7 @@ class IStorage(Protocol):
         """
         # RU: Получить общее количество ключей в хранилище.
         ...
-    
+
     async def info(self) -> dict[str, Any]:
         """Get storage information and statistics.
 

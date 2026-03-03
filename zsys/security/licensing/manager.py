@@ -25,6 +25,7 @@ try:
     from Crypto.Hash import SHA512, HMAC
     from Crypto.Cipher import AES
     from Crypto.Util.Padding import pad, unpad
+
     CRYPTO_AVAILABLE = True
 except ImportError:
     CRYPTO_AVAILABLE = False
@@ -76,19 +77,19 @@ def parse_duration(duration_str: str) -> timedelta:
         parse_duration("1y2m30d")  # 1 year, 2 months, 30 days
     """
     # RU: Regex ищет пары (число, единица); y=365d, m=30d; суммирует timedelta.
-    pattern = re.compile(r'(\d+)([ymd])')
+    pattern = re.compile(r"(\d+)([ymd])")
     matches = pattern.findall(duration_str.lower())
     duration = timedelta(days=0)
-    
+
     for value, unit in matches:
         value = int(value)
-        if unit == 'y':
+        if unit == "y":
             duration += timedelta(days=value * 365)
-        elif unit == 'm':
+        elif unit == "m":
             duration += timedelta(days=value * 30)
-        elif unit == 'd':
+        elif unit == "d":
             duration += timedelta(days=value)
-    
+
     return duration
 
 
@@ -117,13 +118,14 @@ class LicenseData:
         created: Unix timestamp when the license was generated.
         hash: 64-byte SHA-512 hash used to verify key integrity.
     """
+
     # RU: Данные лицензии; свойства is_expired, days_remaining и to_dict.
     user_id: str
     uuid: bytes
     expiration: int
     created: int
     hash: bytes
-    
+
     @property
     def is_expired(self) -> bool:
         """Return ``True`` if the license expiration timestamp is in the past.
@@ -133,7 +135,7 @@ class LicenseData:
         """
         # RU: True если текущее время > expiration.
         return datetime.now().timestamp() > self.expiration
-    
+
     @property
     def days_remaining(self) -> int:
         """Return the number of whole days until the license expires.
@@ -144,7 +146,7 @@ class LicenseData:
         # RU: Целое число дней до истечения; 0 если уже просрочена.
         remaining = self.expiration - datetime.now().timestamp()
         return max(0, int(remaining / 86400))
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize this instance to a plain dictionary.
 
@@ -160,7 +162,7 @@ class LicenseData:
             "expiration": self.expiration,
             "created": self.created,
             "is_expired": self.is_expired,
-            "days_remaining": self.days_remaining
+            "days_remaining": self.days_remaining,
         }
 
 
@@ -172,8 +174,9 @@ class LicenseManager:
             and to compute the integrity hash.
         _aes_key: 32-byte AES key derived from *main_key* via SHA-256.
     """
+
     # RU: AES-CBC лицензионные ключи; _aes_key = SHA-256(main_key).
-    
+
     def __init__(self, main_key: Optional[bytes] = None):
         """Initialise the manager and derive the 32-byte AES key.
 
@@ -191,10 +194,10 @@ class LicenseManager:
                 "pycryptodome is required for LicenseManager. "
                 "Install with: pip install pycryptodome"
             )
-        
+
         self.main_key = main_key or os.urandom(512)
         self._aes_key = hashlib.sha256(self.main_key).digest()  # 32 bytes for AES
-    
+
     def generate(self, user_id: str, duration: str) -> bytes:
         """Build and encrypt a license key blob.
 
@@ -214,34 +217,32 @@ class LicenseManager:
         expiration = calculate_expiration(duration)
         created = int(datetime.now().timestamp())
         license_uuid = uuid.uuid4().bytes
-        
+
         # Create license data
         license_data = (
-            user_id.encode('utf-8') +
-            self.main_key +
-            license_uuid +
-            struct.pack('II', expiration, created)
+            user_id.encode("utf-8")
+            + self.main_key
+            + license_uuid
+            + struct.pack("II", expiration, created)
         )
-        
+
         # Hash the data
         license_hash = hash_data(license_data)
-        
+
         # Create final key structure
         key_structure = (
-            struct.pack('H', len(user_id)) +  # user_id length
-            user_id.encode('utf-8') +
-            license_uuid +
-            struct.pack('II', expiration, created) +
-            license_hash
+            struct.pack("H", len(user_id))  # user_id length
+            + user_id.encode("utf-8")
+            + license_uuid
+            + struct.pack("II", expiration, created)
+            + license_hash
         )
-        
+
         # Encrypt
         return self._encrypt(key_structure)
-    
+
     def validate(
-        self, 
-        license_key: bytes, 
-        user_id: str
+        self, license_key: bytes, user_id: str
     ) -> Tuple[bool, Optional[LicenseData]]:
         """Decrypt and validate a license key.
 
@@ -263,56 +264,56 @@ class LicenseManager:
         try:
             # Decrypt
             decrypted = self._decrypt(license_key)
-            
+
             # Parse structure
-            user_id_len = struct.unpack('H', decrypted[:2])[0]
+            user_id_len = struct.unpack("H", decrypted[:2])[0]
             offset = 2
-            
-            stored_user_id = decrypted[offset:offset + user_id_len].decode('utf-8')
+
+            stored_user_id = decrypted[offset : offset + user_id_len].decode("utf-8")
             offset += user_id_len
-            
-            license_uuid = decrypted[offset:offset + 16]
+
+            license_uuid = decrypted[offset : offset + 16]
             offset += 16
-            
-            expiration, created = struct.unpack('II', decrypted[offset:offset + 8])
+
+            expiration, created = struct.unpack("II", decrypted[offset : offset + 8])
             offset += 8
-            
-            stored_hash = decrypted[offset:offset + 64]
-            
+
+            stored_hash = decrypted[offset : offset + 64]
+
             # Verify user_id
             if stored_user_id != user_id:
                 return False, None
-            
+
             # Recreate and verify hash
             license_data = (
-                user_id.encode('utf-8') +
-                self.main_key +
-                license_uuid +
-                struct.pack('II', expiration, created)
+                user_id.encode("utf-8")
+                + self.main_key
+                + license_uuid
+                + struct.pack("II", expiration, created)
             )
-            
+
             expected_hash = hash_data(license_data)
             if stored_hash != expected_hash:
                 return False, None
-            
+
             # Create license data object
             data = LicenseData(
                 user_id=user_id,
                 uuid=license_uuid,
                 expiration=expiration,
                 created=created,
-                hash=stored_hash
+                hash=stored_hash,
             )
-            
+
             # Check expiration
             if data.is_expired:
                 return False, data
-            
+
             return True, data
-            
+
         except Exception:
             return False, None
-    
+
     def _encrypt(self, data: bytes) -> bytes:
         """Encrypt *data* with AES-CBC and a random IV.
 
@@ -327,7 +328,7 @@ class LicenseManager:
         cipher = AES.new(self._aes_key, AES.MODE_CBC)
         ct_bytes = cipher.encrypt(pad(data, AES.block_size))
         return cipher.iv + ct_bytes
-    
+
     def _decrypt(self, encrypted_data: bytes) -> bytes:
         """Decrypt an AES-CBC blob produced by :meth:`_encrypt`.
 
@@ -339,11 +340,11 @@ class LicenseManager:
             Decrypted plaintext bytes with padding removed.
         """
         # RU: Извлекает IV из первых block_size байт; AES-CBC decrypt + unpad.
-        iv = encrypted_data[:AES.block_size]
-        ct = encrypted_data[AES.block_size:]
+        iv = encrypted_data[: AES.block_size]
+        ct = encrypted_data[AES.block_size :]
         cipher = AES.new(self._aes_key, AES.MODE_CBC, iv)
         return unpad(cipher.decrypt(ct), AES.block_size)
-    
+
     def to_base64(self, license_key: bytes) -> str:
         """Base64-encode a license key for safe text transport.
 
@@ -354,8 +355,8 @@ class LicenseManager:
             Base64-encoded string (standard alphabet, no line breaks).
         """
         # RU: base64.b64encode → UTF-8 строка.
-        return base64.b64encode(license_key).decode('utf-8')
-    
+        return base64.b64encode(license_key).decode("utf-8")
+
     def from_base64(self, license_str: str) -> bytes:
         """Decode a Base64-encoded license key back to raw bytes.
 
@@ -367,8 +368,8 @@ class LicenseManager:
             Raw license key bytes.
         """
         # RU: base64.b64decode → bytes.
-        return base64.b64decode(license_str.encode('utf-8'))
-    
+        return base64.b64decode(license_str.encode("utf-8"))
+
     @classmethod
     def generate_main_key(cls, path: Optional[str] = None) -> bytes:
         """Generate a new 512-byte random master key and optionally save it.
@@ -382,13 +383,13 @@ class LicenseManager:
         """
         # RU: os.urandom(512); если path задан — сохраняет в файл.
         key = os.urandom(512)
-        
+
         if path:
-            with open(path, 'wb') as f:
+            with open(path, "wb") as f:
                 f.write(key)
-        
+
         return key
-    
+
     @classmethod
     def load_main_key(cls, path: str) -> bytes:
         """Load the master key from a binary file.
@@ -401,16 +402,12 @@ class LicenseManager:
             Raw key bytes read from the file.
         """
         # RU: Читает бинарный файл и возвращает байты ключа.
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             return f.read()
 
 
 # Simplified functions for basic usage
-def generate_license_key(
-    main_key: bytes,
-    user_id: str,
-    duration: str
-) -> bytes:
+def generate_license_key(main_key: bytes, user_id: str, duration: str) -> bytes:
     """Simplified wrapper around :meth:`LicenseManager.generate`.
 
     Args:
@@ -427,9 +424,7 @@ def generate_license_key(
 
 
 def check_license(
-    main_key: bytes,
-    license_key: bytes,
-    user_id: str
+    main_key: bytes, license_key: bytes, user_id: str
 ) -> Tuple[bool, Optional[LicenseData]]:
     """Simplified wrapper around :meth:`LicenseManager.validate`.
 
@@ -468,7 +463,7 @@ def encrypt_data(data: bytes, key: bytes) -> bytes:
     # RU: SHA-256(key) → 32-байтный AES-ключ; AES-CBC encrypt.
     if not CRYPTO_AVAILABLE:
         raise ImportError("pycryptodome required for encryption")
-    
+
     aes_key = hashlib.sha256(key).digest()
     cipher = AES.new(aes_key, AES.MODE_CBC)
     ct_bytes = cipher.encrypt(pad(data, AES.block_size))
@@ -494,9 +489,9 @@ def decrypt_data(encrypted_data: bytes, key: bytes) -> bytes:
     # RU: SHA-256(key) → 32-байтный AES-ключ; AES-CBC decrypt.
     if not CRYPTO_AVAILABLE:
         raise ImportError("pycryptodome required for decryption")
-    
+
     aes_key = hashlib.sha256(key).digest()
-    iv = encrypted_data[:AES.block_size]
-    ct = encrypted_data[AES.block_size:]
+    iv = encrypted_data[: AES.block_size]
+    ct = encrypted_data[AES.block_size :]
     cipher = AES.new(aes_key, AES.MODE_CBC, iv)
     return unpad(cipher.decrypt(ct), AES.block_size)

@@ -21,13 +21,14 @@ class ValidationError(BaseException):
         field: Name of the field that failed validation, if applicable.
         details: Additional context dictionary (e.g. constraints violated).
     """
+
     # RU: Исключение при нарушении правил валидации данных.
 
     def __init__(
         self,
         message: str,
         field: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """Initialise the validation error.
 

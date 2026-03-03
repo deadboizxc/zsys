@@ -25,6 +25,7 @@ from zsys.core.exceptions import ClientError
 try:
     from aiogram import Bot, Dispatcher
     from aiogram.types import Message
+
     AIOGRAM_AVAILABLE = True
 except ImportError:
     AIOGRAM_AVAILABLE = False
@@ -49,11 +50,12 @@ class AiogramConfig(BaseConfig):
 
         config = AiogramConfig(token="123456:ABC-DEF")
     """
+
     # RU: Конфигурация бота; переменные окружения читаются с префиксом BOT_.
-    
+
     token: str
     parse_mode: str = "HTML"
-    
+
     class Config:
         env_prefix = "BOT_"
 
@@ -82,8 +84,9 @@ class AiogramBot(IBot):
 
         await bot.start()
     """
+
     # RU: Реализация IBot на базе aiogram 3.x с поддержкой long-polling.
-    
+
     def __init__(self, config: AiogramConfig):
         """Initialise the Aiogram bot with the provided configuration.
 
@@ -102,12 +105,12 @@ class AiogramBot(IBot):
             raise ClientError(
                 "Aiogram is not installed. Install with: pip install zsys[telegram-aiogram]"
             )
-        
+
         self.config = config
         self._bot: Optional[Bot] = None
         self._dp: Optional[Dispatcher] = None
         self._running = False
-    
+
     @property
     def bot(self) -> Bot:
         """Return the lazily-instantiated underlying ``aiogram.Bot`` object.
@@ -121,12 +124,9 @@ class AiogramBot(IBot):
         """
         # RU: Ленивое создание экземпляра aiogram.Bot.
         if self._bot is None:
-            self._bot = Bot(
-                token=self.config.token,
-                parse_mode=self.config.parse_mode
-            )
+            self._bot = Bot(token=self.config.token, parse_mode=self.config.parse_mode)
         return self._bot
-    
+
     @property
     def dp(self) -> Dispatcher:
         """Return the lazily-instantiated ``aiogram.Dispatcher``.
@@ -142,7 +142,7 @@ class AiogramBot(IBot):
         if self._dp is None:
             self._dp = Dispatcher(self.bot)
         return self._dp
-    
+
     async def start(self) -> None:
         """Start the bot in long-polling mode.
 
@@ -157,7 +157,7 @@ class AiogramBot(IBot):
         logger.info("Starting Aiogram bot")
         self._running = True
         await self.dp.start_polling(self.bot)
-    
+
     async def stop(self) -> None:
         """Stop the polling loop and close the bot session.
 
@@ -174,7 +174,7 @@ class AiogramBot(IBot):
         await self.bot.session.close()
         self._running = False
         logger.info("Aiogram bot stopped")
-    
+
     @property
     def is_running(self) -> bool:
         """Indicate whether the polling loop is currently active.
@@ -189,7 +189,7 @@ class AiogramBot(IBot):
         """
         # RU: Возвращает True, если бот запущен.
         return self._running
-    
+
     def command(self, commands: str | list[str]) -> Callable:
         """Return a decorator that registers a command handler.
 
@@ -210,7 +210,7 @@ class AiogramBot(IBot):
         if isinstance(commands, str):
             commands = [commands]
         return self.dp.message.register(commands=commands)
-    
+
     def message_handler(self, **filters: Any) -> Callable:
         """Return a decorator that registers a message handler with filters.
 
@@ -229,12 +229,9 @@ class AiogramBot(IBot):
         """
         # RU: Декоратор для регистрации обработчика сообщений с произвольными фильтрами.
         return self.dp.message.register(**filters)
-    
+
     async def send_message(
-        self,
-        chat_id: int | str,
-        text: str,
-        **kwargs: Any
+        self, chat_id: int | str, text: str, **kwargs: Any
     ) -> Message:
         """Send a text message to the specified chat.
 
@@ -253,12 +250,8 @@ class AiogramBot(IBot):
         """
         # RU: Отправляет текстовое сообщение в указанный чат.
         return await self.bot.send_message(chat_id, text, **kwargs)
-    
-    async def delete_message(
-        self,
-        chat_id: int | str,
-        message_id: int
-    ) -> bool:
+
+    async def delete_message(self, chat_id: int | str, message_id: int) -> bool:
         """Delete a specific message from a chat.
 
         Args:

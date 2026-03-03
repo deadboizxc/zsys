@@ -17,6 +17,7 @@ class ClientStatus(str, Enum):
 
     Values are lowercase strings for easy serialisation and logging.
     """
+
     # RU: Перечисление состояний жизненного цикла клиента.
     IDLE = "idle"
     STARTING = "starting"
@@ -46,41 +47,42 @@ class BaseClient:
         error_message: Last error message when status is ERROR; None otherwise.
         created_at: Timestamp when this client record was created.
     """
+
     # RU: Платформо-независимая модель бот- или юзербот-клиента.
-    
+
     name: str
     """Client name/identifier"""
-    
+
     status: ClientStatus = ClientStatus.IDLE
     """Current client status"""
-    
+
     api_id: Optional[int] = None
     """API ID (for Telegram, etc.)"""
-    
+
     api_hash: Optional[str] = None
     """API hash"""
-    
+
     token: Optional[str] = None
     """Bot token (for bot clients)"""
-    
+
     session_name: Optional[str] = None
     """Session name (for userbots)"""
-    
+
     phone_number: Optional[str] = None
     """Phone number (for userbots)"""
-    
+
     started_at: Optional[datetime] = None
     """When client was started"""
-    
+
     stopped_at: Optional[datetime] = None
     """When client was stopped"""
-    
+
     error_message: Optional[str] = None
     """Last error message (if status is ERROR)"""
-    
+
     created_at: datetime = field(default_factory=datetime.now)
     """When this client was created"""
-    
+
     @property
     def is_running(self) -> bool:
         """True if the client is currently in RUNNING state.

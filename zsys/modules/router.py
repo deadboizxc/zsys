@@ -13,7 +13,14 @@ import re
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import (
-    Any, Callable, Coroutine, Dict, List, Optional, Set, Union,
+    Any,
+    Callable,
+    Coroutine,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Union,
 )
 
 from .context import Context
@@ -26,10 +33,12 @@ except ImportError:
 
 try:
     from zsys.bindings.python.zsys_cffi import Router as _CRouter
+
     _C_LIB = True
 except ImportError:
     _C_LIB = False
     _CRouter = None
+
 
 @dataclass
 class Command:
@@ -52,6 +61,7 @@ class Command:
         extra_filters: Additional custom Pyrogram filter.
         prefix: Per-command prefix override.
     """
+
     # RU: Определение команды.
     name: str
     handler: Callable[[Context], Coroutine[Any, Any, Any]]
@@ -69,13 +79,15 @@ class Command:
     # RU: Требует ответа на сообщение
     media_only: bool = False  # Requires media in message/reply
     # RU: Требует медиафайл в сообщении или ответе
-    text_only: bool = False   # Requires text
+    text_only: bool = False  # Requires text
     # RU: Требует текстовый аргумент
     extra_filters: Any = None  # Custom Pyrogram filter
     # RU: Пользовательский фильтр Pyrogram
     prefix: Optional[Union[str, List[str]]] = None  # Per-command prefix override
     # RU: Переопределение префикса для конкретной команды
-    help_key: Optional[str] = None  # i18n key for command description (e.g. "ping.help.description")
+    help_key: Optional[str] = (
+        None  # i18n key for command description (e.g. "ping.help.description")
+    )
     # RU: Ключ i18n для описания команды (например "ping.help.description")
 
     @property
@@ -121,6 +133,7 @@ class Router:
         router.unregister("hello")
         router.reload_module("mymodule")
     """
+
     # RU: Унифицированный маршрутизатор команд с поддержкой горячей перезагрузки.
 
     # Default filter error messages (can be overridden for i18n)
@@ -234,6 +247,7 @@ class Router:
         # RU: Автоматически определяем имя модуля из стека вызовов
         if not module:
             import inspect
+
             frame = inspect.currentframe()
             if frame and frame.f_back and frame.f_back.f_back:
                 module = frame.f_back.f_back.f_globals.get("__name__", "unknown")
@@ -346,7 +360,7 @@ class Router:
         category: str = "misc",
         prefix: Optional[Union[str, List[str]]] = None,
         module: str = None,
-        **kwargs
+        **kwargs,
     ) -> Command:
         """Programmatically register a command without using a decorator.
 
@@ -373,7 +387,7 @@ class Router:
             usage=usage,
             category=category,
             prefix=prefix,
-            **kwargs
+            **kwargs,
         )
         self._register_command(cmd, module)
         return cmd

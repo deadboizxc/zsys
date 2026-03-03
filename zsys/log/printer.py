@@ -18,6 +18,7 @@ from logging.handlers import RotatingFileHandler
 
 try:
     from colorlog import ColoredFormatter as _ColorlogFormatter
+
     _HAS_COLORLOG = True
 except ImportError:
     _HAS_COLORLOG = False
@@ -43,8 +44,10 @@ from zsys.core.logging import BaseLogger
 # ===== ANSI Colors =====
 # RU: ANSI-цвета
 
+
 class Colors:
     """ANSI escape codes for colored terminal output."""
+
     # RU: ANSI escape коды для цветного вывода.
     BLACK = "\033[30m"
     RED = "\033[31m"
@@ -56,7 +59,7 @@ class Colors:
     WHITE = "\033[37m"
     RESET = "\033[0m"
     BOLD = "\033[1m"
-    
+
     # Logging level color assignments
     # RU: Уровни логирования
     DEBUG_COLOR = CYAN
@@ -69,15 +72,17 @@ class Colors:
 # ===== Formatters =====
 # RU: Форматтеры
 
+
 class ColoredFormatter(logging.Formatter):
     """Colored log formatter — uses colorlog if available, falls back to manual ANSI."""
+
     # RU: Форматтер с цветным выводом — использует colorlog если доступен.
 
     _LOG_COLORS = {
-        "DEBUG":    "cyan",
-        "INFO":     "green",
-        "WARNING":  "yellow",
-        "ERROR":    "red",
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
         "CRITICAL": "red,bg_white",
     }
     # Format matches original: level is colored, message is blue
@@ -112,10 +117,10 @@ class ColoredFormatter(logging.Formatter):
         # Fallback without colorlog — apply ANSI manually
         # RU: Резервный путь без colorlog — применяем ANSI вручную
         LEVEL_COLORS = {
-            "DEBUG":    Colors.CYAN,
-            "INFO":     Colors.GREEN,
-            "WARNING":  Colors.YELLOW,
-            "ERROR":    Colors.RED,
+            "DEBUG": Colors.CYAN,
+            "INFO": Colors.GREEN,
+            "WARNING": Colors.YELLOW,
+            "ERROR": Colors.RED,
             "CRITICAL": Colors.CRITICAL_COLOR,
         }
         self._level_colors = LEVEL_COLORS
@@ -144,6 +149,7 @@ class ColoredFormatter(logging.Formatter):
 # ===== ColorLogger =====
 # RU: ColorLogger
 
+
 class ColorLogger(BaseLogger):
     """
     Logger with colored output and file rotation support.
@@ -161,10 +167,11 @@ class ColorLogger(BaseLogger):
         logger.info("Started")
         logger.error("Something went wrong")
     """
+
     # RU: Логгер с поддержкой цветного вывода и ротации файлов.
-    
+
     COLORS = Colors
-    
+
     def __init__(
         self,
         name: str = "core",
@@ -189,38 +196,38 @@ class ColorLogger(BaseLogger):
         # Initialize base logger without handlers (we'll add custom ones)
         # RU: Инициализируем базовый логгер без обработчиков (добавим свои)
         super().__init__(name=name, level=level.upper(), format_string=None)
-        
+
         self.log_file = str(log_file) if log_file else None
-        
+
         # Clear handlers from the base class to set up custom ones
         # RU: Очищаем handler'ы базового класса
         self.logger.handlers.clear()
         self.logger.propagate = False
-        
+
         # Console handler with ANSI color formatting
         # RU: Консольный обработчик с цветами
         if enable_console:
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setFormatter(ColoredFormatter())
             self.logger.addHandler(console_handler)
-        
+
         # File handler with automatic rotation
         # RU: Файловый обработчик с ротацией
         if self.log_file:
             Path(self.log_file).parent.mkdir(parents=True, exist_ok=True)
             file_formatter = logging.Formatter(
                 "%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S"
+                datefmt="%Y-%m-%d %H:%M:%S",
             )
             file_handler = RotatingFileHandler(
                 self.log_file,
                 encoding="utf-8",
                 maxBytes=max_bytes,
-                backupCount=backup_count
+                backupCount=backup_count,
             )
             file_handler.setFormatter(file_formatter)
             self.logger.addHandler(file_handler)
-    
+
     def set_level(self, level: Union[str, int]) -> None:
         """Set the logging level.
 
@@ -231,7 +238,7 @@ class ColorLogger(BaseLogger):
         # Use base class implementation
         # RU: Используем реализацию базового класса
         super().set_level(level)
-    
+
     # All core logging methods (debug, info, warning, error, critical, exception)
     # are inherited from the base Logger class
     # RU: Все основные методы логирования (debug, info, warning, error, critical, exception)
@@ -239,7 +246,7 @@ class ColorLogger(BaseLogger):
 
     # === Helper Methods ===
     # RU: Вспомогательные методы
-    
+
     def print_color(self, text: str, color: str = "white") -> None:
         """
         Print colored text to the console.
@@ -276,7 +283,7 @@ class ColorLogger(BaseLogger):
         # RU: Цветной prompt для ввода пользователя.
         self.print_color(prompt_text, color)
         return input("> ")
-    
+
     def enable(self) -> None:
         """Enable logging."""
         # RU: Включает логирование.
@@ -290,6 +297,7 @@ class ColorLogger(BaseLogger):
 
 # ===== ColorPrinter (extends ColorLogger) =====
 # RU: ColorPrinter (расширяет ColorLogger)
+
 
 class ColorPrinter(ColorLogger):
     """Advanced logger with socket streaming and memory management.
@@ -314,8 +322,9 @@ class ColorPrinter(ColorLogger):
         await logger.connect_socket()
         logger.info("Message will be logged and streamed")
     """
+
     # RU: Расширенный логгер с потоковой передачей через сокет и управлением памятью.
-    
+
     COLORS = {
         "black": "\033[30m",
         "red": "\033[31m",
@@ -327,7 +336,7 @@ class ColorPrinter(ColorLogger):
         "white": "\033[37m",
     }
     RESET = "\033[0m"
-    
+
     # Class-level tracking of file handlers and active instances
     # RU: Хранение файловых обработчиков и активных экземпляров на уровне класса
     _file_handlers: Dict[str, logging.Handler] = {}
@@ -369,29 +378,29 @@ class ColorPrinter(ColorLogger):
             level=log_level,
             enable_console=enable_console,
             max_bytes=max_bytes,
-            backup_count=backup_count
+            backup_count=backup_count,
         )
-        
+
         self._log_level = log_level
         self._enable_logging = enable_logging
-        
+
         # Memory management for log queue size control
         # RU: Управление памятью для контроля размера очереди логов
         self.memory_limit = memory_limit_mb * 1024 * 1024 if memory_limit_mb else None
         self.current_size = 0
         self.log_queue: deque[str] = deque()
         self.lock = asyncio.Lock()
-        
+
         # Socket connection state for log streaming
         # RU: Состояние сокетного соединения для потоковой передачи логов
         self.socket_writer: Optional[asyncio.StreamWriter] = None
         self.socket_ip = socket_ip
         self.socket_port = socket_port
-        
+
         # Register this logger instance for class-level tracking
         # RU: Регистрируем экземпляр логгера для отслеживания на уровне класса
         ColorPrinter._logger_instances.add(name)
-        
+
         if not self._enable_logging:
             self.logger.disabled = True
 
@@ -407,9 +416,9 @@ class ColorPrinter(ColorLogger):
         # RU: Отправляет лог-сообщение на сокет-сервер.
         if not self.socket_writer:
             return
-            
+
         try:
-            self.socket_writer.write(message.encode('utf-8'))
+            self.socket_writer.write(message.encode("utf-8"))
             await self.socket_writer.drain()
         except Exception:
             self.socket_writer = None
@@ -419,11 +428,10 @@ class ColorPrinter(ColorLogger):
         # RU: Подключается к сокет-серверу для потоковой передачи логов.
         if not self.socket_ip or not self.socket_port:
             return
-            
+
         try:
             reader, writer = await asyncio.open_connection(
-                self.socket_ip, 
-                self.socket_port
+                self.socket_ip, self.socket_port
             )
             self.socket_writer = writer
             # Start the batch send loop as a background task
@@ -493,17 +501,19 @@ class ColorPrinter(ColorLogger):
             JSON-encoded log entry string.
         """
         # RU: Форматирует лог-запись в JSON.
-        from datetime import datetime
         ts = datetime.now().isoformat()
         if _C:
             return _c_format_json_log(level, message, ts)
-        return json.dumps({
-            "timestamp": ts,
-            "level": level,
-            "logger": self.name,
-            "message": message,
-        }, ensure_ascii=False)
-    
+        return json.dumps(
+            {
+                "timestamp": ts,
+                "level": level,
+                "logger": self.name,
+                "message": message,
+            },
+            ensure_ascii=False,
+        )
+
     # ===== Extended Logging Methods =====
     # RU: Расширенные методы логирования
 
@@ -555,7 +565,7 @@ class ColorPrinter(ColorLogger):
         """Log a CRITICAL level message and queue it for socket delivery."""
         # RU: Логирует сообщение уровня CRITICAL и помещает в очередь для отправки.
         self._log_and_queue("critical", message, *args, **kwargs)
-    
+
     # ===== Extended Printing Features =====
     # RU: Расширенные возможности вывода
 
@@ -580,8 +590,10 @@ class ColorPrinter(ColorLogger):
             padded_line = " " * padding + line.ljust(max_width - padding)
             self.print_color(f"║{padded_line}║", color)
         self.print_color(border_bottom, color)
-    
-    def print_separator(self, char: str = "═", length: int = 60, color: str = "cyan") -> None:
+
+    def print_separator(
+        self, char: str = "═", length: int = 60, color: str = "cyan"
+    ) -> None:
         """Print a horizontal separator line of the given character.
 
         Args:
@@ -594,7 +606,7 @@ class ColorPrinter(ColorLogger):
             self.print_color(_c_print_separator_str(char, length), color)
             return
         self.print_color(char * length, color)
-    
+
     def print_banner(self, text: str, color: str = "green") -> None:
         """
         Print a large banner with separator lines above and below the text.
@@ -608,12 +620,9 @@ class ColorPrinter(ColorLogger):
         self.print_separator("═", length, color)
         self.print_color(f"  {text}  ", color)
         self.print_separator("═", length, color)
-    
+
     def print_table(
-        self,
-        headers: list[str],
-        rows: list[list[str]],
-        color: str = "white"
+        self, headers: list[str], rows: list[list[str]], color: str = "white"
     ) -> None:
         """Print a formatted Unicode table with headers and rows.
 
@@ -632,36 +641,38 @@ class ColorPrinter(ColorLogger):
         for row in rows:
             for i, cell in enumerate(row):
                 col_widths[i] = max(col_widths[i], len(str(cell)))
-        
+
         # Print header
         # RU: Выводим заголовок
-        header_line = "│ " + " │ ".join(
-            h.ljust(col_widths[i]) for i, h in enumerate(headers)
-        ) + " │"
+        header_line = (
+            "│ "
+            + " │ ".join(h.ljust(col_widths[i]) for i, h in enumerate(headers))
+            + " │"
+        )
         separator = "├" + "┼".join("─" * (w + 2) for w in col_widths) + "┤"
         top = "┌" + "┬".join("─" * (w + 2) for w in col_widths) + "┐"
         bottom = "└" + "┴".join("─" * (w + 2) for w in col_widths) + "┘"
-        
+
         self.print_color(top, color)
         self.print_color(header_line, color)
         self.print_color(separator, color)
-        
+
         # Print rows
         # RU: Выводим строки
         for row in rows:
-            row_line = "│ " + " │ ".join(
-                str(cell).ljust(col_widths[i]) for i, cell in enumerate(row)
-            ) + " │"
+            row_line = (
+                "│ "
+                + " │ ".join(
+                    str(cell).ljust(col_widths[i]) for i, cell in enumerate(row)
+                )
+                + " │"
+            )
             self.print_color(row_line, color)
-        
+
         self.print_color(bottom, color)
-    
+
     def print_progress(
-        self,
-        current: int,
-        total: int,
-        prefix: str = "Progress",
-        length: int = 40
+        self, current: int, total: int, prefix: str = "Progress", length: int = 40
     ) -> None:
         """Print a progress bar showing completion percentage.
 
@@ -674,20 +685,24 @@ class ColorPrinter(ColorLogger):
         # RU: Выводит прогресс-бар с процентом выполнения.
         if _C:
             percent = 100 * (current / float(total)) if total else 0
-            color = "green" if percent >= 100 else ("yellow" if percent >= 50 else "red")
-            self.print_color(_c_print_progress_str(current, total, prefix, length), color)
+            color = (
+                "green" if percent >= 100 else ("yellow" if percent >= 50 else "red")
+            )
+            self.print_color(
+                _c_print_progress_str(current, total, prefix, length), color
+            )
             return
         percent = 100 * (current / float(total))
         filled = int(length * current // total)
         bar = "█" * filled + "░" * (length - filled)
-        
+
         if percent >= 100:
             color = "green"
         elif percent >= 50:
             color = "yellow"
         else:
             color = "red"
-        
+
         self.print_color(f"{prefix}: |{bar}| {percent:.1f}% ({current}/{total})", color)
 
     def enable(self):
@@ -735,7 +750,9 @@ class ColorPrinter(ColorLogger):
             "logger": self.name,
             "count": count,
             "memory_used_kb": round(size_kb, 2),
-            "memory_limit_kb": round(self.memory_limit / 1024, 2) if self.memory_limit else None,
+            "memory_limit_kb": round(self.memory_limit / 1024, 2)
+            if self.memory_limit
+            else None,
             "socket_connected": self.socket_writer is not None,
             "level": logging.getLevelName(self.logger.level),
         }
@@ -761,11 +778,12 @@ class ColorPrinter(ColorLogger):
 # ===== Factory Functions =====
 # RU: Фабричные функции
 
+
 def get_logger(
     name: str = "core",
     level: str = "info",
     log_file: Optional[Union[str, Path]] = None,
-    **kwargs
+    **kwargs,
 ) -> ColorLogger:
     """
     Factory function for creating ColorLogger instances.
