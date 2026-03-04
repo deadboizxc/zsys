@@ -17,9 +17,8 @@ Quick start::
     await client.idle()
 """
 
-from zsys.telegram.tdlib import TdlibClient, TdlibConfig
-from zsys.telegram.tdlib import filters, errors
-from zsys.telegram.tdlib.types import Message, User, Chat, ChatMember, File
+from zsys.telegram.tdlib import TdlibClient, TdlibConfig, errors, filters
+from zsys.telegram.tdlib.types import Chat, ChatMember, File, Message, User
 
 __all__ = [
     "TdlibClient",

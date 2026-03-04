@@ -7,14 +7,13 @@ Requires: pip install zsys[crypto].
 # RU: RSA-OAEP асимметричное шифрование через библиотеку cryptography.
 # RU: Публичный ключ — шифрование, приватный — расшифровка. Требует pip install zsys[crypto].
 
-from typing import Optional, Tuple
-from zsys.core.interfaces import ICipher
 from zsys.core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
 
 try:
-    from cryptography.hazmat.primitives.asymmetric import rsa, padding
-    from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:

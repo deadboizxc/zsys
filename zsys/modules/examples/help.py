@@ -9,11 +9,11 @@ Unified help system - displays registered commands and modules.
 """
 
 from zsys.modules import (
-    command,
     Context,
-    modules_help,
-    get_modules_help,
+    command,
     get_default_router,
+    get_modules_help,
+    modules_help,
 )
 
 

@@ -27,19 +27,41 @@ __all__ = [
 
 try:
     from zsys._core import (
-        escape_html,
-        format_bold as bold,
-        format_italic as italic,
-        format_underline as underline,
-        format_strikethrough as strikethrough,
-        format_code as code,
-        format_pre as pre,
-        format_preformatted as preformatted,
-        format_spoiler as spoiler,
-        format_link as link,
-        format_mention as mention,
-        format_quote as quote,
         C_AVAILABLE,
+        escape_html,
+    )
+    from zsys._core import (
+        format_bold as bold,
+    )
+    from zsys._core import (
+        format_code as code,
+    )
+    from zsys._core import (
+        format_italic as italic,
+    )
+    from zsys._core import (
+        format_link as link,
+    )
+    from zsys._core import (
+        format_mention as mention,
+    )
+    from zsys._core import (
+        format_pre as pre,
+    )
+    from zsys._core import (
+        format_preformatted as preformatted,
+    )
+    from zsys._core import (
+        format_quote as quote,
+    )
+    from zsys._core import (
+        format_spoiler as spoiler,
+    )
+    from zsys._core import (
+        format_strikethrough as strikethrough,
+    )
+    from zsys._core import (
+        format_underline as underline,
     )
 except ImportError:
     C_AVAILABLE = False

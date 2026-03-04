@@ -6,13 +6,14 @@ Provides unified async HTTP client interface with retry logic.
 
 from .base import BaseHttpClient
 from .client import (
+    AIOHTTP_AVAILABLE,
+    HTTPX_AVAILABLE,
     HttpClient,
     RetryConfig,
     request,
-    AIOHTTP_AVAILABLE,
-    HTTPX_AVAILABLE,
 )
-from .retry import RetryConfig as HttpRetryConfig, retry_request
+from .retry import RetryConfig as HttpRetryConfig
+from .retry import retry_request
 
 __all__ = [
     "BaseHttpClient",

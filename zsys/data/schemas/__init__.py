@@ -21,45 +21,44 @@ Usage:
 
 # Base schema class (single source of truth)
 from .base import (
-    BaseSchema,
-    TimestampMixin,
-    IdMixin,
-    BaseEntitySchema,
-    PagedResponse,
     ApiResponse,
+    BaseEntitySchema,
+    BaseSchema,
+    IdMixin,
+    PagedResponse,
+    TimestampMixin,
 )
 
-# User schemas
-from .user import UserBase, UserCreate, UserUpdate, UserResponse
-
-# Client schemas
-from .client import ClientBase, ClientCreate, ClientUpdate, ClientResponse
+# Bot schemas
+from .bot import BotBase, BotCreate, BotResponse, BotResponseWithToken, BotUpdate
 
 # Chat schemas
 from .chat import ChatBase, ChatCreate, ChatResponse
 
-# Bot schemas
-from .bot import BotBase, BotCreate, BotUpdate, BotResponse, BotResponseWithToken
+# Client schemas
+from .client import ClientBase, ClientCreate, ClientResponse, ClientUpdate
 
-# Message schemas
-from .message import MessageBase, MessageCreate, MessageResponse
-
-# Wallet schemas
-from .wallet import WalletBase, WalletCreate, WalletResponse
+# Common schemas
+from .common import ErrorResponse, ListResponse, TokenRequest, TokenResponse
 
 # Media schemas
 from .media import (
     MediaBase,
     MediaCreate,
-    MediaUpdate,
-    MediaResponse,
-    PaginationMeta,
     MediaListResponse,
+    MediaResponse,
+    MediaUpdate,
+    PaginationMeta,
 )
 
-# Common schemas
-from .common import ErrorResponse, TokenRequest, TokenResponse, ListResponse
+# Message schemas
+from .message import MessageBase, MessageCreate, MessageResponse
 
+# User schemas
+from .user import UserBase, UserCreate, UserResponse, UserUpdate
+
+# Wallet schemas
+from .wallet import WalletBase, WalletCreate, WalletResponse
 
 __all__ = [
     # Base

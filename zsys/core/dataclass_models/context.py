@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Optional, Union, List, BinaryIO, Callable, Awaitable
 from pathlib import Path
+from typing import Any, BinaryIO, List, Optional, Union
 
 
 @dataclass

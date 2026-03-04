@@ -11,16 +11,15 @@ losing their Python type.
 # RU: Каждый модуль отображается на отдельную таблицу; тип значения сохраняется
 # RU: в столбце ``type``, что позволяет корректно восстанавливать Python-объекты.
 
+import json
+import re
+import shutil
 import sqlite3
 import threading
-import json
-import shutil
-import re
-from typing import Any, Dict, Optional, Union, List
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .base import Database, DatabaseError
-
 
 # Allowed characters for table/module names (SQL injection protection)
 # Allow dots for namespaced modules like "core.main"

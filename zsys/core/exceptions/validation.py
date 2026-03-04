@@ -5,7 +5,8 @@ Raised when input data fails schema, type, or business-rule validation.
 # RU: Исключения валидации — ошибки проверки входных данных.
 # RU: Возникают при несоответствии данных схеме, типам или бизнес-правилам.
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from .base import BaseException
 
 

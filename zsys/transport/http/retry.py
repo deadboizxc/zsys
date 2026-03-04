@@ -11,7 +11,7 @@ and full exception type filtering.
 import asyncio
 import random
 from dataclasses import dataclass, field
-from typing import Callable, Optional, Set, Tuple, Any
+from typing import Any, Callable, Optional, Set, Tuple
 
 
 @dataclass

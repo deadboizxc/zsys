@@ -7,9 +7,9 @@ without ORM or platform-specific dependencies.
 # RU: Хранит конфигурацию и состояние бот- или юзербот-клиента.
 
 from dataclasses import dataclass, field
-from typing import Optional
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 
 class ClientStatus(str, Enum):

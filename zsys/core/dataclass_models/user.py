@@ -7,8 +7,8 @@ or platform-specific dependencies.
 # RU: Для сохранения в БД используйте zsys.data.orm.user.BaseUser.
 
 from dataclasses import dataclass, field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 
 @dataclass

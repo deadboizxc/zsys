@@ -25,22 +25,33 @@ from __future__ import annotations
 
 import asyncio
 import ctypes
-from typing import Any, AsyncGenerator, Callable, Coroutine, Dict, List, Optional
+from typing import Any, Callable, Coroutine, Dict, List, Optional
 
-from zsys.core.interfaces.client import IClient
 from zsys.log import get_logger
-from zsys.telegram.tdlib.config import TdlibConfig
 from zsys.telegram.tdlib.binding import (
-    libtg,
-    TG_ASK_PHONE_FN, TG_ASK_CODE_FN, TG_ASK_PASS_FN,
-    TG_READY_FN, TG_ERROR_FN, TG_MESSAGE_FN, TG_RAW_FN,
-    TG_RESULT_FN, TG_USER_CB_FN, TG_CHAT_CB_FN,
-    TG_MEMBER_CB_FN, TG_MEMBERS_CB_FN, TG_MESSAGES_CB_FN,
-    TG_FILE_CB_FN, TG_DIALOGS_CB_FN,
-    TG_CALLBACK_QUERY_FN, TG_INLINE_QUERY_FN, TG_MEMBER_EVENT_FN,
+    TG_ASK_CODE_FN,
+    TG_ASK_PASS_FN,
+    TG_ASK_PHONE_FN,
+    TG_CALLBACK_QUERY_FN,
+    TG_CHAT_CB_FN,
+    TG_DIALOGS_CB_FN,
+    TG_ERROR_FN,
+    TG_FILE_CB_FN,
     TG_FILTER_ALL,
+    TG_INLINE_QUERY_FN,
+    TG_MEMBER_CB_FN,
+    TG_MEMBER_EVENT_FN,
+    TG_MEMBERS_CB_FN,
+    TG_MESSAGE_FN,
+    TG_MESSAGES_CB_FN,
+    TG_RAW_FN,
+    TG_READY_FN,
+    TG_RESULT_FN,
+    TG_USER_CB_FN,
+    libtg,
 )
-from zsys.telegram.tdlib.types import Message, User, Chat, ChatMember, File
+from zsys.telegram.tdlib.config import TdlibConfig
+from zsys.telegram.tdlib.types import Chat, ChatMember, File, Message, User
 
 # Coroutine-based auth handler type
 _AskFn = Optional[Callable[["TdlibClient"], Coroutine[Any, Any, None]]]
@@ -74,19 +85,20 @@ class TdlibClient:
 
         client = TdlibClient(cfg, ask_phone=on_phone)
     """
+
     # RU: TdlibClient — обёртка над C libtg. Реализует IClient без pyrogram.
 
     def __init__(
         self,
         config: TdlibConfig,
         ask_phone: _AskFn = None,
-        ask_code:  _AskFn = None,
-        ask_pass:  _AskFn = None,
+        ask_code: _AskFn = None,
+        ask_pass: _AskFn = None,
     ) -> None:
-        self._config   = config
-        self._logger   = get_logger(__name__)
-        self._loop:    Optional[asyncio.AbstractEventLoop] = None
-        self._is_running  = False
+        self._config = config
+        self._logger = get_logger(__name__)
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._is_running = False
         self._is_stopping = False
 
         # Loaded modules tracking
@@ -95,21 +107,21 @@ class TdlibClient:
 
         # Coroutine auth handlers
         self._ask_phone_coro: _AskFn = ask_phone
-        self._ask_code_coro:  _AskFn = ask_code
-        self._ask_pass_coro:  _AskFn = ask_pass
+        self._ask_code_coro: _AskFn = ask_code
+        self._ask_pass_coro: _AskFn = ask_pass
 
         # C callbacks — must be kept alive to prevent GC
         self._c_ask_phone: Any = None
-        self._c_ask_code:  Any = None
-        self._c_ask_pass:  Any = None
-        self._c_on_ready:  Any = None
-        self._c_on_error:  Any = None
+        self._c_ask_code: Any = None
+        self._c_ask_pass: Any = None
+        self._c_on_ready: Any = None
+        self._c_on_error: Any = None
 
         # All registered C callback refs (to prevent GC)
         self._handler_refs: List[Any] = []
 
         # C pointers
-        self._cfg_ptr:    Optional[ctypes.c_void_p] = None
+        self._cfg_ptr: Optional[ctypes.c_void_p] = None
         self._client_ptr: Optional[ctypes.c_void_p] = None
 
         self._ready_event = asyncio.Event()
@@ -141,10 +153,7 @@ class TdlibClient:
         self._ready_event = asyncio.Event()
 
         cfg = self._config
-        self._cfg_ptr = libtg.tg_config_new(
-            cfg.api_id,
-            cfg.api_hash.encode()
-        )
+        self._cfg_ptr = libtg.tg_config_new(cfg.api_id, cfg.api_hash.encode())
         if not self._cfg_ptr:
             raise RuntimeError("tg_config_new returned NULL")
 
@@ -165,8 +174,7 @@ class TdlibClient:
 
         # Wait for authorization (run blocking C wait in executor)
         await self._loop.run_in_executor(
-            None,
-            lambda: libtg.tg_client_wait_ready(self._client_ptr, 120)
+            None, lambda: libtg.tg_client_wait_ready(self._client_ptr, 120)
         )
 
         if self._config.auto_load_modules:
@@ -192,7 +200,7 @@ class TdlibClient:
             libtg.tg_config_free(self._cfg_ptr)
             self._cfg_ptr = None
 
-        self._is_running  = False
+        self._is_running = False
         self._is_stopping = False
 
     async def idle(self) -> None:
@@ -221,168 +229,168 @@ class TdlibClient:
     # Actions (high-level, async-friendly wrappers)
     # ─────────────────────────────────────────────────────────────────────────
 
-    async def send_message(self, chat_id: int, text: str,
-                           parse_mode: str = "html",
-                           reply_to_message_id: int = 0,
-                           reply_markup: Optional[str] = None) -> None:
+    async def send_message(
+        self,
+        chat_id: int,
+        text: str,
+        parse_mode: str = "html",
+        reply_to_message_id: int = 0,
+        reply_markup: Optional[str] = None,
+    ) -> None:
         """Send a text message with optional reply and inline keyboard."""
         if reply_to_message_id or reply_markup:
             libtg.tg_send_text_ex(
-                self._client_ptr, chat_id,
-                text.encode("utf-8"), parse_mode.encode(),
+                self._client_ptr,
+                chat_id,
+                text.encode("utf-8"),
+                parse_mode.encode(),
                 reply_to_message_id,
                 reply_markup.encode() if reply_markup else None,
             )
         else:
             libtg.tg_send_text(
-                self._client_ptr, chat_id,
-                text.encode("utf-8"), parse_mode.encode()
+                self._client_ptr, chat_id, text.encode("utf-8"), parse_mode.encode()
             )
 
-    async def reply(self, msg: Message, text: str,
-                    parse_mode: str = "html") -> None:
+    async def reply(self, msg: Message, text: str, parse_mode: str = "html") -> None:
         """Reply to a message."""
         libtg.tg_reply_text(
-            self._client_ptr, msg._ptr,
-            text.encode("utf-8"), parse_mode.encode()
+            self._client_ptr, msg._ptr, text.encode("utf-8"), parse_mode.encode()
         )
 
-    async def edit_message(self, chat_id: int, msg_id: int,
-                           text: str, parse_mode: str = "html") -> None:
+    async def edit_message(
+        self, chat_id: int, msg_id: int, text: str, parse_mode: str = "html"
+    ) -> None:
         libtg.tg_edit_text(
-            self._client_ptr, chat_id, msg_id,
-            text.encode("utf-8"), parse_mode.encode()
+            self._client_ptr, chat_id, msg_id, text.encode("utf-8"), parse_mode.encode()
         )
 
     async def delete_message(self, chat_id: int, msg_id: int) -> None:
         libtg.tg_delete_msg(self._client_ptr, chat_id, msg_id)
 
-    async def send_photo(self, chat_id: int, path: str,
-                         caption: str = "") -> None:
-        libtg.tg_send_photo(
-            self._client_ptr, chat_id,
-            path.encode(), caption.encode()
-        )
+    async def send_photo(self, chat_id: int, path: str, caption: str = "") -> None:
+        libtg.tg_send_photo(self._client_ptr, chat_id, path.encode(), caption.encode())
 
-    async def send_video(self, chat_id: int, path: str,
-                         caption: str = "") -> None:
+    async def send_video(self, chat_id: int, path: str, caption: str = "") -> None:
         """Send a video file."""
-        libtg.tg_send_video(
-            self._client_ptr, chat_id,
-            path.encode(), caption.encode()
-        )
+        libtg.tg_send_video(self._client_ptr, chat_id, path.encode(), caption.encode())
 
-    async def send_audio(self, chat_id: int, path: str,
-                         caption: str = "") -> None:
+    async def send_audio(self, chat_id: int, path: str, caption: str = "") -> None:
         """Send an audio file."""
-        libtg.tg_send_audio(
-            self._client_ptr, chat_id,
-            path.encode(), caption.encode()
-        )
+        libtg.tg_send_audio(self._client_ptr, chat_id, path.encode(), caption.encode())
 
-    async def send_document(self, chat_id: int, path: str,
-                             caption: str = "") -> None:
+    async def send_document(self, chat_id: int, path: str, caption: str = "") -> None:
         """Send a document file."""
-        libtg.tg_send_doc(
-            self._client_ptr, chat_id,
-            path.encode(), caption.encode()
-        )
+        libtg.tg_send_doc(self._client_ptr, chat_id, path.encode(), caption.encode())
 
-    async def send_animation(self, chat_id: int, path: str,
-                              caption: str = "") -> None:
+    async def send_animation(self, chat_id: int, path: str, caption: str = "") -> None:
         """Send an animation (GIF)."""
         libtg.tg_send_animation(
-            self._client_ptr, chat_id,
-            path.encode(), caption.encode()
+            self._client_ptr, chat_id, path.encode(), caption.encode()
         )
 
     async def send_sticker(self, chat_id: int, file_id_or_path: str) -> None:
         """Send a sticker by file_id (remote) or local path."""
-        libtg.tg_send_sticker(
-            self._client_ptr, chat_id,
-            file_id_or_path.encode()
-        )
+        libtg.tg_send_sticker(self._client_ptr, chat_id, file_id_or_path.encode())
 
-    async def send_voice(self, chat_id: int, path: str,
-                         caption: str = "") -> None:
+    async def send_voice(self, chat_id: int, path: str, caption: str = "") -> None:
         """Send a voice message."""
-        libtg.tg_send_voice(
-            self._client_ptr, chat_id,
-            path.encode(), caption.encode()
-        )
+        libtg.tg_send_voice(self._client_ptr, chat_id, path.encode(), caption.encode())
 
     async def send_location(self, chat_id: int, lat: float, lon: float) -> None:
         """Send a location."""
         libtg.tg_send_location(self._client_ptr, chat_id, lat, lon)
 
-    async def send_contact(self, chat_id: int, phone: str, first_name: str,
-                           last_name: str = "") -> None:
+    async def send_contact(
+        self, chat_id: int, phone: str, first_name: str, last_name: str = ""
+    ) -> None:
         """Send a contact."""
         libtg.tg_send_contact(
-            self._client_ptr, chat_id,
-            phone.encode(), first_name.encode(), last_name.encode()
+            self._client_ptr,
+            chat_id,
+            phone.encode(),
+            first_name.encode(),
+            last_name.encode(),
         )
 
-    async def send_poll(self, chat_id: int, question: str,
-                        options: List[str], is_anonymous: bool = True) -> None:
+    async def send_poll(
+        self, chat_id: int, question: str, options: List[str], is_anonymous: bool = True
+    ) -> None:
         """Send a poll."""
         import ctypes
-        opt_arr = (ctypes.c_char_p * len(options))(
-            *[o.encode() for o in options]
-        )
+
+        opt_arr = (ctypes.c_char_p * len(options))(*[o.encode() for o in options])
         libtg.tg_send_poll(
-            self._client_ptr, chat_id,
-            question.encode(), opt_arr, len(options),
-            int(is_anonymous)
+            self._client_ptr,
+            chat_id,
+            question.encode(),
+            opt_arr,
+            len(options),
+            int(is_anonymous),
         )
 
     async def send_dice(self, chat_id: int, emoji: str = "🎲") -> None:
         """Send a dice/random emoji."""
         libtg.tg_send_dice(self._client_ptr, chat_id, emoji.encode("utf-8"))
 
-    async def send_chat_action(self, chat_id: int,
-                               action: str = "typing") -> None:
+    async def send_chat_action(self, chat_id: int, action: str = "typing") -> None:
         """Send a chat action (e.g. 'typing', 'upload_photo')."""
         libtg.tg_send_chat_action(self._client_ptr, chat_id, action.encode())
 
-    async def copy_message(self, to_chat_id: int, from_chat_id: int,
-                           msg_id: int) -> None:
+    async def copy_message(
+        self, to_chat_id: int, from_chat_id: int, msg_id: int
+    ) -> None:
         """Copy a message (send_copy=True forward — no forward header)."""
         libtg.tg_copy_message(self._client_ptr, to_chat_id, from_chat_id, msg_id)
 
-    async def forward_messages(self, to_chat_id: int, from_chat_id: int,
-                               msg_ids: List[int]) -> None:
+    async def forward_messages(
+        self, to_chat_id: int, from_chat_id: int, msg_ids: List[int]
+    ) -> None:
         """Forward messages (with forward header)."""
         for mid in msg_ids:
             libtg.tg_forward(self._client_ptr, to_chat_id, from_chat_id, mid)
 
-    async def edit_message_text(self, chat_id: int, msg_id: int, text: str,
-                                parse_mode: str = "html",
-                                reply_markup: Optional[str] = None) -> None:
+    async def edit_message_text(
+        self,
+        chat_id: int,
+        msg_id: int,
+        text: str,
+        parse_mode: str = "html",
+        reply_markup: Optional[str] = None,
+    ) -> None:
         """Edit message text."""
         if reply_markup:
             libtg.tg_edit_text_ex(
-                self._client_ptr, chat_id, msg_id,
-                text.encode("utf-8"), parse_mode.encode(),
-                reply_markup.encode()
+                self._client_ptr,
+                chat_id,
+                msg_id,
+                text.encode("utf-8"),
+                parse_mode.encode(),
+                reply_markup.encode(),
             )
         else:
             libtg.tg_edit_text(
-                self._client_ptr, chat_id, msg_id,
-                text.encode("utf-8"), parse_mode.encode()
+                self._client_ptr,
+                chat_id,
+                msg_id,
+                text.encode("utf-8"),
+                parse_mode.encode(),
             )
 
-    async def delete_messages(self, chat_id: int, msg_ids: List[int],
-                              revoke: bool = True) -> None:
+    async def delete_messages(
+        self, chat_id: int, msg_ids: List[int], revoke: bool = True
+    ) -> None:
         """Delete multiple messages."""
         import ctypes
+
         arr = (ctypes.c_int64 * len(msg_ids))(*msg_ids)
         libtg.tg_delete_messages(
             self._client_ptr, chat_id, arr, len(msg_ids), int(revoke)
         )
 
-    async def pin_message(self, chat_id: int, msg_id: int,
-                          disable_notification: bool = False) -> None:
+    async def pin_message(
+        self, chat_id: int, msg_id: int, disable_notification: bool = False
+    ) -> None:
         """Pin a message."""
         libtg.tg_pin_message(
             self._client_ptr, chat_id, msg_id, int(disable_notification)
@@ -415,7 +423,7 @@ class TdlibClient:
 
     async def get_chat(self, chat_id: int) -> Chat:
         """Fetch chat info by ID."""
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, chat_ptr, ud_ptr):
@@ -424,7 +432,8 @@ class TdlibClient:
                 self._loop.call_soon_threadsafe(future.set_result, result)
             else:
                 self._loop.call_soon_threadsafe(
-                    future.set_exception, RuntimeError("get_chat failed"))
+                    future.set_exception, RuntimeError("get_chat failed")
+                )
 
         c_fn = TG_CHAT_CB_FN(_cb)
         self._handler_refs.append(c_fn)
@@ -433,7 +442,7 @@ class TdlibClient:
 
     async def get_users(self, user_id: int) -> User:
         """Fetch user info by ID (Pyrogram-style name)."""
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, user_ptr, ud_ptr):
@@ -442,7 +451,8 @@ class TdlibClient:
                 self._loop.call_soon_threadsafe(future.set_result, result)
             else:
                 self._loop.call_soon_threadsafe(
-                    future.set_exception, RuntimeError("get_users failed"))
+                    future.set_exception, RuntimeError("get_users failed")
+                )
 
         c_fn = TG_USER_CB_FN(_cb)
         self._handler_refs.append(c_fn)
@@ -458,7 +468,7 @@ class TdlibClient:
 
     async def get_chat_member(self, chat_id: int, user_id: int) -> ChatMember:
         """Fetch a specific chat member."""
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, member_ptr, ud_ptr):
@@ -467,17 +477,19 @@ class TdlibClient:
                 self._loop.call_soon_threadsafe(future.set_result, result)
             else:
                 self._loop.call_soon_threadsafe(
-                    future.set_exception, RuntimeError("get_chat_member failed"))
+                    future.set_exception, RuntimeError("get_chat_member failed")
+                )
 
         c_fn = TG_MEMBER_CB_FN(_cb)
         self._handler_refs.append(c_fn)
         libtg.tg_get_member(self._client_ptr, chat_id, user_id, c_fn, None)
         return await future
 
-    async def get_chat_members(self, chat_id: int,
-                               offset: int = 0, limit: int = 200) -> List[ChatMember]:
+    async def get_chat_members(
+        self, chat_id: int, offset: int = 0, limit: int = 200
+    ) -> List[ChatMember]:
         """Fetch list of chat members."""
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, members_ptr, count, ud_ptr):
@@ -495,7 +507,7 @@ class TdlibClient:
 
     async def get_chat_administrators(self, chat_id: int) -> List[ChatMember]:
         """Fetch list of chat administrators."""
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, members_ptr, count, ud_ptr):
@@ -511,11 +523,11 @@ class TdlibClient:
         libtg.tg_get_admins(self._client_ptr, chat_id, c_fn, None)
         return await future
 
-    async def get_messages(self, chat_id: int,
-                           msg_ids: List[int]) -> List[Message]:
+    async def get_messages(self, chat_id: int, msg_ids: List[int]) -> List[Message]:
         """Fetch specific messages by ID list."""
         import ctypes
-        lib    = libtg._load()
+
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, msgs_ptr, count, ud_ptr):
@@ -529,13 +541,12 @@ class TdlibClient:
         c_fn = TG_MESSAGES_CB_FN(_cb)
         self._handler_refs.append(c_fn)
         arr = (ctypes.c_int64 * len(msg_ids))(*msg_ids)
-        libtg.tg_get_messages(self._client_ptr, chat_id, arr, len(msg_ids),
-                              c_fn, None)
+        libtg.tg_get_messages(self._client_ptr, chat_id, arr, len(msg_ids), c_fn, None)
         return await future
 
-    async def get_chat_history(self, chat_id: int,
-                               offset_id: int = 0,
-                               limit: int = 100):
+    async def get_chat_history(
+        self, chat_id: int, offset_id: int = 0, limit: int = 100
+    ):
         """Async generator yielding messages in reverse chronological order.
 
         Matches Pyrogram's ``async for msg in client.get_chat_history(...)``
@@ -547,16 +558,15 @@ class TdlibClient:
                 print(msg.text)
         """
         # RU: Генератор истории сообщений, как в Pyrogram.
-        lib         = libtg._load()
+        lib = libtg._load()
         from_msg_id = offset_id
-        batch_size  = min(limit, 100)
-        fetched     = 0
+        batch_size = min(limit, 100)
+        fetched = 0
 
         while fetched < limit:
             future = self._make_future()
 
-            def _cb(c_ptr, msgs_ptr, count, ud_ptr,
-                    _future=future, _lib=lib):
+            def _cb(c_ptr, msgs_ptr, count, ud_ptr, _future=future, _lib=lib):
                 results = []
                 for i in range(count):
                     elem_ptr = _lib.tg_message_at(msgs_ptr, i)
@@ -567,8 +577,12 @@ class TdlibClient:
             c_fn = TG_MESSAGES_CB_FN(_cb)
             self._handler_refs.append(c_fn)
             libtg.tg_get_history(
-                self._client_ptr, chat_id, from_msg_id,
-                min(batch_size, limit - fetched), c_fn, None
+                self._client_ptr,
+                chat_id,
+                from_msg_id,
+                min(batch_size, limit - fetched),
+                c_fn,
+                None,
             )
             batch = await future
             if not batch:
@@ -586,6 +600,7 @@ class TdlibClient:
         def _cb(c_ptr, ids_ptr, count, ud_ptr):
             # ids_ptr points to an int64 array — resolve chats asynchronously
             import ctypes
+
             ids = []
             if ids_ptr:
                 arr = ctypes.cast(ids_ptr, ctypes.POINTER(ctypes.c_int64))
@@ -608,36 +623,34 @@ class TdlibClient:
 
     async def resolve_peer(self, peer) -> Chat:
         """Resolve a username or chat ID to a Chat object."""
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, chat_ptr, ud_ptr):
             if chat_ptr:
-                self._loop.call_soon_threadsafe(
-                    future.set_result, Chat(lib, chat_ptr))
+                self._loop.call_soon_threadsafe(future.set_result, Chat(lib, chat_ptr))
             else:
                 self._loop.call_soon_threadsafe(
-                    future.set_exception, RuntimeError(f"Cannot resolve: {peer}"))
+                    future.set_exception, RuntimeError(f"Cannot resolve: {peer}")
+                )
 
         c_fn = TG_CHAT_CB_FN(_cb)
         self._handler_refs.append(c_fn)
         if isinstance(peer, str):
             username = peer.lstrip("@")
-            libtg.tg_search_public_chat(
-                self._client_ptr, username.encode(), c_fn, None)
+            libtg.tg_search_public_chat(self._client_ptr, username.encode(), c_fn, None)
         else:
             libtg.tg_get_chat(self._client_ptr, int(peer), c_fn, None)
         return await future
 
-    async def download_media(self, file_id: int,
-                             in_memory: bool = False):
+    async def download_media(self, file_id: int, in_memory: bool = False):
         """Download a file by TDLib file_id.
 
         Returns:
             str: local file path (``in_memory=False``).
             bytes: file content  (``in_memory=True``).
         """
-        lib    = libtg._load()
+        lib = libtg._load()
         future = self._make_future()
 
         def _cb(c_ptr, file_ptr, ud_ptr):
@@ -647,15 +660,16 @@ class TdlibClient:
                     try:
                         with open(f.local_path, "rb") as fh:
                             self._loop.call_soon_threadsafe(
-                                future.set_result, fh.read())
+                                future.set_result, fh.read()
+                            )
                         return
                     except OSError:
                         pass
-                self._loop.call_soon_threadsafe(
-                    future.set_result, f.local_path or "")
+                self._loop.call_soon_threadsafe(future.set_result, f.local_path or "")
             else:
                 self._loop.call_soon_threadsafe(
-                    future.set_exception, RuntimeError("download_media failed"))
+                    future.set_exception, RuntimeError("download_media failed")
+                )
 
         c_fn = TG_FILE_CB_FN(_cb)
         self._handler_refs.append(c_fn)
@@ -666,8 +680,9 @@ class TdlibClient:
     # Admin
     # ─────────────────────────────────────────────────────────────────────────
 
-    async def ban_chat_member(self, chat_id: int, user_id: int,
-                              until_date: int = 0) -> None:
+    async def ban_chat_member(
+        self, chat_id: int, user_id: int, until_date: int = 0
+    ) -> None:
         """Ban a member from a chat."""
         libtg.tg_ban_member(self._client_ptr, chat_id, user_id, until_date)
 
@@ -675,15 +690,19 @@ class TdlibClient:
         """Unban a previously banned member."""
         libtg.tg_unban_member(self._client_ptr, chat_id, user_id)
 
-    async def restrict_chat_member(self, chat_id: int, user_id: int,
-                                   permissions: int,
-                                   until_date: int = 0) -> None:
+    async def restrict_chat_member(
+        self, chat_id: int, user_id: int, permissions: int, until_date: int = 0
+    ) -> None:
         """Restrict a member's permissions."""
         libtg.tg_restrict_member(
-            self._client_ptr, chat_id, user_id, permissions, until_date)
+            self._client_ptr, chat_id, user_id, permissions, until_date
+        )
 
     async def promote_chat_member(
-        self, chat_id: int, user_id: int, *,
+        self,
+        chat_id: int,
+        user_id: int,
+        *,
         can_manage_chat: bool = False,
         can_post_messages: bool = False,
         can_edit_messages: bool = False,
@@ -700,11 +719,19 @@ class TdlibClient:
         """Promote a member to administrator with specific rights."""
         # RU: Повышаем участника до администратора с выбранными правами.
         from zsys.telegram.tdlib.binding import (
-            TG_ADMIN_MANAGE_CHAT, TG_ADMIN_POST_MESSAGES, TG_ADMIN_EDIT_MESSAGES,
-            TG_ADMIN_DELETE_MESSAGES, TG_ADMIN_BAN_USERS, TG_ADMIN_INVITE_USERS,
-            TG_ADMIN_PIN_MESSAGES, TG_ADMIN_PROMOTE_MEMBERS, TG_ADMIN_CHANGE_INFO,
-            TG_ADMIN_MANAGE_VIDEO, TG_ADMIN_ANONYMOUS,
+            TG_ADMIN_ANONYMOUS,
+            TG_ADMIN_BAN_USERS,
+            TG_ADMIN_CHANGE_INFO,
+            TG_ADMIN_DELETE_MESSAGES,
+            TG_ADMIN_EDIT_MESSAGES,
+            TG_ADMIN_INVITE_USERS,
+            TG_ADMIN_MANAGE_CHAT,
+            TG_ADMIN_MANAGE_VIDEO,
+            TG_ADMIN_PIN_MESSAGES,
+            TG_ADMIN_POST_MESSAGES,
+            TG_ADMIN_PROMOTE_MEMBERS,
         )
+
         rights = 0
         if can_manage_chat:
             rights |= TG_ADMIN_MANAGE_CHAT
@@ -729,11 +756,14 @@ class TdlibClient:
         if is_anonymous:
             rights |= TG_ADMIN_ANONYMOUS
         libtg.tg_promote_member(
-            self._client_ptr, chat_id, user_id, rights,
-            custom_title.encode() if custom_title else b"")
+            self._client_ptr,
+            chat_id,
+            user_id,
+            rights,
+            custom_title.encode() if custom_title else b"",
+        )
 
-    async def set_chat_permissions(self, chat_id: int,
-                                   permissions: int) -> None:
+    async def set_chat_permissions(self, chat_id: int, permissions: int) -> None:
         """Set default chat member permissions bitmask."""
         libtg.tg_set_chat_permissions(self._client_ptr, chat_id, permissions)
 
@@ -757,11 +787,9 @@ class TdlibClient:
         """Set chat title."""
         libtg.tg_set_chat_title(self._client_ptr, chat_id, title.encode())
 
-    async def set_chat_description(self, chat_id: int,
-                                   description: str) -> None:
+    async def set_chat_description(self, chat_id: int, description: str) -> None:
         """Set chat description."""
-        libtg.tg_set_chat_description(
-            self._client_ptr, chat_id, description.encode())
+        libtg.tg_set_chat_description(self._client_ptr, chat_id, description.encode())
 
     async def archive_chats(self, chat_ids: List[int]) -> None:
         """Archive one or more chats."""
@@ -797,15 +825,18 @@ class TdlibClient:
         """Set the account username."""
         libtg.tg_set_username(self._client_ptr, username.encode())
 
-    async def update_profile(self, first_name: Optional[str] = None,
-                             last_name: Optional[str] = None,
-                             bio: Optional[str] = None) -> None:
+    async def update_profile(
+        self,
+        first_name: Optional[str] = None,
+        last_name: Optional[str] = None,
+        bio: Optional[str] = None,
+    ) -> None:
         """Update profile name and/or bio."""
         libtg.tg_update_profile(
             self._client_ptr,
             first_name.encode() if first_name else None,
-            last_name.encode()  if last_name  else None,
-            bio.encode()        if bio         else None,
+            last_name.encode() if last_name else None,
+            bio.encode() if bio else None,
         )
 
     async def set_profile_photo(self, path: str) -> None:
@@ -820,13 +851,17 @@ class TdlibClient:
     # Bot
     # ─────────────────────────────────────────────────────────────────────────
 
-    async def answer_callback_query(self, query_id: int, text: str = "",
-                                    show_alert: bool = False,
-                                    cache_time: int = 0) -> None:
+    async def answer_callback_query(
+        self,
+        query_id: int,
+        text: str = "",
+        show_alert: bool = False,
+        cache_time: int = 0,
+    ) -> None:
         """Answer an inline keyboard callback query."""
         libtg.tg_answer_callback_query(
-            self._client_ptr, query_id,
-            text.encode(), int(show_alert), cache_time)
+            self._client_ptr, query_id, text.encode(), int(show_alert), cache_time
+        )
 
     def on_callback_query(self, fn: Callable) -> Callable:
         """Decorator: register a callback query handler.
@@ -843,7 +878,8 @@ class TdlibClient:
                 loop = client_ref._loop
                 if loop and loop.is_running():
                     asyncio.run_coroutine_threadsafe(
-                        fn(client_ref, query_id, from_id, data), loop)
+                        fn(client_ref, query_id, from_id, data), loop
+                    )
             else:
                 try:
                     fn(client_ref, query_id, from_id, data)
@@ -864,13 +900,14 @@ class TdlibClient:
         client_ref = self
 
         def _c_handler(c_ptr, query_id, from_id, query_b, offset_b, ud_ptr):
-            query  = query_b.decode()  if query_b  else ""
+            query = query_b.decode() if query_b else ""
             offset = offset_b.decode() if offset_b else ""
             if asyncio.iscoroutinefunction(fn):
                 loop = client_ref._loop
                 if loop and loop.is_running():
                     asyncio.run_coroutine_threadsafe(
-                        fn(client_ref, query_id, from_id, query, offset), loop)
+                        fn(client_ref, query_id, from_id, query, offset), loop
+                    )
             else:
                 try:
                     fn(client_ref, query_id, from_id, query, offset)
@@ -884,7 +921,7 @@ class TdlibClient:
 
     def _register_member_event(self, fn: Callable, is_left: bool) -> None:
         """Register a chat member join/left handler."""
-        lib        = libtg._load()
+        lib = libtg._load()
         client_ref = self
 
         def _c_handler(c_ptr, chat_id, user_ptr, ud_ptr):
@@ -893,7 +930,8 @@ class TdlibClient:
                 loop = client_ref._loop
                 if loop and loop.is_running():
                     asyncio.run_coroutine_threadsafe(
-                        fn(client_ref, chat_id, user), loop)
+                        fn(client_ref, chat_id, user), loop
+                    )
             else:
                 try:
                     fn(client_ref, chat_id, user)
@@ -964,17 +1002,21 @@ class TdlibClient:
             async def handler(client, msg):
                 await client.reply(msg, "hello!")
         """
+
         # RU: Декоратор регистрации хендлера сообщений.
         def decorator(fn: Callable) -> Callable:
             self._register_message_handler(fn, filters, edited=False)
             return fn
+
         return decorator
 
     def on_edited(self, filters: int = TG_FILTER_ALL):
         """Decorator to register an edited message handler."""
+
         def decorator(fn: Callable) -> Callable:
             self._register_message_handler(fn, filters, edited=True)
             return fn
+
         return decorator
 
     def on_raw(self, update_type: Optional[str] = None):
@@ -986,13 +1028,16 @@ class TdlibClient:
             def handler(client, json_str):
                 print(json_str)
         """
+
         def decorator(fn: Callable) -> Callable:
             self._register_raw_handler(fn, update_type)
             return fn
+
         return decorator
 
-    def _register_message_handler(self, fn: Callable, filters: int,
-                                   edited: bool = False) -> None:
+    def _register_message_handler(
+        self, fn: Callable, filters: int, edited: bool = False
+    ) -> None:
         """Register a C-level message handler calling back into Python."""
         # RU: Создаём C-коллбэк и регистрируем в libtg.
         client_ref = self
@@ -1015,18 +1060,18 @@ class TdlibClient:
         reg = libtg.tg_on_edited if edited else libtg.tg_on_message
         reg(self._client_ptr, filters, c_fn, None)
 
-    def _register_raw_handler(self, fn: Callable,
-                               update_type: Optional[str]) -> None:
+    def _register_raw_handler(self, fn: Callable, update_type: Optional[str]) -> None:
         """Register a raw JSON update handler."""
         client_ref = self
 
         def _c_raw(c_ptr, json_bytes, ud_ptr):
-            json_str = json_bytes.decode("utf-8", errors="replace") if json_bytes else ""
+            json_str = (
+                json_bytes.decode("utf-8", errors="replace") if json_bytes else ""
+            )
             if asyncio.iscoroutinefunction(fn):
                 loop = client_ref._loop
                 if loop and loop.is_running():
-                    asyncio.run_coroutine_threadsafe(
-                        fn(client_ref, json_str), loop)
+                    asyncio.run_coroutine_threadsafe(fn(client_ref, json_str), loop)
             else:
                 try:
                     fn(client_ref, json_str)
@@ -1036,9 +1081,7 @@ class TdlibClient:
         c_fn = TG_RAW_FN(_c_raw)
         self._handler_refs.append(c_fn)
         libtg.tg_on_raw(
-            self._client_ptr,
-            update_type.encode() if update_type else None,
-            c_fn, None
+            self._client_ptr, update_type.encode() if update_type else None, c_fn, None
         )
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1055,8 +1098,8 @@ class TdlibClient:
                 if coro_fn:
                     loop = client_ref._loop
                     if loop and loop.is_running():
-                        asyncio.run_coroutine_threadsafe(
-                            coro_fn(client_ref), loop)
+                        asyncio.run_coroutine_threadsafe(coro_fn(client_ref), loop)
+
             return inner
 
         def _on_ready(c_ptr, ud_ptr):
@@ -1069,10 +1112,10 @@ class TdlibClient:
             client_ref._logger.error(f"Auth error {code}: {msg}")
 
         self._c_ask_phone = TG_ASK_PHONE_FN(_schedule(self._ask_phone_coro))
-        self._c_ask_code  = TG_ASK_CODE_FN(_schedule(self._ask_code_coro))
-        self._c_ask_pass  = TG_ASK_PASS_FN(_schedule(self._ask_pass_coro))
-        self._c_on_ready  = TG_READY_FN(_on_ready)
-        self._c_on_error  = TG_ERROR_FN(_on_error)
+        self._c_ask_code = TG_ASK_CODE_FN(_schedule(self._ask_code_coro))
+        self._c_ask_pass = TG_ASK_PASS_FN(_schedule(self._ask_pass_coro))
+        self._c_on_ready = TG_READY_FN(_on_ready)
+        self._c_on_error = TG_ERROR_FN(_on_error)
 
         libtg.tg_client_set_auth_handlers(
             self._client_ptr,
@@ -1092,8 +1135,8 @@ class TdlibClient:
         """Called after authorization and module loading. Override in subclass."""
         # RU: Вызывается после успешной авторизации.
         me_id = libtg.tg_me_id(self._client_ptr)
-        raw   = libtg.tg_me_first_name(self._client_ptr)
-        name  = raw.decode() if raw else "Unknown"
+        raw = libtg.tg_me_first_name(self._client_ptr)
+        name = raw.decode() if raw else "Unknown"
         self._logger.info(f"Ready as {name} (id={me_id})")
 
     async def _on_stopping(self) -> None:
@@ -1112,6 +1155,7 @@ class TdlibClient:
         """Load zsys modules from core and custom dirs and attach router."""
         # RU: Загрузка модулей — совместима с PyrogramClient.
         from pathlib import Path
+
         from zsys.modules import get_default_router
         from zsys.modules.loader import ModuleLoader
         from zsys.telegram.tdlib.router import attach_router
@@ -1123,7 +1167,8 @@ class TdlibClient:
             p = Path(dir_path)
             if not p.exists():
                 continue
-            loader = ModuleLoader(p,
+            loader = ModuleLoader(
+                p,
                 on_load=lambda info: self._on_module_loaded(info),
                 on_error=lambda info, exc: self._on_module_error(info, exc),
             )

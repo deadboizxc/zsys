@@ -12,7 +12,7 @@ Example usage:
     .say !Reply text    -> Reply with <code>Reply text</code>
 """
 
-from zsys.modules import command, Context, modules_help
+from zsys.modules import Context, command, modules_help
 
 
 @command(

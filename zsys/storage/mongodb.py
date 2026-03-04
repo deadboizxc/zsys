@@ -12,7 +12,7 @@ via ``replace_one`` so writes are idempotent.
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from .base import Database, DatabaseError
 

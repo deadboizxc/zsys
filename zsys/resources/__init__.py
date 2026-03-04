@@ -1,4 +1,5 @@
 """ZSYS static resources — fonts, images, locales, templates."""
+
 from pathlib import Path
 
 _RESOURCES_DIR = Path(__file__).parent

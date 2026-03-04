@@ -7,8 +7,8 @@ Defines interfaces for web API implementations across zsys ecosystem.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Callable
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 # Import BaseConfig from zsys.core
 from zsys.core.config import BaseConfig, Field

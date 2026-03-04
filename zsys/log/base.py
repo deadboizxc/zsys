@@ -6,8 +6,8 @@ Moved from zsys.core.logging.base — concrete implementation of ILogger.
 
 import logging
 import sys
-from typing import Optional, Dict, Any, Union
 from contextlib import contextmanager
+from typing import Any, Dict, Optional, Union
 
 from zsys.core.logging.interface import ILogger  # noqa: F401 — kept for type checking
 

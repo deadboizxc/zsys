@@ -2,8 +2,9 @@
 Python cffi bindings for zsys/storage (ZsysKV key-value store).
 """
 
-import cffi
 from typing import Iterator, Tuple
+
+import cffi
 
 _ffi = cffi.FFI()
 _ffi.cdef("""

@@ -6,7 +6,8 @@ Provides structured error handling across all projects.
 # RU: Пользовательские классы исключений для экосистемы zsys.
 
 try:
-    from zsys._core import format_exc_html as _c_format_exc_html, C_AVAILABLE as _C
+    from zsys._core import C_AVAILABLE as _C
+    from zsys._core import format_exc_html as _c_format_exc_html
 except ImportError:
     _C = False
     _c_format_exc_html = None
@@ -273,7 +274,6 @@ def format_exc(
     """
     # RU: Форматирует исключение для отображения (HTML).
     import traceback as tb
-    from html import escape as html_escape
 
     if show_traceback:
         tb.print_exc()
@@ -363,8 +363,8 @@ def print_exc(e: Exception, context: str = None, show_traceback: bool = True) ->
         show_traceback: Whether to print full traceback.
     """
     # RU: Выводит исключение в консоль с необязательным контекстом.
-    import traceback
     import sys
+    import traceback
 
     if context:
         print(f"Error in {context}:", file=sys.stderr)

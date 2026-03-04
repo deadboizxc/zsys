@@ -14,13 +14,14 @@ Usage:
     setup_telebot(bot, prefix="/")
 """
 
-from typing import Union, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Union
 
 from .router import get_default_router
 
 if TYPE_CHECKING:
+    from aiogram import Dispatcher
+    from aiogram import Router as AiogramRouter
     from pyrogram import Client as PyrogramClient
-    from aiogram import Router as AiogramRouter, Dispatcher
     from telebot import TeleBot
 
 
@@ -151,8 +152,8 @@ def load_modules_from_dir(
 
         setup_pyrogram(client, prefix=".")
     """
-    import os
     import importlib.util
+    import os
 
     loaded = []
     base_path = os.path.abspath(path)

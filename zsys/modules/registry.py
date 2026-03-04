@@ -4,14 +4,18 @@
 Provides a centralized registry for managing modules across the ecosystem.
 """
 
-from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
+from typing import Callable, Dict, List, Optional
 
 try:
     from zsys._core import (
-        build_help_text as _c_build_help_text,
-        build_modules_list as _c_build_modules_list,
         C_AVAILABLE as _C,
+    )
+    from zsys._core import (
+        build_help_text as _c_build_help_text,
+    )
+    from zsys._core import (
+        build_modules_list as _c_build_modules_list,
     )
 except ImportError:
     _C = False

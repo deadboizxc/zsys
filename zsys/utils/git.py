@@ -6,11 +6,10 @@ and release management.
 """
 # RU: Git-утилиты — выполнение команд, работа с ветками и взаимодействие с GitHub API.
 
-import os
 import platform
 import subprocess
-from typing import Optional, Dict, List, Any
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 try:
     import requests

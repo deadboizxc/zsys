@@ -8,14 +8,14 @@ from __future__ import annotations
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Optional, Union, List, BinaryIO, TYPE_CHECKING
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, BinaryIO, List, Optional, Union
 
-from .base import Context, User, Chat
+from .base import Chat, Context, User
 
 if TYPE_CHECKING:
     from telebot import TeleBot
-    from telebot.types import Message, InlineKeyboardMarkup, ReplyKeyboardMarkup
+    from telebot.types import InlineKeyboardMarkup, Message
 
 
 # Thread pool for running sync telebot methods

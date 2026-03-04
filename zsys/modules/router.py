@@ -7,9 +7,6 @@ Provides decorators and router for registering commands that work across platfor
 
 from __future__ import annotations
 
-import asyncio
-import inspect
-import re
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import (
@@ -19,14 +16,14 @@ from typing import (
     Dict,
     List,
     Optional,
-    Set,
     Union,
 )
 
 from .context import Context
 
 try:
-    from zsys._core import router_lookup as _c_router_lookup, C_AVAILABLE as _C
+    from zsys._core import C_AVAILABLE as _C
+    from zsys._core import router_lookup as _c_router_lookup
 except ImportError:
     _C = False
     _c_router_lookup = None

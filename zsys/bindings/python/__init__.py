@@ -8,6 +8,6 @@ raises ``RuntimeError``.
 # RU: Пакет ctypes-привязок Python для ZSYS.
 # RU: Экспортирует Router, Registry, I18n из zsys_cffi.
 
-from .zsys_cffi import Router, Registry, I18n
+from .zsys_cffi import I18n, Registry, Router
 
 __all__ = ["Router", "Registry", "I18n"]

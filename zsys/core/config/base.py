@@ -7,10 +7,11 @@ type-safe field validation, automatic environment variable loading,
 # RU: BaseConfig — универсальный базовый класс конфигурации на Pydantic.
 # RU: Все конфигурации ZSYS наследуют его; поддержка .env и переменных окружения.
 
-from typing import Any, Optional
-from pydantic import BaseModel, Field
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class BaseConfig(BaseModel):

@@ -25,12 +25,12 @@ Example::
 # RU: Платформо-независимые датаклассы ZSYS — DTO и типы контекста.
 # RU: Без зависимостей от ORM; для БД используйте zsys.data.orm.
 
-from .user import BaseUser
+from .bot import BaseBot
 from .chat import BaseChat
 from .client import BaseClient
 from .message import BaseMessage
-from .wallet import BaseWallet, BaseTransaction, TransactionStatus
-from .bot import BaseBot
+from .user import BaseUser
+from .wallet import BaseTransaction, BaseWallet, TransactionStatus
 
 __all__ = [
     "BaseUser",
@@ -43,6 +43,6 @@ __all__ = [
     "BaseBot",
 ]
 
-from .context import Context, User, Chat
+from .context import Chat, Context, User
 
 __all__ += ["Context", "User", "Chat"]

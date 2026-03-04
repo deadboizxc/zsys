@@ -10,16 +10,15 @@ list_files, and get_url.
 # RU: Интерфейс медиасервиса ZSYS — абстрактный базовый класс и типы.
 # RU: Реализации должны предоставить upload, download, delete, get_file, list_files, get_url.
 
+import mimetypes
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, BinaryIO, Dict, List, Optional, TypeVar, Union
 from enum import Enum, auto
 from pathlib import Path
-import mimetypes
-import sys
+from typing import Any, BinaryIO, Dict, List, Optional, Union
 
 from ..config import BaseConfig, Field
-from .base import BaseClient, ClientState, ClientError
+from .base import BaseClient
 
 __all__ = [
     "BaseMediaService",

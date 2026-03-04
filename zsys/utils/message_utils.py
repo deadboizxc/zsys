@@ -8,7 +8,7 @@ Supports bold, italic, code, links, mentions, truncation, and chunk-splitting.
 
 import html
 import re
-from typing import Optional, List
+from typing import List, Optional
 
 
 def escape_html(text: str) -> str:

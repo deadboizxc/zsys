@@ -8,15 +8,15 @@ Requires: pip install zsys[crypto].
 # RU: ECC-шифрование через ECDH + AES-GCM; кривая SECP256R1.
 # RU: Эффективнее RSA при эквивалентном уровне безопасности. Требует pip install zsys[crypto].
 
-from zsys.core.interfaces import ICipher
 from zsys.core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
 
 try:
-    from cryptography.hazmat.primitives.asymmetric import ec
-    from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:

@@ -1,6 +1,6 @@
 """BaseBot model - bot instance entity."""
 
-from sqlalchemy import Column, String, Integer, ForeignKey, Boolean, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 
 from .base import BaseModel
 

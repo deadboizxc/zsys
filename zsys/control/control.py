@@ -8,16 +8,15 @@ script is generated for replace_executable hot-swap.
 # RU: Утилиты управления процессом — перезапуск, остановка и горячая замена.
 # RU: Поддерживает frozen-исполняемые файлы (PyInstaller) и кроссплатформенность.
 
-import os
-import sys
+import asyncio
 import glob
-import time
+import os
 import platform
 import subprocess
+import sys
 import tempfile
-import asyncio
-from typing import NoReturn, Optional, Any, Callable
 from multiprocessing import Process
+from typing import Any, Callable, NoReturn, Optional
 
 # Global state
 _is_stopping: bool = False

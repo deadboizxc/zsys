@@ -6,8 +6,8 @@ objects: private chats, groups, supergroups, and channels.
 # RU: Интерфейс IChat — контракт для представления чатов и переписок.
 # RU: Охватывает личные чаты, группы, супергруппы и каналы.
 
-from typing import Protocol, runtime_checkable, Any
 from enum import Enum
+from typing import Any, Protocol, runtime_checkable
 
 
 class ChatType(str, Enum):

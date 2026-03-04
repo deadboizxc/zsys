@@ -7,9 +7,9 @@ platform-specific dependencies.
 # RU: Для сохранения в БД используйте zsys.data.orm.message.BaseMessage.
 
 from dataclasses import dataclass, field
-from typing import Optional, Any
 from datetime import datetime
 from enum import Enum
+from typing import Any, Optional
 
 
 class MessageType(str, Enum):

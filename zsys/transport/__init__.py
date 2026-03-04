@@ -30,7 +30,7 @@ Installation:
 
 # Import implementations from infra
 try:
-    from .infra import HttpClient, BaseHttpClient
+    from .infra import BaseHttpClient, HttpClient
 
     HTTP_AVAILABLE = True
 except ImportError:

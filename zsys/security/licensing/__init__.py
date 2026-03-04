@@ -11,11 +11,11 @@ allowing graceful feature degradation.
 try:
     from .manager import (
         LicenseManager,
-        hash_data,
-        encrypt_data,
-        decrypt_data,
-        generate_license_key,
         check_license,
+        decrypt_data,
+        encrypt_data,
+        generate_license_key,
+        hash_data,
     )
 
     LICENSING_AVAILABLE = True

@@ -19,10 +19,10 @@ def __getattr__(name):
         "detect_media_type_from_mime",
     ):
         from zsys.services.media_service import (
+            GiphyService,
+            MediaRepository,
             MediaService,
             StorageService,
-            MediaRepository,
-            GiphyService,
             detect_media_type_from_mime,
         )
 

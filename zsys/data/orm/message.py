@@ -1,6 +1,6 @@
 """BaseMessage model - chat message entity."""
 
-from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, Text
 
 from .base import BaseModel
 

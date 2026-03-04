@@ -7,9 +7,9 @@ ORM or platform-specific dependencies.
 # RU: Охватывает личные чаты, группы, каналы без зависимостей от ORM.
 
 from dataclasses import dataclass, field
-from typing import Optional
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 
 # TODO: Move to core.interfaces.chat when interfaces module is created

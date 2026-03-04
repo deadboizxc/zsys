@@ -10,14 +10,13 @@ Requires the ``cryptography`` package::
 # RU: Реализация RSA-шифра — асимметричное шифрование RSA-OAEP.
 # RU: Шифрование открытым ключом, расшифрование закрытым.
 
-from typing import Optional, Tuple
-from zsys.core.interfaces import ICipher
 from zsys.core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
 
 try:
-    from cryptography.hazmat.primitives.asymmetric import rsa, padding
-    from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:

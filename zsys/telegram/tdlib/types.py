@@ -13,32 +13,33 @@ Note:
 
 from __future__ import annotations
 
-import ctypes
 from enum import IntEnum
-from typing import List, Optional
-
+from typing import Optional
 
 # ── Media type enum ────────────────────────────────────────────────────────── #
 
+
 class MediaType(IntEnum):
     """Maps to tg_media_type_t in tg.h."""
-    NONE       = 0
-    PHOTO      = 1
-    VIDEO      = 2
-    AUDIO      = 3
-    DOCUMENT   = 4
-    STICKER    = 5
-    VOICE      = 6
-    ANIMATION  = 7
+
+    NONE = 0
+    PHOTO = 1
+    VIDEO = 2
+    AUDIO = 3
+    DOCUMENT = 4
+    STICKER = 5
+    VOICE = 6
+    ANIMATION = 7
     VIDEO_NOTE = 8
-    LOCATION   = 9
-    CONTACT    = 10
-    POLL       = 11
-    DICE       = 12
-    VENUE      = 13
+    LOCATION = 9
+    CONTACT = 10
+    POLL = 11
+    DICE = 12
+    VENUE = 13
 
 
 # ── User ───────────────────────────────────────────────────────────────────── #
+
 
 class User:
     """Wrapper around tg_user_t*.
@@ -53,13 +54,20 @@ class User:
         is_premium: True if the user has Telegram Premium.
     """
 
-    __slots__ = ("id", "first_name", "last_name", "username", "phone",
-                 "is_bot", "is_premium")
+    __slots__ = (
+        "id",
+        "first_name",
+        "last_name",
+        "username",
+        "phone",
+        "is_bot",
+        "is_premium",
+    )
 
     def __init__(self, lib, ptr: int) -> None:
         # RU: Копируем поля пока указатель валиден.
-        self.id:         int  = lib.tg_user_id(ptr)
-        self.is_bot:     bool = bool(lib.tg_user_is_bot(ptr))
+        self.id: int = lib.tg_user_id(ptr)
+        self.is_bot: bool = bool(lib.tg_user_is_bot(ptr))
         self.is_premium: bool = False
 
         raw = lib.tg_user_first_name(ptr)
@@ -77,8 +85,9 @@ class User:
         return cls(lib, ptr)
 
     def __repr__(self) -> str:
-        return (f"<User id={self.id} username={self.username!r} "
-                f"name={self.first_name!r}>")
+        return (
+            f"<User id={self.id} username={self.username!r} name={self.first_name!r}>"
+        )
 
 
 # ── Chat ───────────────────────────────────────────────────────────────────── #
@@ -100,15 +109,23 @@ class Chat:
         is_verified:   True if the chat is verified.
     """
 
-    __slots__ = ("id", "title", "username", "type", "members_count",
-                 "linked_chat_id", "permissions", "is_verified")
+    __slots__ = (
+        "id",
+        "title",
+        "username",
+        "type",
+        "members_count",
+        "linked_chat_id",
+        "permissions",
+        "is_verified",
+    )
 
     def __init__(self, lib, ptr: int) -> None:
-        self.id:             int  = lib.tg_chat_id(ptr)
-        self.members_count:  int  = lib.tg_chat_members_count(ptr)
-        self.linked_chat_id: int  = lib.tg_chat_linked_chat_id(ptr)
-        self.permissions:    int  = lib.tg_chat_permissions(ptr)
-        self.is_verified:    bool = False
+        self.id: int = lib.tg_chat_id(ptr)
+        self.members_count: int = lib.tg_chat_members_count(ptr)
+        self.linked_chat_id: int = lib.tg_chat_linked_chat_id(ptr)
+        self.permissions: int = lib.tg_chat_permissions(ptr)
+        self.is_verified: bool = False
 
         raw = lib.tg_chat_title(ptr)
         self.title: str = raw.decode("utf-8", errors="replace") if raw else ""
@@ -121,6 +138,7 @@ class Chat:
 
 
 # ── ChatMember ─────────────────────────────────────────────────────────────── #
+
 
 class ChatMember:
     """Wrapper around tg_chat_member_t*.
@@ -144,10 +162,20 @@ class ChatMember:
     """
 
     __slots__ = (
-        "user", "status", "is_admin", "is_creator", "until_date",
-        "can_manage_chat", "can_post_messages", "can_edit_messages",
-        "can_delete_messages", "can_ban_users", "can_invite_users",
-        "can_pin_messages", "can_promote_members", "can_change_info",
+        "user",
+        "status",
+        "is_admin",
+        "is_creator",
+        "until_date",
+        "can_manage_chat",
+        "can_post_messages",
+        "can_edit_messages",
+        "can_delete_messages",
+        "can_ban_users",
+        "can_invite_users",
+        "can_pin_messages",
+        "can_promote_members",
+        "can_change_info",
     )
 
     def __init__(self, lib, ptr: int) -> None:
@@ -156,25 +184,26 @@ class ChatMember:
 
         raw = lib.tg_member_status(ptr)
         self.status: str = raw.decode() if raw else "member"
-        self.is_admin:   bool = bool(lib.tg_member_is_admin(ptr))
+        self.is_admin: bool = bool(lib.tg_member_is_admin(ptr))
         self.is_creator: bool = bool(lib.tg_member_is_creator(ptr))
-        self.until_date: int  = lib.tg_member_until_date(ptr)
-        self.can_ban_users:       bool = bool(lib.tg_member_can_ban(ptr))
+        self.until_date: int = lib.tg_member_until_date(ptr)
+        self.can_ban_users: bool = bool(lib.tg_member_can_ban(ptr))
         self.can_delete_messages: bool = bool(lib.tg_member_can_delete_msgs(ptr))
-        self.can_invite_users:    bool = bool(lib.tg_member_can_invite(ptr))
-        self.can_pin_messages:    bool = bool(lib.tg_member_can_pin(ptr))
+        self.can_invite_users: bool = bool(lib.tg_member_can_invite(ptr))
+        self.can_pin_messages: bool = bool(lib.tg_member_can_pin(ptr))
         # These require direct struct access; default False until struct ctypes added
-        self.can_manage_chat      = False
-        self.can_post_messages    = False
-        self.can_edit_messages    = False
-        self.can_promote_members  = False
-        self.can_change_info      = False
+        self.can_manage_chat = False
+        self.can_post_messages = False
+        self.can_edit_messages = False
+        self.can_promote_members = False
+        self.can_change_info = False
 
     def __repr__(self) -> str:
         return f"<ChatMember user={self.user!r} status={self.status!r}>"
 
 
 # ── File ───────────────────────────────────────────────────────────────────── #
+
 
 class File:
     """Wrapper around tg_file_t*.
@@ -188,12 +217,11 @@ class File:
         file_name:     Original file name (may be empty).
     """
 
-    __slots__ = ("id", "size", "local_path", "is_downloaded",
-                 "mime_type", "file_name")
+    __slots__ = ("id", "size", "local_path", "is_downloaded", "mime_type", "file_name")
 
     def __init__(self, lib, ptr: int) -> None:
-        self.id:            int  = lib.tg_file_id(ptr)
-        self.size:          int  = lib.tg_file_size(ptr)
+        self.id: int = lib.tg_file_id(ptr)
+        self.size: int = lib.tg_file_size(ptr)
         self.is_downloaded: bool = bool(lib.tg_file_is_downloaded(ptr))
         raw = lib.tg_file_local_path(ptr)
         self.local_path: str = raw.decode() if raw else ""
@@ -207,6 +235,7 @@ class File:
 
 
 # ── Message ────────────────────────────────────────────────────────────────── #
+
 
 class Message:
     """Wrapper around tg_message_t* — eagerly copies all fields.
@@ -249,16 +278,34 @@ class Message:
     """
 
     __slots__ = (
-        "_lib", "_ptr",
-        "id", "chat_id", "sender_id", "text", "caption",
-        "is_out", "reply_to_id",
-        "is_private", "is_group", "is_channel",
-        "date", "views", "sender_chat_id",
-        "media_type", "file_id",
-        "has_photo", "has_video", "has_audio", "has_document",
-        "has_sticker", "has_voice", "has_animation",
-        "has_location", "has_contact",
-        "from_user", "reply_to_message",
+        "_lib",
+        "_ptr",
+        "id",
+        "chat_id",
+        "sender_id",
+        "text",
+        "caption",
+        "is_out",
+        "reply_to_id",
+        "is_private",
+        "is_group",
+        "is_channel",
+        "date",
+        "views",
+        "sender_chat_id",
+        "media_type",
+        "file_id",
+        "has_photo",
+        "has_video",
+        "has_audio",
+        "has_document",
+        "has_sticker",
+        "has_voice",
+        "has_animation",
+        "has_location",
+        "has_contact",
+        "from_user",
+        "reply_to_message",
     )
 
     def __init__(self, lib, ptr: int) -> None:
@@ -266,33 +313,37 @@ class Message:
         self._lib = lib
         self._ptr = ptr
 
-        self.id              = lib.tg_msg_id(ptr)
-        self.chat_id         = lib.tg_msg_chat_id(ptr)
-        self.sender_id       = lib.tg_msg_sender_id(ptr)
-        self.is_out          = bool(lib.tg_msg_is_out(ptr))
-        self.reply_to_id     = lib.tg_msg_reply_to(ptr)
-        self.is_private      = bool(lib.tg_msg_is_private(ptr))
-        self.is_group        = bool(lib.tg_msg_is_group(ptr))
-        self.is_channel      = bool(lib.tg_msg_is_channel(ptr))
-        self.date            = lib.tg_msg_date(ptr)
-        self.views           = lib.tg_msg_views(ptr)
-        self.sender_chat_id  = lib.tg_msg_sender_chat_id(ptr)
-        self.file_id         = lib.tg_msg_file_id(ptr)
-        self.has_photo       = bool(lib.tg_msg_has_photo(ptr))
-        self.has_video       = bool(lib.tg_msg_has_video(ptr))
-        self.has_audio       = bool(lib.tg_msg_has_audio(ptr))
-        self.has_document    = bool(lib.tg_msg_has_document(ptr))
-        self.has_sticker     = bool(lib.tg_msg_has_sticker(ptr))
-        self.has_voice       = bool(lib.tg_msg_has_voice(ptr))
-        self.has_animation   = bool(lib.tg_msg_has_animation(ptr))
-        self.has_location    = bool(lib.tg_msg_has_location(ptr))
-        self.has_contact     = bool(lib.tg_msg_has_contact(ptr))
-        self.media_type      = MediaType(lib.tg_msg_media_type(ptr))
+        self.id = lib.tg_msg_id(ptr)
+        self.chat_id = lib.tg_msg_chat_id(ptr)
+        self.sender_id = lib.tg_msg_sender_id(ptr)
+        self.is_out = bool(lib.tg_msg_is_out(ptr))
+        self.reply_to_id = lib.tg_msg_reply_to(ptr)
+        self.is_private = bool(lib.tg_msg_is_private(ptr))
+        self.is_group = bool(lib.tg_msg_is_group(ptr))
+        self.is_channel = bool(lib.tg_msg_is_channel(ptr))
+        self.date = lib.tg_msg_date(ptr)
+        self.views = lib.tg_msg_views(ptr)
+        self.sender_chat_id = lib.tg_msg_sender_chat_id(ptr)
+        self.file_id = lib.tg_msg_file_id(ptr)
+        self.has_photo = bool(lib.tg_msg_has_photo(ptr))
+        self.has_video = bool(lib.tg_msg_has_video(ptr))
+        self.has_audio = bool(lib.tg_msg_has_audio(ptr))
+        self.has_document = bool(lib.tg_msg_has_document(ptr))
+        self.has_sticker = bool(lib.tg_msg_has_sticker(ptr))
+        self.has_voice = bool(lib.tg_msg_has_voice(ptr))
+        self.has_animation = bool(lib.tg_msg_has_animation(ptr))
+        self.has_location = bool(lib.tg_msg_has_location(ptr))
+        self.has_contact = bool(lib.tg_msg_has_contact(ptr))
+        self.media_type = MediaType(lib.tg_msg_media_type(ptr))
 
         raw = lib.tg_msg_text(ptr)
-        self.text: Optional[str] = raw.decode("utf-8", errors="replace") if raw else None
+        self.text: Optional[str] = (
+            raw.decode("utf-8", errors="replace") if raw else None
+        )
         raw = lib.tg_msg_caption(ptr)
-        self.caption: Optional[str] = raw.decode("utf-8", errors="replace") if raw else None
+        self.caption: Optional[str] = (
+            raw.decode("utf-8", errors="replace") if raw else None
+        )
 
         # from_user — pointer to embedded tg_user_t, may be NULL
         user_ptr = lib.tg_msg_from_user(ptr)
@@ -305,9 +356,7 @@ class Message:
         )
 
     def __repr__(self) -> str:
-        return (f"<Message id={self.id} chat_id={self.chat_id} "
-                f"text={self.text!r:.40}>")
+        return f"<Message id={self.id} chat_id={self.chat_id} text={self.text!r:.40}>"
 
 
 __all__ = ["MediaType", "User", "Chat", "ChatMember", "File", "Message"]
-

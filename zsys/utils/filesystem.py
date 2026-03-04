@@ -10,12 +10,11 @@ Combined utilities for:
 # RU: Утилиты файловой системы — пути к ресурсам, обнаружение платформы и состояния заморозки.
 
 import os
-import sys
-import shutil
 import platform
+import shutil
+import sys
 from pathlib import Path
-from typing import Union, Dict, Optional, Literal
-
+from typing import Dict, Literal, Optional, Union
 
 # ============================================================================
 # FROZEN STATE DETECTION

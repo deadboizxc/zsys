@@ -13,13 +13,14 @@ Usage::
 """
 
 from __future__ import annotations
-import os
+
 from pathlib import Path
 
 
 def _load():
     try:
         from cffi import FFI
+
         ffi = FFI()
         # Parse only the i18n portion of the header
         ffi.cdef("""
@@ -35,8 +36,12 @@ def _load():
         """)
         here = Path(__file__).resolve().parent
         for candidate in ["libzsys_core.so", "libzsys_core.so.1"]:
-            for base in [here, here.parent.parent / "c" / "build",
-                         Path("/usr/local/lib"), Path("/usr/lib")]:
+            for base in [
+                here,
+                here.parent.parent / "c" / "build",
+                Path("/usr/local/lib"),
+                Path("/usr/lib"),
+            ]:
                 p = base / candidate
                 if p.exists():
                     return ffi, ffi.dlopen(str(p))
@@ -62,7 +67,8 @@ class I18n:
     def load(self, lang_code: str, json_path: str) -> None:
         """Load a JSON locale file for lang_code."""
         rc = self._lib.zsys_i18n_load_json(
-            self._ptr, lang_code.encode(), json_path.encode())
+            self._ptr, lang_code.encode(), json_path.encode()
+        )
         if rc != 0:
             raise FileNotFoundError(f"Failed to load locale: {json_path}")
 
@@ -77,8 +83,7 @@ class I18n:
 
     def get_lang(self, lang_code: str, key: str) -> str:
         """Translate key in a specific language."""
-        r = self._lib.zsys_i18n_get_lang(
-            self._ptr, lang_code.encode(), key.encode())
+        r = self._lib.zsys_i18n_get_lang(self._ptr, lang_code.encode(), key.encode())
         return self._ffi.string(r).decode() if r else key
 
     def __call__(self, key: str) -> str:

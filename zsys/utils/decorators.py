@@ -9,8 +9,8 @@ Provides reusable decorators for:
 """
 # RU: Декораторы для обработчиков команд бота (валидация, права доступа, логирование)
 
-from typing import Callable, TypeVar, Any, Awaitable, Optional, List
 from functools import wraps
+from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
 # TypeVar for preserving function signatures
 F = TypeVar("F", bound=Callable[..., Awaitable[Any]])

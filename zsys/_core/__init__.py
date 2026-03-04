@@ -53,52 +53,52 @@ C_AVAILABLE: bool = False
 
 try:
     from zsys._core._zsys_core import (
+        ansi_color,
+        build_help_text,
+        build_modules_list,
         escape_html,
+        find_py_modules,
+        format_bold,
+        format_bytes,
+        format_code,
+        format_duration,
+        format_exc_html,
+        format_italic,
+        format_json_log,
+        format_link,
+        format_mention,
+        format_mono,
+        format_pre,
+        format_preformatted,
+        format_quote,
+        format_spoiler,
+        format_strikethrough,
+        format_underline,
+        get_args,
+        get_proc_cpu_pct,
+        get_proc_mem_mb,
+        human_time,
+        match_prefix,
+        nested_get,
+        parse_duration,
+        parse_meta_comments,
+        print_box_str,
+        print_progress_str,
+        print_separator_str,
+        print_table_str,
+        router_lookup,
+        split_text,
         strip_html,
         strip_markdown,
         truncate_text,
-        split_text,
-        get_args,
-        format_bytes,
-        format_duration,
-        format_bold,
-        format_italic,
-        format_code,
-        format_mono,
-        format_pre,
-        format_link,
-        format_mention,
-        format_underline,
-        format_strikethrough,
-        format_spoiler,
-        format_quote,
-        format_preformatted,
-        build_help_text,
-        build_modules_list,
-        ansi_color,
-        format_json_log,
-        parse_meta_comments,
-        match_prefix,
-        nested_get,
-        human_time,
-        parse_duration,
-        print_box_str,
-        print_separator_str,
-        print_table_str,
-        print_progress_str,
-        format_exc_html,
-        router_lookup,
-        get_proc_mem_mb,
-        get_proc_cpu_pct,
-        find_py_modules,
     )
 
     C_AVAILABLE = True
 
 except ImportError:
     import html as _html
-    import re as _re
     import json as _json
+    import re as _re
 
     def escape_html(text: str) -> str:
         """Escape HTML special characters in a string.
@@ -795,6 +795,7 @@ except ImportError:
         # RU: Получить объём резидентной памяти текущего процесса в мегабайтах.
         try:
             import os
+
             import psutil
 
             p = psutil.Process(os.getpid())
@@ -811,6 +812,7 @@ except ImportError:
         # RU: Получить загрузку CPU текущего процесса в процентах.
         try:
             import os
+
             import psutil
 
             return psutil.Process(os.getpid()).cpu_percent()

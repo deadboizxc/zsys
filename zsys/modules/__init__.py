@@ -1,9 +1,9 @@
 """zsys.modules - Unified module system."""
 
-from .loader import ModuleLoader, ModuleInfo
+from .context import Chat, Context, User
+from .loader import ModuleInfo, ModuleLoader
 from .registry import ModuleRegistry, modules_help, registry
-from .router import Router, Command, command, get_default_router, get_modules_help
-from .context import Context, User, Chat
+from .router import Command, Router, command, get_default_router, get_modules_help
 
 router = get_default_router()
 

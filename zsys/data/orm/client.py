@@ -1,6 +1,6 @@
 """BaseClient model - messaging service client entity."""
 
-from sqlalchemy import Column, String, Integer, ForeignKey, Boolean, JSON
+from sqlalchemy import JSON, Boolean, Column, ForeignKey, Integer, String
 
 from .base import BaseModel
 

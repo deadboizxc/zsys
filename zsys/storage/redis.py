@@ -13,7 +13,7 @@ non-string values are coerced with :func:`str`.
 import json
 import threading
 from datetime import datetime
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from .base import Database, DatabaseError
 

@@ -16,8 +16,7 @@ if TYPE_CHECKING:
     from zsys.telegram.tdlib.client import TdlibClient
 
 
-def attach_router(router: "Router", client: "TdlibClient",
-                  prefix: str = ".") -> None:
+def attach_router(router: "Router", client: "TdlibClient", prefix: str = ".") -> None:
     """Connect all @command() handlers from router to client.
 
     Registers a single TG_FILTER_INCOMING | TG_FILTER_TEXT handler that
@@ -40,7 +39,7 @@ def attach_router(router: "Router", client: "TdlibClient",
             return
 
         # Strip prefix, extract command (first word)
-        body    = text[len(prefix):]
+        body = text[len(prefix) :]
         trigger = body.split()[0].lower() if body.split() else ""
         if not trigger:
             return

@@ -21,10 +21,9 @@ from zsys.core.interfaces import (
 def test_iclient_is_protocol():
     """Test that IClient is a Protocol."""
     assert isinstance(IClient, type)
-    
-    # Check runtime_checkable
-    from typing import runtime_checkable
-    assert hasattr(IClient, '__protocol_attrs__')
+
+    # Check it is a Protocol (compatible with Python 3.8+)
+    assert getattr(IClient, "_is_protocol", False) or hasattr(IClient, "__protocol_attrs__")
 
 
 def test_ibot_is_protocol():

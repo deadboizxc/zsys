@@ -11,8 +11,8 @@ environments.
 # RU: внешних зависимостей, подходит для Android/Termux.
 
 import shutil
-from typing import Any, Dict, List, Union
 from pathlib import Path
+from typing import Any, Dict, List, Union
 
 from .base import Database, DatabaseError
 
@@ -49,7 +49,7 @@ class TinyDBDatabase(Database):
         # RU: Инициализирует TinyDB: создаёт директории и открывает файл.
         super().__init__()
         try:
-            from tinydb import TinyDB, Query
+            from tinydb import Query, TinyDB
         except ImportError:
             raise ImportError("tinydb не установлен. Установите: pip install tinydb")
 

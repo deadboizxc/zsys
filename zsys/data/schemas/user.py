@@ -2,7 +2,9 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import Field, EmailStr
+
+from pydantic import EmailStr, Field
+
 from .base import BaseSchema
 
 

@@ -6,7 +6,7 @@ Defines the structural Protocol interface that all wallet backends
 # RU: Интерфейс IWallet — контракт для реализаций криптовалютных кошельков.
 # RU: Все бэкенды (Bitcoin, Ethereum, EVM и др.) должны соответствовать этому протоколу.
 
-from typing import Protocol, runtime_checkable, Any, Optional
+from typing import Any, Optional, Protocol, runtime_checkable
 
 
 @runtime_checkable

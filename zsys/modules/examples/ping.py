@@ -9,7 +9,8 @@ Unified ping module - works on all platforms.
 """
 
 import time
-from zsys.modules import command, Context, modules_help
+
+from zsys.modules import Context, command, modules_help
 
 
 @command(

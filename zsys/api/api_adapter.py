@@ -19,9 +19,10 @@ Usage:
     await api.start()
 """
 
-from typing import Optional, Literal, Any
-from zsys.core.interfaces import IAPIServer
+from typing import Any, Literal, Optional
+
 from zsys.core.exceptions import APIError
+from zsys.core.interfaces import IAPIServer
 
 Backend = Literal["fastapi", "flask", "aiohttp"]
 

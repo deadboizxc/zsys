@@ -34,24 +34,24 @@ Exception Hierarchy::
 # RU: Иерархия исключений ZSYS — типизированные ошибки всех уровней.
 # RU: Все наследуют BaseException с опциональными кодами и словарём деталей.
 
-from .base import BaseException
-from .config import ConfigError
-from .storage import DatabaseError, StorageError
-from .client import ClientError, AuthenticationError, SessionError
-from .validation import ValidationError
-from .network import NetworkError, TimeoutError
-from .resource import NotFoundError, PermissionError, PermissionDeniedError
-from .crypto import CryptoError
-from .blockchain import BlockchainError, TransactionError
-from .media import (
-    MediaError,
-    MediaNotFoundError,
-    MediaExistsError,
-    InvalidMediaTypeError,
-)
-from .module import ModuleError, FileError
 from .api import APIError, BotError
+from .base import BaseException
+from .blockchain import BlockchainError, TransactionError
+from .client import AuthenticationError, ClientError, SessionError
+from .config import ConfigError
+from .crypto import CryptoError
 from .license import LicenseError
+from .media import (
+    InvalidMediaTypeError,
+    MediaError,
+    MediaExistsError,
+    MediaNotFoundError,
+)
+from .module import FileError, ModuleError
+from .network import NetworkError, TimeoutError
+from .resource import NotFoundError, PermissionDeniedError, PermissionError
+from .storage import DatabaseError, StorageError
+from .validation import ValidationError
 
 __all__ = [
     # Base

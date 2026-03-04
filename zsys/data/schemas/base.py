@@ -14,7 +14,7 @@ Example:
 """
 
 from datetime import datetime
-from typing import Any, Dict, Optional, List, TypeVar, Generic
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 

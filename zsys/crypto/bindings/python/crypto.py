@@ -24,12 +24,14 @@ Usage::
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 
 def _load():
     try:
         from cffi import FFI
+
         ffi = FFI()
         ffi.cdef("""
             void free(void *ptr);
@@ -59,10 +61,12 @@ def _load():
         """)
         here = Path(__file__).resolve().parent
         for candidate in ["libzsys_crypto.so", "libzsys_crypto.so.1"]:
-            for base in [here,
-                         here.parent.parent / "c" / "build",
-                         Path("/usr/local/lib"),
-                         Path("/usr/lib")]:
+            for base in [
+                here,
+                here.parent.parent / "c" / "build",
+                Path("/usr/local/lib"),
+                Path("/usr/lib"),
+            ]:
                 p = base / candidate
                 if p.exists():
                     return ffi, ffi.dlopen(str(p))
@@ -104,8 +108,10 @@ class AES:
         ffi, lib = _get_lib()
         out_len = ffi.new("size_t *")
         buf = lib.zsys_aes_encrypt(
-            self._key, len(self._key),
-            data, len(data),
+            self._key,
+            len(self._key),
+            data,
+            len(data),
             out_len,
         )
         if buf == ffi.NULL:
@@ -117,8 +123,10 @@ class AES:
         ffi, lib = _get_lib()
         out_len = ffi.new("size_t *")
         buf = lib.zsys_aes_decrypt(
-            self._key, len(self._key),
-            data, len(data),
+            self._key,
+            len(self._key),
+            data,
+            len(data),
             out_len,
         )
         if buf == ffi.NULL:
@@ -138,7 +146,7 @@ class RSA:
         if priv_buf == ffi.NULL:
             raise RuntimeError("zsys_rsa_generate failed")
         priv_pem = ffi.string(priv_buf).decode()
-        pub_pem  = ffi.string(pub_ptr[0]).decode()
+        pub_pem = ffi.string(pub_ptr[0]).decode()
         lib.free(priv_buf)
         lib.free(pub_ptr[0])
         return priv_pem, pub_pem
@@ -149,7 +157,10 @@ class RSA:
         ffi, lib = _get_lib()
         out_len = ffi.new("size_t *")
         buf = lib.zsys_rsa_encrypt(
-            pub_pem.encode(), data, len(data), out_len,
+            pub_pem.encode(),
+            data,
+            len(data),
+            out_len,
         )
         if buf == ffi.NULL:
             raise RuntimeError("zsys_rsa_encrypt failed")
@@ -161,7 +172,10 @@ class RSA:
         ffi, lib = _get_lib()
         out_len = ffi.new("size_t *")
         buf = lib.zsys_rsa_decrypt(
-            priv_pem.encode(), data, len(data), out_len,
+            priv_pem.encode(),
+            data,
+            len(data),
+            out_len,
         )
         if buf == ffi.NULL:
             raise RuntimeError("zsys_rsa_decrypt failed")
@@ -183,7 +197,7 @@ class ECC:
         if priv_buf == ffi.NULL:
             raise RuntimeError("zsys_ecc_generate failed")
         priv_pem = ffi.string(priv_buf).decode()
-        pub_pem  = ffi.string(pub_ptr[0]).decode()
+        pub_pem = ffi.string(pub_ptr[0]).decode()
         lib.free(priv_buf)
         lib.free(pub_ptr[0])
         return priv_pem, pub_pem
@@ -194,7 +208,10 @@ class ECC:
         ffi, lib = _get_lib()
         out_len = ffi.new("size_t *")
         buf = lib.zsys_ecc_encrypt(
-            pub_pem.encode(), data, len(data), out_len,
+            pub_pem.encode(),
+            data,
+            len(data),
+            out_len,
         )
         if buf == ffi.NULL:
             raise RuntimeError("zsys_ecc_encrypt failed")
@@ -206,7 +223,10 @@ class ECC:
         ffi, lib = _get_lib()
         out_len = ffi.new("size_t *")
         buf = lib.zsys_ecc_decrypt(
-            priv_pem.encode(), data, len(data), out_len,
+            priv_pem.encode(),
+            data,
+            len(data),
+            out_len,
         )
         if buf == ffi.NULL:
             raise RuntimeError("zsys_ecc_decrypt failed")

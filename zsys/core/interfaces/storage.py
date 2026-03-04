@@ -7,7 +7,7 @@ management, and atomic increment/decrement.
 # RU: Интерфейс IStorage — обобщённое хранилище ключ-значение.
 # RU: Все бэкенды (SQLite, Redis, память и др.) должны реализовать этот контракт.
 
-from typing import Protocol, runtime_checkable, Any, Optional
+from typing import Any, Optional, Protocol, runtime_checkable
 
 
 @runtime_checkable

@@ -6,8 +6,7 @@ Provides abstract interface for HTTP operations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Union
-from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class BaseHttpClient(ABC):

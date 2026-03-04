@@ -11,6 +11,6 @@ Concrete implementations (e.g. FastAPIServer) should live
 in your project (e.g. zxc_userbot/core/api/web.py).
 """
 
-from .base import BaseAPI, APIConfig
+from .base import APIConfig, BaseAPI
 
 __all__ = ["BaseAPI", "APIConfig"]

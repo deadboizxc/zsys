@@ -5,7 +5,7 @@ No implementation lives here — only the interface.
 """
 # RU: Чистый протокол ILogger — только контракт, никакой реализации.
 
-from typing import runtime_checkable, Protocol
+from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable

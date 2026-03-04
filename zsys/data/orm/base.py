@@ -14,9 +14,9 @@ Example:
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from sqlalchemy import Column, Integer, DateTime, func
+from sqlalchemy import Column, DateTime, Integer, func
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 

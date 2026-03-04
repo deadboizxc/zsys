@@ -10,12 +10,16 @@ switching, and a convenient shorthand ``t()`` for string lookup.
 
 from .i18n import (
     I18N,
-    get_translation,
-    set_language,
     GlobalI18N,
-    init_global_i18n as init_i18n,
+    get_translation,
     register_i18n,
+    set_language,
+)
+from .i18n import (
     global_t as t,
+)
+from .i18n import (
+    init_global_i18n as init_i18n,
 )
 
 __all__ = [

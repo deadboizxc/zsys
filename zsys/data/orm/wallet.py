@@ -1,7 +1,8 @@
 """BaseWallet model - cryptocurrency wallet entity."""
 
 from decimal import Decimal
-from sqlalchemy import Column, String, Integer, ForeignKey, Numeric
+
+from sqlalchemy import Column, ForeignKey, Integer, String
 
 from .base import BaseModel
 

@@ -8,19 +8,19 @@ Requires: pip install pycryptodome.
 
 # RU: Устаревший менеджер лицензионных ключей с RSA-подписью и AES-шифрованием.
 # RU: Заменён LicenseManager в manager.py, сохранён для обратной совместимости.
-import os
 import base64
 import hashlib
 import hmac
+import os
 import struct
 import uuid
 from datetime import datetime, timedelta
 from hashlib import sha512
 
+from Crypto.Cipher import AES
+from Crypto.Hash import HMAC, SHA512
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
-from Crypto.Hash import SHA512, HMAC
-from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
 

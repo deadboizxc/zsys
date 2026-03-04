@@ -5,7 +5,7 @@ Provides async HTTP request functions.
 """
 # RU: Асинхронные HTTP-утилиты — загрузка данных, JSON-запросы и скачивание файлов.
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 __all__ = [
     "fetch_url",

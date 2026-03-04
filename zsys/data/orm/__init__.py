@@ -36,16 +36,15 @@ Usage:
 
 # Base classes (single source of truth for ORM)
 from .base import Base, BaseModel
+from .bot import BaseBot, Bot
+from .chat import BaseChat, Chat
+from .client import BaseClient, Client
+from .media_file import BaseMediaFile, MediaFile
+from .message import BaseMessage, Message
 
 # Domain models
 from .user import BaseUser, User
-from .client import BaseClient, Client
-from .chat import BaseChat, Chat
-from .bot import BaseBot, Bot
 from .wallet import BaseWallet, Wallet
-from .message import BaseMessage, Message
-from .media_file import BaseMediaFile, MediaFile
-
 
 __all__ = [
     # Core base classes

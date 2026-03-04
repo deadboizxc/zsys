@@ -7,14 +7,14 @@ and configurable proof-of-work difficulty.
 # RU: SimpleBlockchain — учебный блокчейн с доказательством работы.
 # RU: Реализует IBlockchain: PoW, валидация цепи, расчёт баланса.
 
-from typing import Any, Optional, List
-from dataclasses import dataclass, field
-from datetime import datetime
 import hashlib
 import json
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, List, Optional
+
 from zsys.core.interfaces import IBlockchain
 from zsys.log import get_logger
-
 
 logger = get_logger(__name__)
 

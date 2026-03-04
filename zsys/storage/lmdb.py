@@ -12,8 +12,8 @@ missing mmap support.
 import json
 import shutil
 import threading
-from typing import Any, Dict, List, Union
 from pathlib import Path
+from typing import Any, Dict, List, Union
 
 from .base import Database, DatabaseError
 

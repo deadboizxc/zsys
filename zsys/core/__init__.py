@@ -28,33 +28,32 @@ Architecture::
 #     IWallet,
 # )
 
+from .config import BaseConfig
 from .dataclass_models import (
-    BaseUser,
+    BaseBot,
     BaseChat,
     BaseClient,
     BaseMessage,
+    BaseUser,
     BaseWallet,
-    BaseBot,
 )
-
-from .config import BaseConfig
-from .logging import ILogger
 from .exceptions import (
-    BaseException,
-    ConfigError,
-    DatabaseError,
-    StorageError,
-    ClientError,
     AuthenticationError,
-    ValidationError,
+    BaseException,
+    BlockchainError,
+    ClientError,
+    ConfigError,
+    CryptoError,
+    DatabaseError,
     NetworkError,
-    TimeoutError,
     NotFoundError,
     PermissionError,
-    CryptoError,
-    BlockchainError,
+    StorageError,
+    TimeoutError,
     TransactionError,
+    ValidationError,
 )
+from .logging import ILogger
 
 __version__ = "3.0.0"
 

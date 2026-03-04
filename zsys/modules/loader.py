@@ -5,21 +5,24 @@ Provides utilities for loading and managing Python modules dynamically.
 """
 # RU: Загрузчик модулей для ядра zsys.
 
-import sys
-import os
 import importlib
-import traceback
-from pathlib import Path
-from typing import Optional, List, Dict, Any, Callable
-from types import ModuleType
+import os
+import sys
 from dataclasses import dataclass, field
 from functools import lru_cache
+from pathlib import Path
+from types import ModuleType
+from typing import Callable, Dict, List, Optional
 
 try:
     from zsys._core import (
-        parse_meta_comments as _c_parse_meta_comments,
-        find_py_modules as _c_find_py_modules,
         C_AVAILABLE as _C,
+    )
+    from zsys._core import (
+        find_py_modules as _c_find_py_modules,
+    )
+    from zsys._core import (
+        parse_meta_comments as _c_parse_meta_comments,
     )
 except ImportError:
     _c_find_py_modules = None

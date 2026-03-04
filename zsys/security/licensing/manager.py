@@ -8,22 +8,22 @@ Requires: pip install pycryptodome.
 # RU: Менеджер лицензий — зашифрованные AES-CBC лицензионные ключи с привязкой к пользователю.
 # RU: Требует: pip install pycryptodome.
 
-import os
 import base64
 import hashlib
+import os
+import re
 import struct
 import uuid
-import re
-from datetime import datetime, timedelta
-from typing import Optional, Tuple, Dict, Any
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional, Tuple
 
 # Optional crypto imports
 try:
+    from Crypto.Cipher import AES
+    from Crypto.Hash import HMAC, SHA512
     from Crypto.PublicKey import RSA
     from Crypto.Signature import pkcs1_15
-    from Crypto.Hash import SHA512, HMAC
-    from Crypto.Cipher import AES
     from Crypto.Util.Padding import pad, unpad
 
     CRYPTO_AVAILABLE = True

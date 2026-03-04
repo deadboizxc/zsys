@@ -8,15 +8,19 @@ Belongs to the zsys.utils subsystem.
 # RU: Утилиты терминала — выполнение команд оболочки и мониторинг системных ресурсов.
 # RU: Содержит async/sync обёртки над subprocess, а также чтение RAM и CPU процесса.
 
-import os
 import asyncio
+import os
 from typing import Optional, Tuple, Union
 
 try:
     from zsys._core import (
-        get_proc_mem_mb as _c_get_mem,
-        get_proc_cpu_pct as _c_get_cpu,
         C_AVAILABLE as _C,
+    )
+    from zsys._core import (
+        get_proc_cpu_pct as _c_get_cpu,
+    )
+    from zsys._core import (
+        get_proc_mem_mb as _c_get_mem,
     )
 except ImportError:
     _c_get_mem = _c_get_cpu = None

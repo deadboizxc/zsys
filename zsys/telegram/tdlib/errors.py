@@ -14,7 +14,7 @@ class TdlibError(Exception):
     """Base TDLib error."""
 
     def __init__(self, code: int, message: str) -> None:
-        self.code    = code
+        self.code = code
         self.message = message
         super().__init__(f"[{code}] {message}")
 
@@ -59,6 +59,7 @@ class UserIsBlocked(TdlibError):
 
 class RPCError(TdlibError):
     """Generic TDLib RPC error not matching a specific subclass."""
+
     pass
 
 
@@ -80,7 +81,8 @@ def raise_for_error(code: int, message: str) -> None:
         raise FloodWait(int(m.group(1)) if m else 30)
 
     if "MESSAGE_DELETE_FORBIDDEN" in msg_upper or (
-            code == 403 and "delete" in message.lower()):
+        code == 403 and "delete" in message.lower()
+    ):
         raise MessageDeleteForbidden()
 
     if "MESSAGE_NOT_MODIFIED" in msg_upper:
@@ -102,7 +104,14 @@ def raise_for_error(code: int, message: str) -> None:
 
 
 __all__ = [
-    "TdlibError", "FloodWait", "MessageDeleteForbidden", "MessageNotModified",
-    "ChatAdminRequired", "UserNotParticipant", "PeerIdInvalid", "UserIsBlocked",
-    "RPCError", "raise_for_error",
+    "TdlibError",
+    "FloodWait",
+    "MessageDeleteForbidden",
+    "MessageNotModified",
+    "ChatAdminRequired",
+    "UserNotParticipant",
+    "PeerIdInvalid",
+    "UserIsBlocked",
+    "RPCError",
+    "raise_for_error",
 ]

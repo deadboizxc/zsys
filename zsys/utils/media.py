@@ -8,12 +8,11 @@ Combined utilities for:
 """
 # RU: Медиа-утилиты — обработка изображений через Pillow и поиск исполняемых файлов FFmpeg.
 
-import os
-import shutil
 import platform
+import shutil
 from io import BytesIO
 from pathlib import Path
-from typing import Union, Optional, BinaryIO, Dict
+from typing import BinaryIO, Dict, Optional, Union
 
 # Import PIL with fallback
 try:
@@ -49,7 +48,7 @@ def get_ffmpeg_paths() -> Dict[str, Optional[str]]:
     """
     # RU: Сначала ищет бинарники в bundled-директории bin/ffmpeg/{os}/, затем fallback на PATH.
     # Import here to avoid circular dependency
-    from .filesystem import resource_path, is_android, is_frozen
+    from .filesystem import is_android, resource_path
 
     os_type = platform.system().lower()
     exe_suffix = ".exe" if os_type == "windows" else ""

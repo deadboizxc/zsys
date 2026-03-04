@@ -11,7 +11,7 @@ never loaded.
 
 import platform
 from pathlib import Path
-from typing import Optional, Union, Final, Dict
+from typing import Dict, Final, Optional, Union
 
 from .base import Database
 

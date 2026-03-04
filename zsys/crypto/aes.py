@@ -12,16 +12,16 @@ Requires the ``cryptography`` package::
 # RU: Реализация AES-шифра — симметричное шифрование AES-256-CBC.
 # RU: IV (16 байт) предшествует шифртексту в выводе encrypt().
 
-from typing import Optional
-from zsys.core.interfaces import ICipher
-from zsys.core.exceptions import CryptoError
-import os
 import hashlib
+import os
+
+from zsys.core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
 
 try:
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import padding
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:

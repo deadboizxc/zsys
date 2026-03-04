@@ -11,10 +11,10 @@ feature set including async socket delivery and buffer statistics.
 
 from .base import BaseLogger
 from .printer import (
-    Colors,
     ColoredFormatter,
     ColorLogger,
     ColorPrinter,
+    Colors,
     get_logger,
     logger,
     printer,

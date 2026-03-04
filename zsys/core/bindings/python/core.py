@@ -6,7 +6,6 @@ Usage:
 """
 
 import cffi
-import os
 
 _ffi = cffi.FFI()
 
@@ -128,6 +127,7 @@ def _str(ptr) -> str | None:
 
 # ─────────────────────────── User ────────────────────────────────────────────
 
+
 class User:
     """Python wrapper for ZsysUser.  Owns the heap allocation."""
 
@@ -236,15 +236,17 @@ class User:
 
 # ─────────────────────────── ChatType ────────────────────────────────────────
 
+
 class ChatType:
-    PRIVATE    = 0
-    GROUP      = 1
+    PRIVATE = 0
+    GROUP = 1
     SUPERGROUP = 2
-    CHANNEL    = 3
-    BOT        = 4
+    CHANNEL = 3
+    BOT = 4
 
 
 # ─────────────────────────── Chat ────────────────────────────────────────────
+
 
 class Chat:
     """Python wrapper for ZsysChat.  Owns the heap allocation."""
@@ -300,7 +302,9 @@ class Chat:
 
     @description.setter
     def description(self, value: str | None):
-        _lib.zsys_chat_set_description(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_chat_set_description(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def member_count(self) -> int:
@@ -358,12 +362,14 @@ class Chat:
 
 # ─────────────────────────── ClientMode ──────────────────────────────────────
 
+
 class ClientMode:
     USER = 0
-    BOT  = 1
+    BOT = 1
 
 
 # ─────────────────────────── ClientConfig ────────────────────────────────────
+
 
 class ClientConfig:
     """Python wrapper for ZsysClientConfig.  Owns the heap allocation."""
@@ -423,7 +429,9 @@ class ClientConfig:
 
     @bot_token.setter
     def bot_token(self, value: str | None):
-        _lib.zsys_client_set_bot_token(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_client_set_bot_token(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def device_model(self) -> str | None:
@@ -431,7 +439,9 @@ class ClientConfig:
 
     @device_model.setter
     def device_model(self, value: str | None):
-        _lib.zsys_client_set_device_model(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_client_set_device_model(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def system_version(self) -> str | None:
@@ -439,7 +449,9 @@ class ClientConfig:
 
     @system_version.setter
     def system_version(self, value: str | None):
-        _lib.zsys_client_set_system_version(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_client_set_system_version(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def app_version(self) -> str | None:
@@ -447,7 +459,9 @@ class ClientConfig:
 
     @app_version.setter
     def app_version(self, value: str | None):
-        _lib.zsys_client_set_app_version(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_client_set_app_version(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def lang_code(self) -> str | None:
@@ -455,7 +469,9 @@ class ClientConfig:
 
     @lang_code.setter
     def lang_code(self, value: str | None):
-        _lib.zsys_client_set_lang_code(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_client_set_lang_code(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def lang_pack(self) -> str | None:
@@ -463,7 +479,9 @@ class ClientConfig:
 
     @lang_pack.setter
     def lang_pack(self, value: str | None):
-        _lib.zsys_client_set_lang_pack(self._ptr, value.encode() if value else _ffi.NULL)
+        _lib.zsys_client_set_lang_pack(
+            self._ptr, value.encode() if value else _ffi.NULL
+        )
 
     @property
     def proxy_host(self) -> str | None:
@@ -481,7 +499,9 @@ class ClientConfig:
     def proxy_pass(self) -> str | None:
         return _str(self._ptr.proxy_pass)
 
-    def set_proxy(self, host: str, port: int, user: str | None = None, password: str | None = None):
+    def set_proxy(
+        self, host: str, port: int, user: str | None = None, password: str | None = None
+    ):
         _lib.zsys_client_set_proxy(
             self._ptr,
             host.encode(),

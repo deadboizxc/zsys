@@ -6,12 +6,13 @@ Provides translation management and multi-language support.
 # RU: Поддержка интернационализации для ядра zsys.
 
 import json
-from pathlib import Path
-from typing import Dict, Any, Optional, List
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 try:
-    from zsys._core import nested_get as _c_nested_get, C_AVAILABLE as _C_AVAILABLE
+    from zsys._core import C_AVAILABLE as _C_AVAILABLE
+    from zsys._core import nested_get as _c_nested_get
 except ImportError:
     _C_AVAILABLE = False
     _c_nested_get = None
@@ -19,11 +20,16 @@ except ImportError:
 # ── Cython tier-2 hot-path imports ───────────────────────────────────────────
 # RU: Импорт Cython-уровня (tier-2) горячих путей i18n.
 try:
-    from zsys.i18n._i18n_fast import (       # type: ignore[import]
+    from zsys.i18n._i18n_fast import (  # type: ignore[import]
         deep_merge_c as _cy_deep_merge,
-        nested_get_c as _cy_nested_get,
-        i18n_get_c   as _cy_i18n_get,
     )
+    from zsys.i18n._i18n_fast import (
+        i18n_get_c as _cy_i18n_get,
+    )
+    from zsys.i18n._i18n_fast import (
+        nested_get_c as _cy_nested_get,
+    )
+
     _CY_AVAILABLE = True
 except ImportError:
     _CY_AVAILABLE = False

@@ -1,6 +1,6 @@
 """BaseUser model - unified user entity across all projects."""
 
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Boolean, Column, String
 
 from .base import BaseModel
 

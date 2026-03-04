@@ -6,7 +6,7 @@ dictionaries, and rich string formatting used by all ZSYS exceptions.
 # RU: Базовое исключение ZSYS — корень иерархии исключений.
 # RU: Поддерживает коды ошибок, словари деталей и форматированный вывод.
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 
 class BaseException(Exception):

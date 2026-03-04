@@ -9,10 +9,10 @@ DuckDB, a high-performance columnar analytical engine.  This backend is
 # RU: Реализует интерфейс Database поверх DuckDB.
 # RU: Недоступен на Android из-за отсутствия нативных библиотек.
 
-import threading
 import shutil
-from typing import Any, Dict, List, Optional, Union
+import threading
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .base import Database, DatabaseError
 

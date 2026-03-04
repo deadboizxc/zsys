@@ -7,7 +7,7 @@ and block retrieval.
 # RU: Интерфейс IBlockchain — контракт для реализаций блокчейн-бэкендов.
 # RU: Используется структурная типизация (Protocol): явное наследование не требуется.
 
-from typing import Protocol, runtime_checkable, Any, Optional
+from typing import Any, Optional, Protocol, runtime_checkable
 
 
 @runtime_checkable

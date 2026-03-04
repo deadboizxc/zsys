@@ -3,7 +3,6 @@
 import asyncio
 import json
 import logging
-import mimetypes
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -14,14 +13,12 @@ import aiohttp
 
 from zsys.core.domain.crypto import compute_file_hash
 from zsys.core.exceptions import (
-    MediaNotFoundError,
-    MediaExistsError,
-    InvalidMediaTypeError,
-    StorageError,
     APIError,
+    MediaExistsError,
+    MediaNotFoundError,
+    StorageError,
 )
-from zsys.data.orm import MediaFile, User
-from zsys.permissions import require_delete_permission, require_update_permission
+from zsys.data.orm import User
 
 logger = logging.getLogger(__name__)
 

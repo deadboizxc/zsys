@@ -15,17 +15,14 @@ Usage:
 """
 
 import asyncio
-import sys
-import os
 from pathlib import Path
-from typing import List, Dict, Set, Optional, Callable, TYPE_CHECKING
-from functools import partial
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set
 
 if TYPE_CHECKING:
     from pyrogram import Client
 
 try:
-    from watchfiles import awatch, Change
+    from watchfiles import Change, awatch
 
     WATCHFILES_AVAILABLE = True
 except ImportError:
@@ -176,8 +173,8 @@ class ModuleWatcher:
         async with self._lock:
             try:
                 from zsys.telegram.pyrogram.modules import (
-                    reload_modules,
                     get_module_path,
+                    reload_modules,
                 )
 
                 # Check if core or custom module

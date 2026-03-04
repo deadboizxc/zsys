@@ -14,9 +14,13 @@ from typing import Optional, Union
 
 try:
     from zsys._core import (
-        human_time as _c_human_time,
-        parse_duration as _c_parse_duration,
         C_AVAILABLE as _C,
+    )
+    from zsys._core import (
+        human_time as _c_human_time,
+    )
+    from zsys._core import (
+        parse_duration as _c_parse_duration,
     )
 except ImportError:
     _C = False

@@ -6,7 +6,7 @@ Defines the structural Protocol interface that all bot backends
 # RU: Интерфейс IBot — контракт для реализаций бот-клиентов.
 # RU: Структурная типизация (Protocol): явное наследование не требуется.
 
-from typing import Protocol, runtime_checkable, Any, Callable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 
 @runtime_checkable

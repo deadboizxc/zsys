@@ -12,9 +12,9 @@ import logging
 import sys
 from collections import deque
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
-from logging.handlers import RotatingFileHandler
 
 try:
     from colorlog import ColoredFormatter as _ColorlogFormatter
@@ -25,13 +25,25 @@ except ImportError:
 
 try:
     from zsys._core import (
-        format_json_log as _c_format_json_log,
-        ansi_color as _c_ansi_color,
-        print_box_str as _c_print_box_str,
-        print_separator_str as _c_print_separator_str,
-        print_table_str as _c_print_table_str,
-        print_progress_str as _c_print_progress_str,
         C_AVAILABLE as _C,
+    )
+    from zsys._core import (
+        ansi_color as _c_ansi_color,
+    )
+    from zsys._core import (
+        format_json_log as _c_format_json_log,
+    )
+    from zsys._core import (
+        print_box_str as _c_print_box_str,
+    )
+    from zsys._core import (
+        print_progress_str as _c_print_progress_str,
+    )
+    from zsys._core import (
+        print_separator_str as _c_print_separator_str,
+    )
+    from zsys._core import (
+        print_table_str as _c_print_table_str,
     )
 except ImportError:
     _C = False
@@ -39,7 +51,6 @@ except ImportError:
 # Import base Logger from core
 # RU: Импортируем базовый Logger из core
 from .base import BaseLogger
-
 
 # ===== ANSI Colors =====
 # RU: ANSI-цвета

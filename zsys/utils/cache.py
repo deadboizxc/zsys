@@ -3,7 +3,7 @@
 
 import asyncio
 import time
-from typing import Optional, Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
 class MemoryCache:

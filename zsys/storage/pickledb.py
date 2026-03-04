@@ -9,8 +9,8 @@ so no explicit flush is required by the caller.
 # RU: Реализует интерфейс Database; каждая запись автоматически сохраняется на диск.
 
 import shutil
-from typing import Any, Dict, List, Union
 from pathlib import Path
+from typing import Any, Dict, List, Union
 
 from .base import Database, DatabaseError
 

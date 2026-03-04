@@ -5,11 +5,10 @@ Inherits from BaseHttpClient and implements unified HTTP interface.
 """
 
 import asyncio
-from typing import Any, Dict, Optional, Union
 from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 from .base import BaseHttpClient
-
 
 # Detect available HTTP library
 AIOHTTP_AVAILABLE = False

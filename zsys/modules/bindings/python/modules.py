@@ -4,7 +4,6 @@ zsys modules bindings – Python (cffi)
 Wraps ZsysRouter and ZsysRegistry from libzsys_core.so.
 """
 
-import os
 from cffi import FFI
 
 _ffi = FFI()
@@ -96,13 +95,19 @@ class Registry:
             _lib.zsys_registry_free(self._ptr)
             self._ptr = _ffi.NULL
 
-    def register(self, name: str, handler_id: int,
-                 description: str | None = None,
-                 category: str | None = None) -> None:
+    def register(
+        self,
+        name: str,
+        handler_id: int,
+        description: str | None = None,
+        category: str | None = None,
+    ) -> None:
         """Register a handler. description and category are optional."""
         desc = description.encode() if description is not None else _ffi.NULL
-        cat  = category.encode()    if category    is not None else _ffi.NULL
-        rc = _lib.zsys_registry_register(self._ptr, name.encode(), handler_id, desc, cat)
+        cat = category.encode() if category is not None else _ffi.NULL
+        rc = _lib.zsys_registry_register(
+            self._ptr, name.encode(), handler_id, desc, cat
+        )
         if rc != 0:
             raise RuntimeError(f"zsys_registry_register failed for {name!r}")
 
@@ -117,7 +122,7 @@ class Registry:
     def info(self, name: str, desc_len: int = 256, cat_len: int = 128):
         """Return (description, category) strings for name, or raise KeyError."""
         out_desc = _ffi.new(f"char[{desc_len}]")
-        out_cat  = _ffi.new(f"char[{cat_len}]")
+        out_cat = _ffi.new(f"char[{cat_len}]")
         rc = _lib.zsys_registry_info(
             self._ptr, name.encode(), out_desc, desc_len, out_cat, cat_len
         )

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from typing import Optional
+
 from pydantic import Field
 
 from zsys.core.config import BaseConfig
@@ -38,31 +39,32 @@ class TdlibConfig(BaseConfig):
         cfg = TdlibConfig(api_id=123456, api_hash="abc123def456")
         client = TdlibClient(cfg)
     """
+
     # RU: Конфигурация libtg клиента. Все поля переопределяются через TDLIB_* env.
 
     # Credentials
-    api_id:       int           = Field(description="Telegram API ID")
-    api_hash:     str           = Field(description="Telegram API hash")
-    session_dir:  str           = Field(default=".", description="Папка сессии")
-    session_name: str           = Field(default="session", description="Имя сессии")
-    bot_token:    Optional[str] = Field(default=None, description="Bot token")
-    phone:        Optional[str] = Field(default=None, description="Номер телефона")
+    api_id: int = Field(description="Telegram API ID")
+    api_hash: str = Field(description="Telegram API hash")
+    session_dir: str = Field(default=".", description="Папка сессии")
+    session_name: str = Field(default="session", description="Имя сессии")
+    bot_token: Optional[str] = Field(default=None, description="Bot token")
+    phone: Optional[str] = Field(default=None, description="Номер телефона")
 
     # App identity
-    device_model:   str = Field(default="Desktop")
+    device_model: str = Field(default="Desktop")
     system_version: str = Field(default="Linux")
-    app_version:    str = Field(default="1.0.0")
-    lang_code:      str = Field(default="en")
+    app_version: str = Field(default="1.0.0")
+    lang_code: str = Field(default="en")
 
     # TDLib settings
-    use_test_dc:   bool = Field(default=False)
-    log_verbosity: int  = Field(default=0)
+    use_test_dc: bool = Field(default=False)
+    log_verbosity: int = Field(default=0)
 
     # zsys.modules
-    prefix:             str  = Field(default=".")
-    core_modules_dir:   str  = Field(default="modules")
-    custom_modules_dir: str  = Field(default="custom_modules")
-    auto_load_modules:  bool = Field(default=True)
+    prefix: str = Field(default=".")
+    core_modules_dir: str = Field(default="modules")
+    custom_modules_dir: str = Field(default="custom_modules")
+    auto_load_modules: bool = Field(default=True)
 
     class Config:
         # RU: Префикс переменных окружения для TDLib клиента.

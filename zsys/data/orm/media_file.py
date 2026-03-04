@@ -1,6 +1,6 @@
 """BaseMediaFile model - stored media file entity."""
 
-from sqlalchemy import Column, String, Integer, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer, String
 
 from .base import BaseModel
 

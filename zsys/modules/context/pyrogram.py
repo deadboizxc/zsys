@@ -13,14 +13,14 @@ Supports all Pyrogram features:
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union, List, BinaryIO, TYPE_CHECKING
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, BinaryIO, List, Optional, Union
 
-from .base import Context, User, Chat
+from .base import Chat, Context, User
 
 if TYPE_CHECKING:
     from pyrogram import Client
-    from pyrogram.types import Message, InlineKeyboardMarkup, ReplyKeyboardMarkup
+    from pyrogram.types import InlineKeyboardMarkup, Message
 
 
 class PyrogramContext(Context):

@@ -12,20 +12,18 @@ Supports all aiogram features:
 
 from __future__ import annotations
 
-from typing import Any, Optional, Union, List, BinaryIO, TYPE_CHECKING
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, BinaryIO, List, Optional, Union
 
-from .base import Context, User, Chat
+from .base import Chat, Context, User
 
 if TYPE_CHECKING:
     from aiogram import Bot
-    from aiogram.types import (
-        Message,
-        InlineKeyboardMarkup,
-        ReplyKeyboardMarkup,
-        FSInputFile,
-    )
     from aiogram.fsm.context import FSMContext
+    from aiogram.types import (
+        InlineKeyboardMarkup,
+        Message,
+    )
 
 
 class AiogramContext(Context):

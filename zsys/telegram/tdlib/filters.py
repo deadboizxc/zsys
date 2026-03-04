@@ -19,11 +19,19 @@ from __future__ import annotations
 from typing import Any, Callable, Optional
 
 from zsys.telegram.tdlib.binding import (
-    TG_FILTER_NONE, TG_FILTER_OUTGOING, TG_FILTER_INCOMING,
-    TG_FILTER_PRIVATE, TG_FILTER_GROUP, TG_FILTER_CHANNEL,
-    TG_FILTER_TEXT, TG_FILTER_PHOTO, TG_FILTER_VIDEO,
-    TG_FILTER_DOCUMENT, TG_FILTER_AUDIO, TG_FILTER_STICKER,
-    TG_FILTER_BOT_CMD, TG_FILTER_ALL,
+    TG_FILTER_ALL,
+    TG_FILTER_AUDIO,
+    TG_FILTER_BOT_CMD,
+    TG_FILTER_CHANNEL,
+    TG_FILTER_DOCUMENT,
+    TG_FILTER_GROUP,
+    TG_FILTER_INCOMING,
+    TG_FILTER_OUTGOING,
+    TG_FILTER_PHOTO,
+    TG_FILTER_PRIVATE,
+    TG_FILTER_STICKER,
+    TG_FILTER_TEXT,
+    TG_FILTER_VIDEO,
 )
 
 
@@ -101,17 +109,16 @@ class _LambdaFilter(Filter):
 class _CompositeFilter(Filter):
     """Logical composition of two filters."""
 
-    def __init__(self, op: str, left: Filter,
-                 right: Optional[Filter]) -> None:
-        self._op    = op
-        self._left  = left
+    def __init__(self, op: str, left: Filter, right: Optional[Filter]) -> None:
+        self._op = op
+        self._left = left
         self._right = right
 
     def __call__(self, client: Any, message: Any) -> bool:
         if self._op == "and":
             return self._left(client, message) and self._right(client, message)  # type: ignore[arg-type]
         if self._op == "or":
-            return self._left(client, message) or self._right(client, message)   # type: ignore[arg-type]
+            return self._left(client, message) or self._right(client, message)  # type: ignore[arg-type]
         if self._op == "not":
             return not self._left(client, message)
         return True
@@ -122,7 +129,11 @@ class _CompositeFilter(Filter):
         lb = self._left.bitmask
         rb = self._right.bitmask if self._right else TG_FILTER_ALL
         if self._op == "and":
-            return lb & rb if (lb != TG_FILTER_ALL and rb != TG_FILTER_ALL) else TG_FILTER_ALL
+            return (
+                lb & rb
+                if (lb != TG_FILTER_ALL and rb != TG_FILTER_ALL)
+                else TG_FILTER_ALL
+            )
         return TG_FILTER_ALL
 
 
@@ -140,35 +151,57 @@ def create(func: Callable) -> Filter:
 
 # ── Standard bitmask-based filters ───────────────────────────────────────── #
 
-private    = _BitmaskFilter(TG_FILTER_PRIVATE)
-group      = _BitmaskFilter(TG_FILTER_GROUP)
-channel    = _BitmaskFilter(TG_FILTER_CHANNEL)
-text       = _BitmaskFilter(TG_FILTER_TEXT)
-photo      = _BitmaskFilter(TG_FILTER_PHOTO)
-video      = _BitmaskFilter(TG_FILTER_VIDEO)
-document   = _BitmaskFilter(TG_FILTER_DOCUMENT)
-audio      = _BitmaskFilter(TG_FILTER_AUDIO)
-sticker    = _BitmaskFilter(TG_FILTER_STICKER)
-incoming   = _BitmaskFilter(TG_FILTER_INCOMING)
-outgoing   = _BitmaskFilter(TG_FILTER_OUTGOING)
+private = _BitmaskFilter(TG_FILTER_PRIVATE)
+group = _BitmaskFilter(TG_FILTER_GROUP)
+channel = _BitmaskFilter(TG_FILTER_CHANNEL)
+text = _BitmaskFilter(TG_FILTER_TEXT)
+photo = _BitmaskFilter(TG_FILTER_PHOTO)
+video = _BitmaskFilter(TG_FILTER_VIDEO)
+document = _BitmaskFilter(TG_FILTER_DOCUMENT)
+audio = _BitmaskFilter(TG_FILTER_AUDIO)
+sticker = _BitmaskFilter(TG_FILTER_STICKER)
+incoming = _BitmaskFilter(TG_FILTER_INCOMING)
+outgoing = _BitmaskFilter(TG_FILTER_OUTGOING)
 bot_command = _BitmaskFilter(TG_FILTER_BOT_CMD)
-all_       = _BitmaskFilter(TG_FILTER_ALL)
+all_ = _BitmaskFilter(TG_FILTER_ALL)
 
 # ── Lambda-based filters (Python-level check required) ────────────────────── #
 
-me        = create(lambda _, __, m: getattr(m, "is_out", False))
-bot       = create(lambda _, __, m:
-                   m.from_user.is_bot if getattr(m, "from_user", None) else False)
+me = create(lambda _, __, m: getattr(m, "is_out", False))
+bot = create(
+    lambda _, __, m: m.from_user.is_bot if getattr(m, "from_user", None) else False
+)
 mentioned = create(lambda _, __, m: getattr(m, "is_mentioned", False))
-reply     = create(lambda _, __, m: m.reply_to_message is not None)
+reply = create(lambda _, __, m: m.reply_to_message is not None)
 forwarded = create(lambda _, __, m: getattr(m, "forward_from", None) is not None)
-contact   = create(lambda _, __, m: getattr(m.from_user, "is_contact", False)
-                   if getattr(m, "from_user", None) else False)
+contact = create(
+    lambda _, __, m: (
+        getattr(m.from_user, "is_contact", False)
+        if getattr(m, "from_user", None)
+        else False
+    )
+)
 
 __all__ = [
-    "Filter", "create",
-    "private", "group", "channel", "text", "photo", "video",
-    "document", "audio", "sticker", "incoming", "outgoing",
-    "bot_command", "all_",
-    "me", "bot", "mentioned", "reply", "forwarded", "contact",
+    "Filter",
+    "create",
+    "private",
+    "group",
+    "channel",
+    "text",
+    "photo",
+    "video",
+    "document",
+    "audio",
+    "sticker",
+    "incoming",
+    "outgoing",
+    "bot_command",
+    "all_",
+    "me",
+    "bot",
+    "mentioned",
+    "reply",
+    "forwarded",
+    "contact",
 ]

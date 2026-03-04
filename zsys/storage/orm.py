@@ -9,11 +9,12 @@ for application-wide access.
 # RU: Централизованное управление сессиями: SQLite (StaticPool) и прочие БД (QueuePool),
 # RU: контекстный менеджер сессий, глобальный синглтон на уровне модуля.
 
-from typing import Optional, Generator, Type, TypeVar
 from contextlib import contextmanager
-from sqlalchemy import create_engine, Engine, event
-from sqlalchemy.orm import sessionmaker, Session, declarative_base
-from sqlalchemy.pool import StaticPool, QueuePool
+from typing import Generator, Optional, TypeVar
+
+from sqlalchemy import Engine, create_engine, event
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import QueuePool, StaticPool
 
 T = TypeVar("T")
 

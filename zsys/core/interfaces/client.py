@@ -6,7 +6,7 @@ clients must satisfy: lifecycle management and basic messaging.
 # RU: Интерфейс IClient — базовый контракт для клиентов платформ обмена сообщениями.
 # RU: Все бот- и юзербот-клиенты должны соответствовать этому протоколу.
 
-from typing import Protocol, runtime_checkable, Any
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable

@@ -7,16 +7,16 @@ Requires: pip install zsys[crypto]  (cryptography>=3.0).
 # RU: AES-256-CBC шифрование через библиотеку cryptography.
 # RU: Ключ нормализуется до 32 байт через SHA-256; требует pip install zsys[crypto].
 
-from typing import Optional
-from zsys.core.interfaces import ICipher
-from zsys.core.exceptions import CryptoError
-import os
 import hashlib
+import os
+
+from zsys.core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
 
 try:
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import padding
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:

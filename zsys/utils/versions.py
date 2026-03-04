@@ -8,7 +8,7 @@ Exposes PythonVersion named-tuple and VersionInfo class with frozen constants.
 # RU: Содержит PythonVersion (именованный кортеж) и VersionInfo с классовыми константами версий.
 
 from sys import version_info
-from typing import NamedTuple, Final, Tuple
+from typing import Final, NamedTuple, Tuple
 
 
 class PythonVersion(NamedTuple):

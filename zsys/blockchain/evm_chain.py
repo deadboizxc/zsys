@@ -11,14 +11,14 @@ Requires web3::
 # RU: Требует web3: pip install zsys[blockchain].
 
 from typing import Any, Optional
+
+from zsys.core.exceptions import BlockchainError
 from zsys.core.interfaces import IBlockchain, IWallet
-from zsys.core.dataclass_models import BaseWallet, BaseTransaction, TransactionStatus
 from zsys.log import get_logger
-from zsys.core.exceptions import BlockchainError, TransactionError
 
 try:
-    from web3 import Web3
     from eth_account import Account
+    from web3 import Web3
 
     WEB3_AVAILABLE = True
 except ImportError:

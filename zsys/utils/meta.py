@@ -14,7 +14,8 @@ from typing import Dict
 __all__ = ["parse_meta_comments", "extract_docstring_meta"]
 
 try:
-    from zsys._core import parse_meta_comments as _c_parse_meta, C_AVAILABLE as _C
+    from zsys._core import C_AVAILABLE as _C
+    from zsys._core import parse_meta_comments as _c_parse_meta
 except ImportError:
     _C = False
 

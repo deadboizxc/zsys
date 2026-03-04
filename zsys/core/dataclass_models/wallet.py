@@ -7,13 +7,14 @@ For database persistence use ``zsys.data.orm.wallet.BaseWallet`` instead.
 # RU: Для сохранения в БД используйте zsys.data.orm.wallet.BaseWallet.
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Optional
-from datetime import datetime
 
 
 class TransactionStatus(str, Enum):
     """Transaction lifecycle status."""
+
     PENDING = "pending"
     CONFIRMED = "confirmed"
     FAILED = "failed"
