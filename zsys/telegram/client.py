@@ -1166,8 +1166,14 @@ class TdlibClient:
         if not hasattr(msg, "media_group_id") or not msg.media_group_id:
             return [msg]
         # Fetch surrounding messages to find group
-        history = await self.get_chat_history(chat_id, limit=20, offset_id=message_id + 10)
-        return [m for m in history if getattr(m, "media_group_id", None) == msg.media_group_id]
+        history = await self.get_chat_history(
+            chat_id, limit=20, offset_id=message_id + 10
+        )
+        return [
+            m
+            for m in history
+            if getattr(m, "media_group_id", None) == msg.media_group_id
+        ]
 
     async def send_media_group(
         self, chat_id: int, media: List[Any], **kwargs: Any
@@ -1183,7 +1189,9 @@ class TdlibClient:
                 elif item.type == "video":
                     await self.send_video(chat_id, path, getattr(item, "caption", ""))
                 elif item.type == "document":
-                    await self.send_document(chat_id, path, getattr(item, "caption", ""))
+                    await self.send_document(
+                        chat_id, path, getattr(item, "caption", "")
+                    )
         return results
 
     async def set_administrator_title(

@@ -35,12 +35,15 @@ class PyrogramConfig(TdlibConfig):
 
     Adds fields specific to zxc_userbot that don't exist in base TdlibConfig.
     """
+
     # Extended fields for zxc_userbot compatibility
     enable_api_server: bool = Field(default=False, description="Enable API server")
     enable_admin_bot: bool = Field(default=False, description="Enable admin bot")
     admin_bot_token: str = Field(default="", description="Admin bot token")
     enable_hot_reload: bool = Field(default=False, description="Hot reload modules")
-    hot_reload_dirs: List[str] = Field(default_factory=lambda: ["modules", "custom_modules"])
+    hot_reload_dirs: List[str] = Field(
+        default_factory=lambda: ["modules", "custom_modules"]
+    )
 
     class Config:
         env_prefix = "PYROGRAM_"
@@ -59,9 +62,15 @@ class PyrogramClient(TdlibClient):
     def __init__(
         self,
         config: PyrogramConfig,
-        ask_phone: Optional[Callable[["PyrogramClient"], Coroutine[Any, Any, None]]] = None,
-        ask_code: Optional[Callable[["PyrogramClient"], Coroutine[Any, Any, None]]] = None,
-        ask_pass: Optional[Callable[["PyrogramClient"], Coroutine[Any, Any, None]]] = None,
+        ask_phone: Optional[
+            Callable[["PyrogramClient"], Coroutine[Any, Any, None]]
+        ] = None,
+        ask_code: Optional[
+            Callable[["PyrogramClient"], Coroutine[Any, Any, None]]
+        ] = None,
+        ask_pass: Optional[
+            Callable[["PyrogramClient"], Coroutine[Any, Any, None]]
+        ] = None,
     ) -> None:
         super().__init__(config, ask_phone, ask_code, ask_pass)
         self._pyrogram_config = config
@@ -156,7 +165,9 @@ class PyrogramClient(TdlibClient):
                 pass
         return users
 
-    async def iter_chat_members(self, chat_id: Any, limit: int = 0, **kwargs: Any) -> Any:
+    async def iter_chat_members(
+        self, chat_id: Any, limit: int = 0, **kwargs: Any
+    ) -> Any:
         """Iterate chat members (Pyrogram compatibility)."""
         members = await self.get_chat_members(chat_id, limit=limit or 200)
         for m in members:
