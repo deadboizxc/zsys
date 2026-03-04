@@ -222,12 +222,22 @@ class TdlibClient:
     # ─────────────────────────────────────────────────────────────────────────
 
     async def send_message(self, chat_id: int, text: str,
-                           parse_mode: str = "html") -> None:
-        """Send a text message to chat_id."""
-        libtg.tg_send_text(
-            self._client_ptr, chat_id,
-            text.encode("utf-8"), parse_mode.encode()
-        )
+                           parse_mode: str = "html",
+                           reply_to_message_id: int = 0,
+                           reply_markup: Optional[str] = None) -> None:
+        """Send a text message with optional reply and inline keyboard."""
+        if reply_to_message_id or reply_markup:
+            libtg.tg_send_text_ex(
+                self._client_ptr, chat_id,
+                text.encode("utf-8"), parse_mode.encode(),
+                reply_to_message_id,
+                reply_markup.encode() if reply_markup else None,
+            )
+        else:
+            libtg.tg_send_text(
+                self._client_ptr, chat_id,
+                text.encode("utf-8"), parse_mode.encode()
+            )
 
     async def reply(self, msg: Message, text: str,
                     parse_mode: str = "html") -> None:
@@ -345,25 +355,6 @@ class TdlibClient:
         """Forward messages (with forward header)."""
         for mid in msg_ids:
             libtg.tg_forward(self._client_ptr, to_chat_id, from_chat_id, mid)
-
-    async def send_message(self, chat_id: int, text: str,
-                           parse_mode: str = "html",
-                           reply_to_message_id: int = 0,
-                           reply_markup: Optional[str] = None) -> None:
-        """Send a text message with optional reply and inline keyboard."""
-        # RU: Расширенная отправка с разметкой и ответом.
-        if reply_to_message_id or reply_markup:
-            libtg.tg_send_text_ex(
-                self._client_ptr, chat_id,
-                text.encode("utf-8"), parse_mode.encode(),
-                reply_to_message_id,
-                reply_markup.encode() if reply_markup else None,
-            )
-        else:
-            libtg.tg_send_text(
-                self._client_ptr, chat_id,
-                text.encode("utf-8"), parse_mode.encode()
-            )
 
     async def edit_message_text(self, chat_id: int, msg_id: int, text: str,
                                 parse_mode: str = "html",
@@ -589,7 +580,6 @@ class TdlibClient:
 
     async def get_dialogs(self, limit: int = 100) -> List[Chat]:
         """Fetch dialog (chat) list."""
-        lib    = libtg._load()
         future = self._make_future()
         chats: List[Chat] = []
 
@@ -716,17 +706,28 @@ class TdlibClient:
             TG_ADMIN_MANAGE_VIDEO, TG_ADMIN_ANONYMOUS,
         )
         rights = 0
-        if can_manage_chat:       rights |= TG_ADMIN_MANAGE_CHAT
-        if can_post_messages:     rights |= TG_ADMIN_POST_MESSAGES
-        if can_edit_messages:     rights |= TG_ADMIN_EDIT_MESSAGES
-        if can_delete_messages:   rights |= TG_ADMIN_DELETE_MESSAGES
-        if can_ban_users:         rights |= TG_ADMIN_BAN_USERS
-        if can_invite_users:      rights |= TG_ADMIN_INVITE_USERS
-        if can_pin_messages:      rights |= TG_ADMIN_PIN_MESSAGES
-        if can_promote_members:   rights |= TG_ADMIN_PROMOTE_MEMBERS
-        if can_change_info:       rights |= TG_ADMIN_CHANGE_INFO
-        if can_manage_video_chats: rights |= TG_ADMIN_MANAGE_VIDEO
-        if is_anonymous:           rights |= TG_ADMIN_ANONYMOUS
+        if can_manage_chat:
+            rights |= TG_ADMIN_MANAGE_CHAT
+        if can_post_messages:
+            rights |= TG_ADMIN_POST_MESSAGES
+        if can_edit_messages:
+            rights |= TG_ADMIN_EDIT_MESSAGES
+        if can_delete_messages:
+            rights |= TG_ADMIN_DELETE_MESSAGES
+        if can_ban_users:
+            rights |= TG_ADMIN_BAN_USERS
+        if can_invite_users:
+            rights |= TG_ADMIN_INVITE_USERS
+        if can_pin_messages:
+            rights |= TG_ADMIN_PIN_MESSAGES
+        if can_promote_members:
+            rights |= TG_ADMIN_PROMOTE_MEMBERS
+        if can_change_info:
+            rights |= TG_ADMIN_CHANGE_INFO
+        if can_manage_video_chats:
+            rights |= TG_ADMIN_MANAGE_VIDEO
+        if is_anonymous:
+            rights |= TG_ADMIN_ANONYMOUS
         libtg.tg_promote_member(
             self._client_ptr, chat_id, user_id, rights,
             custom_title.encode() if custom_title else b"")

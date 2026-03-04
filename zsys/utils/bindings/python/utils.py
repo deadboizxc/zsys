@@ -167,9 +167,9 @@ class ZsysUtils:
     def pre(self, text: str, lang: str = "",
             escape: bool = True) -> str:
         b = text.encode()
-        l = lang.encode()
+        lang_b = lang.encode()
         return _str(self._ffi, self._lib,
-                    self._lib.zsys_format_pre(b, len(b), l, int(escape)))
+                    self._lib.zsys_format_pre(b, len(b), lang_b, int(escape)))
 
     def link(self, text: str, url: str, escape: bool = True) -> str:
         t = text.encode()

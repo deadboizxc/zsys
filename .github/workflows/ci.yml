@@ -27,8 +27,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -e ".[telegram-pyrogram,storage]"
-          pip install pytest pytest-asyncio pytest-cov sqlalchemy
+          pip install -e ".[telegram-tdlib,storage]"
+          pip install pytest pytest-asyncio pytest-cov sqlalchemy environs
 
       - name: Run tests
         run: pytest tests/ -v --tb=short --cov=zsys --cov-report=term-missing
