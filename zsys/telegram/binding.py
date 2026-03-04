@@ -6,7 +6,7 @@ instantiating LibTg will raise RuntimeError with a helpful message.
 
 Usage (internal, not public API)::
 
-    from zsys.telegram.tdlib.binding import libtg, TG_FILTER_ALL
+    from zsys.telegram.binding import libtg, TG_FILTER_ALL
     libtg.tg_send_text(client_ptr, chat_id, b"hello", b"html")
 """
 # RU: ctypes обёртка над libtg.so. Все типы из tg.h.

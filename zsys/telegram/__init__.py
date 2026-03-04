@@ -1,6 +1,6 @@
 """zsys.telegram — Telegram client built on TDLib via libtg (C wrapper).
 
-Single implementation: zsys.telegram.tdlib
+Single implementation using TDLib C library.
   TdlibClient  — userbot / bot client (replaces Pyrogram/Telethon/aiogram)
   TdlibConfig  — configuration
   filters      — composable message filters (&, |, ~)
@@ -17,8 +17,10 @@ Quick start::
     await client.idle()
 """
 
-from zsys.telegram.tdlib import TdlibClient, TdlibConfig, errors, filters
-from zsys.telegram.tdlib.types import Chat, ChatMember, File, Message, User
+from zsys.telegram import errors, filters
+from zsys.telegram.client import TdlibClient
+from zsys.telegram.config import TdlibConfig
+from zsys.telegram.types import Chat, ChatMember, File, Message, User
 
 __all__ = [
     "TdlibClient",

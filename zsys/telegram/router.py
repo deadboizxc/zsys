@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zsys.telegram.tdlib.binding import TG_FILTER_INCOMING, TG_FILTER_TEXT
+from zsys.telegram.binding import TG_FILTER_INCOMING, TG_FILTER_TEXT
 
 if TYPE_CHECKING:
     from zsys.modules.router import Router
-    from zsys.telegram.tdlib.client import TdlibClient
+    from zsys.telegram.client import TdlibClient
 
 
 def attach_router(router: "Router", client: "TdlibClient", prefix: str = ".") -> None:

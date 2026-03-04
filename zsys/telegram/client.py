@@ -5,7 +5,7 @@ libtg.so under the hood — no Python Telegram library dependency.
 
 Example::
 
-    from zsys.telegram.tdlib import TdlibClient, TdlibConfig
+    from zsys.telegram import TdlibClient, TdlibConfig
 
     cfg = TdlibConfig(api_id=123456, api_hash="abc123")
 
@@ -28,7 +28,7 @@ import ctypes
 from typing import Any, Callable, Coroutine, Dict, List, Optional
 
 from zsys.log import get_logger
-from zsys.telegram.tdlib.binding import (
+from zsys.telegram.binding import (
     TG_ASK_CODE_FN,
     TG_ASK_PASS_FN,
     TG_ASK_PHONE_FN,
@@ -50,8 +50,8 @@ from zsys.telegram.tdlib.binding import (
     TG_USER_CB_FN,
     libtg,
 )
-from zsys.telegram.tdlib.config import TdlibConfig
-from zsys.telegram.tdlib.types import Chat, ChatMember, File, Message, User
+from zsys.telegram.config import TdlibConfig
+from zsys.telegram.types import Chat, ChatMember, File, Message, User
 
 # Coroutine-based auth handler type
 _AskFn = Optional[Callable[["TdlibClient"], Coroutine[Any, Any, None]]]
@@ -718,7 +718,7 @@ class TdlibClient:
     ) -> None:
         """Promote a member to administrator with specific rights."""
         # RU: Повышаем участника до администратора с выбранными правами.
-        from zsys.telegram.tdlib.binding import (
+        from zsys.telegram.binding import (
             TG_ADMIN_ANONYMOUS,
             TG_ADMIN_BAN_USERS,
             TG_ADMIN_CHANGE_INFO,
@@ -1158,7 +1158,7 @@ class TdlibClient:
 
         from zsys.modules import get_default_router
         from zsys.modules.loader import ModuleLoader
-        from zsys.telegram.tdlib.router import attach_router
+        from zsys.telegram.router import attach_router
 
         cfg = self._config
         await self._pre_load_modules()

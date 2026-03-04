@@ -2,7 +2,7 @@
 
 Filters can be combined with ``&``, ``|``, ``~``::
 
-    from zsys.telegram.tdlib.filters import text, private, bot_command
+    from zsys.telegram.filters import text, private, bot_command
 
     @client.on_message(text & private)
     async def handler(client, msg):
@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from zsys.telegram.tdlib.binding import (
+from zsys.telegram.binding import (
     TG_FILTER_ALL,
     TG_FILTER_AUDIO,
     TG_FILTER_BOT_CMD,
