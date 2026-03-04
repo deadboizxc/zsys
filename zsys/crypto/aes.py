@@ -13,8 +13,8 @@ Requires the ``cryptography`` package::
 # RU: IV (16 байт) предшествует шифртексту в выводе encrypt().
 
 from typing import Optional
-from core.interfaces import ICipher
-from core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
+from zsys.core.exceptions import CryptoError
 import os
 import hashlib
 

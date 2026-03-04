@@ -19,5 +19,11 @@ Example::
 
 from zsys.telegram.tdlib.config import TdlibConfig
 from zsys.telegram.tdlib.client import TdlibClient
+from zsys.telegram.tdlib.types  import MediaType, User, Chat, ChatMember, File, Message
+from zsys.telegram.tdlib         import filters, errors
 
-__all__ = ["TdlibClient", "TdlibConfig"]
+__all__ = [
+    "TdlibClient", "TdlibConfig",
+    "MediaType", "User", "Chat", "ChatMember", "File", "Message",
+    "filters", "errors",
+]

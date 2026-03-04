@@ -29,7 +29,7 @@ from .user import BaseUser
 from .chat import BaseChat
 from .client import BaseClient
 from .message import BaseMessage
-from .wallet import BaseWallet
+from .wallet import BaseWallet, BaseTransaction, TransactionStatus
 from .bot import BaseBot
 
 __all__ = [
@@ -38,6 +38,8 @@ __all__ = [
     "BaseClient",
     "BaseMessage",
     "BaseWallet",
+    "BaseTransaction",
+    "TransactionStatus",
     "BaseBot",
 ]
 

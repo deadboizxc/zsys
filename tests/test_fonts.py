@@ -2,7 +2,7 @@
 """Test font loading from core/resources/fonts/"""
 
 from pathlib import Path
-from core.resources import FONTS_DIR
+from zsys.resources import FONTS_DIR
 
 print("=" * 60)
 print("Testing core/resources/fonts/")

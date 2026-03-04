@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from common.config import env, load_env, get_env_path
+from zsys.config import env, load_env, get_env_path
 
 
 class TestEnvLoading:

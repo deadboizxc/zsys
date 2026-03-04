@@ -42,20 +42,14 @@ dependencies = [
 
 [project.optional-dependencies]
 # === Telegram Implementations ===
-telegram-pyrogram = [
-    "pyrogram>=2.0.0",
-    "tgcrypto>=1.2.0",
-]
-telegram-aiogram = [
-    "aiogram>=3.0.0",
-]
-telegram-telethon = [
-    "telethon>=1.36.0",
+# === Telegram ===
+telegram-tdlib = [
+    # libtg.so — C library, build with: make telegram
+    "watchfiles>=0.21.0",
+    "pydantic>=2.6.0",
 ]
 telegram = [
-    "zsys[telegram-pyrogram]",
-    "zsys[telegram-aiogram]",
-    "zsys[telegram-telethon]",
+    "zsys[telegram-tdlib]",
 ]
 
 # === Storage Implementations ===

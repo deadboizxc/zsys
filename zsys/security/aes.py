@@ -8,8 +8,8 @@ Requires: pip install zsys[crypto]  (cryptography>=3.0).
 # RU: Ключ нормализуется до 32 байт через SHA-256; требует pip install zsys[crypto].
 
 from typing import Optional
-from core.interfaces import ICipher
-from core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
+from zsys.core.exceptions import CryptoError
 import os
 import hashlib
 

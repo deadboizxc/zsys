@@ -14,37 +14,29 @@ from pathlib import Path
 
 import pytest
 
-from common.utils import shell_exec, get_platform_info
+from zsys.utils import shell_exec_sync, get_platform_info
 
 
 class TestShellExec:
-    """Тесты shell_exec()."""
+    """Тесты shell_exec_sync()."""
     
     def test_shell_exec_simple_command(self):
         """Тест выполнения простой команды."""
-        # Используем команду, которая работает на всех ОС
-        if platform.system() == "Windows":
-            result = shell_exec("echo test")
-        else:
-            result = shell_exec("echo test")
+        code, output, _ = shell_exec_sync("echo test")
         
-        assert result is not None
-        assert "test" in result.lower()
+        assert code == 0
+        assert "test" in output.lower()
     
     def test_shell_exec_with_returncode(self):
         """Тест получения кода возврата."""
-        # Команда, которая всегда успешна
-        if platform.system() == "Windows":
-            code, output = shell_exec("echo test", return_code=True)
-        else:
-            code, output = shell_exec("echo test", return_code=True)
+        code, output, _ = shell_exec_sync("echo test")
         
         assert code == 0
         assert "test" in output.lower()
     
     def test_shell_exec_failed_command(self):
         """Тест выполнения несуществующей команды."""
-        code, output = shell_exec("nonexistent_command_12345", return_code=True)
+        code, output, err = shell_exec_sync("nonexistent_command_12345")
         
         # Команда должна вернуть ненулевой код
         assert code != 0
@@ -52,9 +44,9 @@ class TestShellExec:
     def test_shell_exec_multiline_output(self):
         """Тест команды с многострочным выводом."""
         if platform.system() == "Windows":
-            result = shell_exec("echo line1 && echo line2")
+            code, result, _ = shell_exec_sync("echo line1 && echo line2")
         else:
-            result = shell_exec("echo 'line1' && echo 'line2'")
+            code, result, _ = shell_exec_sync("echo 'line1' && echo 'line2'")
         
         assert "line1" in result
         assert "line2" in result
@@ -63,14 +55,15 @@ class TestShellExec:
     async def test_shell_exec_async(self):
         """Тест async версии shell_exec (если реализована)."""
         try:
-            from common.utils import shell_exec_async
+            from zsys.utils import shell_exec
             
             if platform.system() == "Windows":
-                result = await shell_exec_async("echo async_test")
+                result = await shell_exec("echo async_test")
             else:
-                result = await shell_exec_async("echo async_test")
+                result = await shell_exec("echo async_test")
             
-            assert "async_test" in result.lower()
+            code, out, err = result
+            assert "async_test" in out.lower()
         except ImportError:
             pytest.skip("async shell_exec не реализован")
 
@@ -83,7 +76,7 @@ class TestSystemInfo:
         info = get_platform_info()
         
         assert isinstance(info, dict)
-        assert "platform" in info
+        assert "system" in info
         assert "python_version" in info
         
         # Проверяем значения
@@ -93,7 +86,7 @@ class TestSystemInfo:
         """Тест наличия обязательных полей в platform info."""
         info = get_platform_info()
         
-        required_fields = ["platform", "python_version"]
+        required_fields = ["system", "python_version"]
         for field in required_fields:
             assert field in info
             assert info[field] is not None

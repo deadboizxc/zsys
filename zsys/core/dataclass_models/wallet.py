@@ -7,8 +7,45 @@ For database persistence use ``zsys.data.orm.wallet.BaseWallet`` instead.
 # RU: Для сохранения в БД используйте zsys.data.orm.wallet.BaseWallet.
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Optional
 from datetime import datetime
+
+
+class TransactionStatus(str, Enum):
+    """Transaction lifecycle status."""
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+@dataclass
+class BaseTransaction:
+    """Platform-agnostic blockchain transaction model."""
+
+    tx_hash: str
+    from_address: str
+    to_address: str
+    amount: float
+    currency: str = "ETH"
+    status: TransactionStatus = TransactionStatus.PENDING
+    block_number: Optional[int] = None
+    fee: float = 0.0
+    created_at: datetime = field(default_factory=datetime.now)
+
+    def to_dict(self) -> dict:
+        return {
+            "tx_hash": self.tx_hash,
+            "from_address": self.from_address,
+            "to_address": self.to_address,
+            "amount": self.amount,
+            "currency": self.currency,
+            "status": self.status.value,
+            "block_number": self.block_number,
+            "fee": self.fee,
+            "created_at": self.created_at.isoformat(),
+        }
 
 
 @dataclass

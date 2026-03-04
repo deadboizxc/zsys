@@ -11,8 +11,8 @@ Requires the ``cryptography`` package::
 # RU: Шифрование открытым ключом, расшифрование закрытым.
 
 from typing import Optional, Tuple
-from core.interfaces import ICipher
-from core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
+from zsys.core.exceptions import CryptoError
 
 try:
     from cryptography.hazmat.primitives.asymmetric import rsa, padding

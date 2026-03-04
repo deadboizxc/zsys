@@ -8,8 +8,8 @@ Requires: pip install zsys[crypto].
 # RU: Публичный ключ — шифрование, приватный — расшифровка. Требует pip install zsys[crypto].
 
 from typing import Optional, Tuple
-from core.interfaces import ICipher
-from core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
+from zsys.core.exceptions import CryptoError
 
 try:
     from cryptography.hazmat.primitives.asymmetric import rsa, padding

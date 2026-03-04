@@ -11,8 +11,8 @@ Requires the ``cryptography`` package::
 # RU: Реализация ECC-шифра — ECDH + AES-256-GCM.
 # RU: Формат вывода: эфемерный ключ (65 байт) + nonce (12 байт) + шифртекст.
 
-from core.interfaces import ICipher
-from core.exceptions import CryptoError
+from zsys.core.interfaces import ICipher
+from zsys.core.exceptions import CryptoError
 
 try:
     from cryptography.hazmat.primitives.asymmetric import ec

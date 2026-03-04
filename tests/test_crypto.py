@@ -27,49 +27,46 @@ class TestPasswordHashing:
     def test_hash_password_argon2(self):
         """Тест хеширования пароля через argon2."""
         try:
-            from crypto.hashing import hash_password, verify_password
-            
-            password = "test_password_123"
-            hashed = hash_password(password)
-            
-            assert hashed is not None
-            assert hashed != password
-            assert len(hashed) > 20
-            
-            # Проверка пароля
-            assert verify_password(password, hashed) is True
-            assert verify_password("wrong_password", hashed) is False
+            from zsys.crypto.hashing import hash_password, verify_password
+        except ImportError:
+            pytest.skip("crypto.hashing не реализован")
         
-        except RuntimeError:
-            pytest.skip("argon2-cffi не установлен")
+        password = "test_password_123"
+        hashed = hash_password(password)
+        
+        assert hashed is not None
+        assert hashed != password
+        assert len(hashed) > 20
+        
+        # Проверка пароля
+        assert verify_password(password, hashed) is True
+        assert verify_password("wrong_password", hashed) is False
     
     def test_hash_different_passwords_different_hashes(self):
         """Тест что разные пароли дают разные хеши."""
         try:
-            from crypto.hashing import hash_password
-            
-            hash1 = hash_password("password1")
-            hash2 = hash_password("password2")
-            
-            assert hash1 != hash2
+            from zsys.crypto.hashing import hash_password
+        except ImportError:
+            pytest.skip("crypto.hashing не реализован")
         
-        except RuntimeError:
-            pytest.skip("argon2-cffi не установлен")
+        hash1 = hash_password("password1")
+        hash2 = hash_password("password2")
+        
+        assert hash1 != hash2
     
     def test_hash_same_password_different_hashes(self):
         """Тест что один пароль дает разные хеши (из-за salt)."""
         try:
-            from crypto.hashing import hash_password
-            
-            password = "same_password"
-            hash1 = hash_password(password)
-            hash2 = hash_password(password)
-            
-            # Хеши должны быть разными из-за разных salt
-            assert hash1 != hash2
+            from zsys.crypto.hashing import hash_password
+        except ImportError:
+            pytest.skip("crypto.hashing не реализован")
         
-        except RuntimeError:
-            pytest.skip("argon2-cffi не установлен")
+        password = "same_password"
+        hash1 = hash_password(password)
+        hash2 = hash_password(password)
+        
+        # Хеши должны быть разными из-за разных salt
+        assert hash1 != hash2
 
 
 class TestBlockchainHashing:

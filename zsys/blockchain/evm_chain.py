@@ -11,10 +11,10 @@ Requires web3::
 # RU: Требует web3: pip install zsys[blockchain].
 
 from typing import Any, Optional
-from core.interfaces import IBlockchain, IWallet
-from core.models import BaseWallet, BaseTransaction, TransactionStatus
-from core.logging import get_logger
-from core.exceptions import BlockchainError, TransactionError
+from zsys.core.interfaces import IBlockchain, IWallet
+from zsys.core.dataclass_models import BaseWallet, BaseTransaction, TransactionStatus
+from zsys.core.logging import get_logger
+from zsys.core.exceptions import BlockchainError, TransactionError
 
 try:
     from web3 import Web3

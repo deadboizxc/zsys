@@ -15,9 +15,9 @@ from zsys.core.dataclass_models import (
     BaseTransaction,
 )
 from zsys.core.interfaces.chat import ChatType
-from zsys.core.dataclass_models.base_client import ClientStatus
-from zsys.core.dataclass_models.base_message import MessageType
-from zsys.core.dataclass_models.base_transaction import TransactionStatus
+from zsys.core.dataclass_models.client import ClientStatus
+from zsys.core.dataclass_models.message import MessageType
+from zsys.core.dataclass_models.wallet import TransactionStatus
 
 
 def test_base_user():
@@ -110,21 +110,21 @@ def test_base_wallet():
 def test_base_transaction():
     """Test BaseTransaction model."""
     tx = BaseTransaction(
-        hash="0xabc123",
+        tx_hash="0xabc123",
         from_address="0xFrom",
         to_address="0xTo",
         amount=1.0,
         fee=0.001
     )
     
-    assert tx.hash == "0xabc123"
-    assert tx.is_pending
-    assert not tx.is_confirmed
-    assert tx.total_cost == 1.001
+    assert tx.tx_hash == "0xabc123"
+    assert tx.status == TransactionStatus.PENDING
+    assert tx.status != TransactionStatus.CONFIRMED
+    assert tx.amount + tx.fee == pytest.approx(1.001)
     
     # Test status change
     tx.status = TransactionStatus.CONFIRMED
-    assert tx.is_confirmed
+    assert tx.status == TransactionStatus.CONFIRMED
 
 
 if __name__ == "__main__":

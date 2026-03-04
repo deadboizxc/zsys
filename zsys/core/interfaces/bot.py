@@ -127,3 +127,7 @@ class IBot(Protocol):
 __all__ = [
     "IBot",
 ]
+
+
+# Alias for userbot clients — same contract as IBot
+IUserBot = IBot

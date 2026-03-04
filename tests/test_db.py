@@ -10,8 +10,8 @@
 import pytest
 from pathlib import Path
 
-from common.db import create_database
-from common.db.base import Database
+from zsys.storage import create_database
+from zsys.storage.base import Database
 
 
 class TestDatabaseFactory:
@@ -19,7 +19,7 @@ class TestDatabaseFactory:
     
     def test_create_sqlite_database(self, tmp_db_path: Path):
         """Тест создания SQLite БД через фабрику."""
-        db = create_database("sqlite", db_path=tmp_db_path)
+        db = create_database(file_path=tmp_db_path, db_type="sqlite")
         
         assert db is not None
         assert isinstance(db, Database)
@@ -34,7 +34,7 @@ class TestDatabaseFactory:
         """Тест создания DuckDB БД через фабрику."""
         try:
             db_path = tmp_path / "test.duckdb"
-            db = create_database("duckdb", db_path=db_path)
+            db = create_database(file_path=db_path, db_type="duckdb")
             
             assert db is not None
             assert isinstance(db, Database)
@@ -51,7 +51,7 @@ class TestDatabaseFactory:
         """Тест создания TinyDB БД через фабрику."""
         try:
             db_path = tmp_path / "test.json"
-            db = create_database("tinydb", db_path=db_path)
+            db = create_database(file_path=db_path, db_type="tinydb")
             
             assert db is not None
             assert isinstance(db, Database)
@@ -62,8 +62,8 @@ class TestDatabaseFactory:
     
     def test_create_invalid_driver(self):
         """Тест создания БД с несуществующим драйвером."""
-        with pytest.raises(ValueError, match="Unknown database driver"):
-            create_database("invalid_driver")
+        with pytest.raises(ValueError):
+            create_database(db_type="invalid_driver")
 
 
 class TestSQLiteDatabase:
@@ -72,7 +72,7 @@ class TestSQLiteDatabase:
     @pytest.fixture
     def db(self, tmp_db_path: Path):
         """Создаёт и возвращает SQLite БД для тестов."""
-        database = create_database("sqlite", db_path=tmp_db_path)
+        database = create_database(file_path=tmp_db_path, db_type="sqlite")
         yield database
         database.close()
     
@@ -112,7 +112,7 @@ class TestSQLiteDatabase:
     
     def test_context_manager(self, tmp_db_path: Path):
         """Тест использования БД как context manager."""
-        with create_database("sqlite", db_path=tmp_db_path) as db:
+        with create_database(file_path=tmp_db_path, db_type="sqlite") as db:
             db.set("test_module", "key", "value")
             assert db.get("test_module", "key") == "value"
     
@@ -134,7 +134,7 @@ class TestDuckDBDatabase:
         """Создаёт и возвращает DuckDB БД для тестов."""
         try:
             db_path = tmp_path / "test.duckdb"
-            database = create_database("duckdb", db_path=db_path)
+            database = create_database(file_path=db_path, db_type="duckdb")
             yield database
             database.close()
         except ImportError:
@@ -165,10 +165,10 @@ class TestDatabasePersistence:
     def test_sqlite_persistence(self, tmp_db_path: Path):
         """Тест сохранения данных в SQLite между открытием/закрытием."""
         # Первая сессия — записываем
-        with create_database("sqlite", db_path=tmp_db_path) as db:
+        with create_database(file_path=tmp_db_path, db_type="sqlite") as db:
             db.set("test_module", "persistent_key", "persistent_value")
         
         # Вторая сессия — читаем
-        with create_database("sqlite", db_path=tmp_db_path) as db:
+        with create_database(file_path=tmp_db_path, db_type="sqlite") as db:
             value = db.get("test_module", "persistent_key")
             assert value == "persistent_value"

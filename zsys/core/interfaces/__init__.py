@@ -18,7 +18,7 @@ Interfaces:
 # RU: Реализации не обязаны явно наследовать — duck typing поддерживается.
 
 from .client import IClient
-from .bot import IBot
+from .bot import IBot, IUserBot
 from .chat import IChat, ChatType
 from .storage import IStorage
 from .cipher import ICipher
@@ -30,6 +30,7 @@ __all__ = [
     # Messaging
     "IClient",
     "IBot",
+    "IUserBot",
     "IChat",
     "ChatType",
     # Storage

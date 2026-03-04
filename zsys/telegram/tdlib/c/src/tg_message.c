@@ -271,7 +271,220 @@ int tg_send_doc(tg_client_t *c, int64_t chat_id,
     return _send_file(c, chat_id, "inputMessageDocument", path, caption);
 }
 
-/* ── file download ───────────────────────────────────────────────────────── */
+/* ── new message accessors ───────────────────────────────────────────────── */
+
+int64_t         tg_msg_date(const tg_message_t *m)          { return m->date; }
+int             tg_msg_has_photo(const tg_message_t *m)     { return m->has_photo; }
+int             tg_msg_has_video(const tg_message_t *m)     { return m->has_video; }
+int             tg_msg_has_audio(const tg_message_t *m)     { return m->has_audio; }
+int             tg_msg_has_document(const tg_message_t *m)  { return m->has_document; }
+int             tg_msg_has_sticker(const tg_message_t *m)   { return m->has_sticker; }
+int             tg_msg_has_voice(const tg_message_t *m)     { return m->has_voice; }
+int             tg_msg_has_animation(const tg_message_t *m) { return m->has_animation; }
+int             tg_msg_has_location(const tg_message_t *m)  { return m->has_location; }
+int             tg_msg_has_contact(const tg_message_t *m)   { return m->has_contact; }
+tg_media_type_t tg_msg_media_type(const tg_message_t *m)    { return m->media_type; }
+int32_t         tg_msg_file_id(const tg_message_t *m)       { return m->file_id; }
+int32_t         tg_msg_views(const tg_message_t *m)         { return m->views; }
+int64_t         tg_msg_sender_chat_id(const tg_message_t *m){ return m->sender_chat_id; }
+
+const char *tg_msg_caption(const tg_message_t *m)
+{
+    return m->caption[0] ? m->caption : NULL;
+}
+
+const tg_user_t *tg_msg_from_user(const tg_message_t *m)
+{
+    return m->has_from_user ? &m->from_user : NULL;
+}
+
+const tg_message_t *tg_msg_reply_to_message(const tg_message_t *m)
+{
+    return m->reply_to_message;
+}
+
+/* ── array traversal helpers ─────────────────────────────────────────────── */
+
+const tg_message_t *tg_message_at(const tg_message_t *arr, int index)
+{
+    return arr + index;
+}
+
+const tg_chat_member_t *tg_member_at(const tg_chat_member_t *arr, int index)
+{
+    return arr + index;
+}
+
+/* ── tg_invoke (raw async request) ──────────────────────────────────────── */
+
+int64_t tg_invoke(tg_client_t *c, const char *json, tg_result_fn cb, void *ud)
+{
+    return _tg_send_pending(c, json, cb, ud);
+}
+
+/* ── new actions ─────────────────────────────────────────────────────────── */
+
+int tg_send_text_ex(tg_client_t *c, int64_t chat_id, const char *text,
+                    const char *parse_mode, int64_t reply_to_msg_id,
+                    const char *json_markup)
+{
+    char content[TG_TEXT_MAX + 512];
+    const char *tdpm = "textParseModeHTML";
+    if (parse_mode && strcmp(parse_mode, "md") == 0)
+        tdpm = "textParseModeMarkdown";
+
+    if (parse_mode && strcmp(parse_mode, "plain") != 0) {
+        snprintf(content, sizeof(content),
+            "{\"@type\":\"inputMessageText\","
+            "\"text\":{\"@type\":\"formattedText\",\"text\":\"%s\","
+            "\"entities\":[]},"
+            "\"parse_mode\":{\"@type\":\"%s\"}}",
+            text, tdpm);
+    } else {
+        snprintf(content, sizeof(content),
+            "{\"@type\":\"inputMessageText\","
+            "\"text\":{\"@type\":\"formattedText\","
+            "\"text\":\"%s\",\"entities\":[]}}",
+            text);
+    }
+
+    char markup_buf[1024] = {0};
+    if (json_markup && json_markup[0])
+        snprintf(markup_buf, sizeof(markup_buf), ",\"reply_markup\":%s", json_markup);
+
+    char reply_buf[128] = {0};
+    if (reply_to_msg_id > 0)
+        snprintf(reply_buf, sizeof(reply_buf),
+                 ",\"reply_to\":{\"@type\":\"inputMessageReplyToMessage\","
+                 "\"message_id\":%lld}", (long long)reply_to_msg_id);
+
+    char buf[TG_TEXT_MAX + 1024];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"sendMessage\","
+             "\"chat_id\":%lld%s%s,"
+             "\"input_message_content\":%s}",
+             (long long)chat_id, reply_buf, markup_buf, content);
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_edit_text_ex(tg_client_t *c, int64_t chat_id, int64_t msg_id,
+                    const char *text, const char *parse_mode,
+                    const char *json_markup)
+{
+    char content[TG_TEXT_MAX + 512];
+    const char *tdpm = "textParseModeHTML";
+    if (parse_mode && strcmp(parse_mode, "md") == 0)
+        tdpm = "textParseModeMarkdown";
+
+    if (parse_mode && strcmp(parse_mode, "plain") != 0) {
+        snprintf(content, sizeof(content),
+            "{\"@type\":\"inputMessageText\","
+            "\"text\":{\"@type\":\"formattedText\",\"text\":\"%s\","
+            "\"entities\":[]},"
+            "\"parse_mode\":{\"@type\":\"%s\"}}",
+            text, tdpm);
+    } else {
+        snprintf(content, sizeof(content),
+            "{\"@type\":\"inputMessageText\","
+            "\"text\":{\"@type\":\"formattedText\","
+            "\"text\":\"%s\",\"entities\":[]}}",
+            text);
+    }
+
+    char markup_buf[1024] = {0};
+    if (json_markup && json_markup[0])
+        snprintf(markup_buf, sizeof(markup_buf), ",\"reply_markup\":%s", json_markup);
+
+    char buf[TG_TEXT_MAX + 1024];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"editMessageText\","
+             "\"chat_id\":%lld,"
+             "\"message_id\":%lld%s,"
+             "\"input_message_content\":%s}",
+             (long long)chat_id, (long long)msg_id, markup_buf, content);
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_delete_messages(tg_client_t *c, int64_t chat_id,
+                       const int64_t *msg_ids, int count, int revoke)
+{
+    /* Build array of message IDs */
+    char ids_buf[TG_TEXT_MAX] = {0};
+    int pos = 0;
+    pos += snprintf(ids_buf + pos, sizeof(ids_buf) - (size_t)pos, "[");
+    for (int i = 0; i < count && pos < (int)sizeof(ids_buf) - 32; i++) {
+        if (i > 0)
+            pos += snprintf(ids_buf + pos, sizeof(ids_buf) - (size_t)pos, ",");
+        pos += snprintf(ids_buf + pos, sizeof(ids_buf) - (size_t)pos,
+                        "%lld", (long long)msg_ids[i]);
+    }
+    snprintf(ids_buf + pos, sizeof(ids_buf) - (size_t)pos, "]");
+
+    char buf[TG_TEXT_MAX + 256];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"deleteMessages\","
+             "\"chat_id\":%lld,"
+             "\"message_ids\":%s,"
+             "\"revoke\":%s}",
+             (long long)chat_id, ids_buf, revoke ? "true" : "false");
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_pin_message(tg_client_t *c, int64_t chat_id, int64_t msg_id,
+                   int disable_notification)
+{
+    char buf[256];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"pinChatMessage\","
+             "\"chat_id\":%lld,"
+             "\"message_id\":%lld,"
+             "\"disable_notification\":%s,"
+             "\"only_for_self\":false}",
+             (long long)chat_id, (long long)msg_id,
+             disable_notification ? "true" : "false");
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_unpin_message(tg_client_t *c, int64_t chat_id, int64_t msg_id)
+{
+    char buf[256];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"unpinChatMessage\","
+             "\"chat_id\":%lld,\"message_id\":%lld}",
+             (long long)chat_id, (long long)msg_id);
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_unpin_all(tg_client_t *c, int64_t chat_id)
+{
+    char buf[128];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"unpinAllChatMessages\","
+             "\"chat_id\":%lld}", (long long)chat_id);
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_read_chat(tg_client_t *c, int64_t chat_id)
+{
+    char buf[256];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"viewMessages\","
+             "\"chat_id\":%lld,"
+             "\"message_ids\":[],"
+             "\"source\":{\"@type\":\"messageSourceChatHistory\"},"
+             "\"force_read\":true}",
+             (long long)chat_id);
+    return (int)_tg_send_raw(c, buf);
+}
+
+int tg_read_mentions(tg_client_t *c, int64_t chat_id)
+{
+    char buf[128];
+    snprintf(buf, sizeof(buf),
+             "{\"@type\":\"readAllChatMentions\","
+             "\"chat_id\":%lld}", (long long)chat_id);
+    return (int)_tg_send_raw(c, buf);
+}
 
 int tg_download_file(tg_client_t *c, int32_t file_id,
                      const char *dest_path,

@@ -20,12 +20,14 @@ extern const char  *td_execute(const char *request);
 
 /* ── limits ──────────────────────────────────────────────────────────────── */
 
-#define TG_MAX_CLIENTS     16
-#define TG_MAX_HANDLERS   256
-#define TG_TEXT_MAX      4096
-#define TG_PATH_MAX       512
-#define TG_NAME_MAX       256
-#define TG_TYPE_MAX       128
+#define TG_MAX_CLIENTS      16
+#define TG_MAX_HANDLERS    256
+#define TG_MAX_PENDING     512
+#define TG_MAX_CHAT_CACHE  256
+#define TG_TEXT_MAX       4096
+#define TG_PATH_MAX        512
+#define TG_NAME_MAX        256
+#define TG_TYPE_MAX        128
 
 /* ── auth state machine ──────────────────────────────────────────────────── */
 
@@ -43,25 +45,41 @@ typedef enum {
     TG_AUTH_ERROR,
 } tg_auth_state_t;
 
-/* ── handler ─────────────────────────────────────────────────────────────── */
+/* ── pending async requests ──────────────────────────────────────────────── */
+
+typedef struct {
+    int64_t      req_id;
+    tg_result_fn cb;
+    void        *ud;
+    int          active;
+} tg_pending_t;
+
+/* ── handler types ───────────────────────────────────────────────────────── */
 
 typedef enum {
     TG_HTYPE_MESSAGE = 0,
     TG_HTYPE_EDITED,
     TG_HTYPE_RAW,
+    TG_HTYPE_CALLBACK_QUERY,
+    TG_HTYPE_INLINE_QUERY,
+    TG_HTYPE_CHAT_MEMBER,
 } tg_htype_t;
 
 typedef struct {
-    tg_handler_id_t id;
-    tg_htype_t      type;
-    uint32_t        filters;
+    tg_handler_id_t      id;
+    tg_htype_t           type;
+    uint32_t             filters;
     union {
-        tg_message_fn msg_fn;
-        tg_raw_fn     raw_fn;
+        tg_message_fn        msg_fn;
+        tg_raw_fn            raw_fn;
+        tg_callback_query_fn cb_query_fn;
+        tg_inline_query_fn   inline_query_fn;
+        tg_member_event_fn   member_event_fn;
     };
     char  raw_update_type[TG_TYPE_MAX];  /* empty = all updates */
     void *userdata;
     int   active;
+    int   is_left;   /* for CHAT_MEMBER handlers: 0 = join, 1 = left */
 } tg_handler_t;
 
 /* ── struct tg_user (public, defined here) ───────────────────────────────── */
@@ -76,30 +94,99 @@ struct tg_user {
     int     is_premium;
 };
 
+/* ── struct tg_chat (public, defined here) ───────────────────────────────── */
+
+struct tg_chat {
+    int64_t        id;
+    char           title[TG_NAME_MAX];
+    char           username[TG_NAME_MAX];
+    tg_chat_type_t type;
+    int32_t        members_count;
+    int64_t        linked_chat_id;
+    int            is_verified;
+    int            is_restricted;
+    int            is_scam;
+    uint32_t       permissions; /* TG_PERM_* bitmask */
+};
+
+/* ── tg_chat_member_t (public, defined here) ─────────────────────────────── */
+
+struct tg_chat_member {
+    struct tg_user user;
+    char    status[64]; /* "member","administrator","creator","restricted","left","banned" */
+    int     is_admin;
+    int     is_creator;
+    int32_t until_date; /* for restricted/banned */
+    /* admin rights */
+    int can_manage_chat;
+    int can_post_messages;
+    int can_edit_messages;
+    int can_delete_messages;
+    int can_ban_users;
+    int can_invite_users;
+    int can_pin_messages;
+    int can_promote_members;
+    int can_change_info;
+};
+
+/* ── tg_file_t (public, defined here) ────────────────────────────────────── */
+
+struct tg_file {
+    int32_t id;
+    int64_t size;
+    char    local_path[TG_PATH_MAX];
+    int     is_downloading;
+    int     is_downloaded;
+    char    mime_type[128];
+    char    file_name[TG_NAME_MAX];
+};
+
+/* ── tg_location_t ───────────────────────────────────────────────────────── */
+
+typedef struct { double lat; double lon; double accuracy; } tg_location_t;
+
+/* ── tg_contact_t ────────────────────────────────────────────────────────── */
+
+typedef struct {
+    char    phone[64];
+    char    first_name[TG_NAME_MAX];
+    char    last_name[TG_NAME_MAX];
+    int64_t user_id;
+} tg_contact_t;
+
 /* ── struct tg_message (public, defined here) ────────────────────────────── */
 
-typedef enum {
-    TG_CHAT_PRIVATE = 0,
-    TG_CHAT_GROUP,
-    TG_CHAT_SUPERGROUP,
-    TG_CHAT_CHANNEL,
-} tg_chat_type_t;
-
 struct tg_message {
-    int64_t        id;
-    int64_t        chat_id;
-    int64_t        sender_id;
-    char           text[TG_TEXT_MAX];
-    int            is_out;
-    int64_t        reply_to_id;
-    tg_chat_type_t chat_type;
+    int64_t          id;
+    int64_t          chat_id;
+    int64_t          sender_id;      /* user_id or chat_id of sender */
+    char             text[TG_TEXT_MAX];
+    char             caption[TG_TEXT_MAX];
+    int              is_out;
+    int64_t          reply_to_id;
+    tg_chat_type_t   chat_type;
+    /* sender details */
+    struct tg_user   from_user;      /* filled when sender is a user */
+    int              has_from_user;  /* 1 if from_user is populated */
+    int64_t          sender_chat_id; /* sender chat id (channel posts) */
+    /* reply reference — NULL unless explicitly fetched */
+    struct tg_message *reply_to_message;
     /* media */
-    int            has_photo;
-    int            has_video;
-    int            has_audio;
-    int            has_document;
-    int            has_sticker;
-    int32_t        file_id;
+    tg_media_type_t  media_type;
+    int              has_photo;
+    int              has_video;
+    int              has_audio;
+    int              has_document;
+    int              has_sticker;
+    int              has_voice;
+    int              has_animation;
+    int              has_location;
+    int              has_contact;
+    int32_t          file_id;
+    /* metadata */
+    int64_t          date;
+    int32_t          views;
+    int32_t          forwards;
 };
 
 /* ── struct tg_client (public opaque, defined here) ─────────────────────── */
@@ -138,6 +225,16 @@ struct tg_client {
 
     /* monotonic request ID counter */
     volatile int64_t next_req_id;
+
+    /* pending async requests — callback-based.
+     * pending_lock is zero-initialized by calloc which is safe on Linux. */
+    tg_pending_t     pending[TG_MAX_PENDING];
+    pthread_mutex_t  pending_lock;
+
+    /* chat cache — zero-initialized by calloc */
+    struct tg_chat   chat_cache[TG_MAX_CHAT_CACHE];
+    int              chat_cache_count;
+    pthread_mutex_t  chat_cache_lock;
 };
 
 /* ── global client registry ──────────────────────────────────────────────── */
@@ -158,27 +255,36 @@ void _tg_dispatch_message(tg_client_t *c, const char *msg_json, int edited);
 
 /* ── JSON helpers (no external deps) ────────────────────────────────────── */
 
-/* Extract "@type" value into buf. Returns 1 on success. */
 int         _json_type  (const char *json, char *buf, size_t sz);
-/* Extract integer field. Returns 0 if not found. */
 int64_t     _json_int   (const char *json, const char *key);
-/* Extract string field into buf. Returns 1 on success. */
 int         _json_str   (const char *json, const char *key, char *buf, size_t sz);
-/* Extract boolean field (true/false). Returns 0 if not found. */
 int         _json_bool  (const char *json, const char *key);
-/* Locate nested object value for key. Returns pointer inside json or NULL. */
 const char *_json_obj   (const char *json, const char *key);
 
-/* ── request builder ─────────────────────────────────────────────────────── */
+/* ── request builders ────────────────────────────────────────────────────── */
 
-/* Returns new req_id, sends JSON to TDLib. */
 int64_t _tg_send_raw(tg_client_t *c, const char *json);
-
-/* Build and send formatted JSON request. Returns req_id. */
 int64_t _tg_send_fmt(tg_client_t *c, const char *fmt, ...);
+
+/* Injects "@extra":"<req_id>", stores pending callback, sends. Returns req_id or -1. */
+int64_t _tg_send_pending(tg_client_t *c, const char *json,
+                          tg_result_fn cb, void *ud);
 
 /* ── filter evaluation ───────────────────────────────────────────────────── */
 
 int _tg_filter_match(const tg_message_t *msg, uint32_t filters);
+
+/* ── parsing helpers (implemented in tg_user.c / tg_chat.c) ─────────────── */
+
+void _parse_user_json  (const char *json, tg_user_t *out);
+void _parse_chat_json  (const char *json, tg_chat_t *out);
+void _parse_member_json(const char *json, tg_chat_member_t *out);
+void _parse_file_json  (const char *json, tg_file_t *out);
+
+/* ── permissions helpers (implemented in tg_admin.c) ────────────────────── */
+
+uint32_t _perms_json_to_bitmask(const char *perms_json);
+void     _perms_bitmask_to_json(uint32_t perms, char *buf, size_t sz);
+void     _admin_rights_to_json (uint32_t rights, char *buf, size_t sz);
 
 #endif /* TG_INTERNAL_H */

@@ -10,9 +10,16 @@ C_BUILD_DIR := $(BUILD_DIR)/c
 PY_BUILD_DIR := $(BUILD_DIR)/py
 DOCS_DIR    := docs/_build
 
+TG_C_DIR    := zsys/telegram/tdlib/c
+TG_BUILD_DIR := $(TG_C_DIR)/build
+TDLIB_DIR   ?= $(TG_C_DIR)/tdlib          # set by install_tdlib.sh or manually
+JOBS        ?= $(shell nproc 2>/dev/null || echo 4)
+
 VERSION     := $(shell $(PYTHON) -c "import zsys; print(zsys.__version__)" 2>/dev/null || echo "1.0.0")
 
-.PHONY: all build build-c build-lib build-py build-go test test-c test-all install install-c install-lib clean clean-c clean-py docs fmt lint version help
+.PHONY: all build build-c build-lib build-py build-go build-telegram build-tdlib \
+        test test-c test-all install install-c install-lib install-telegram \
+        clean clean-c clean-py clean-telegram docs fmt lint version help
 
 all: build
 
@@ -33,6 +40,41 @@ build-c:
 	@mkdir -p $(C_BUILD_DIR)
 	@cd $(C_BUILD_DIR) && $(CMAKE) ../.. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON 2>&1 | tail -3
 	@cd $(C_BUILD_DIR) && $(CMAKE) --build . --parallel $$(nproc) 2>&1 | tail -5
+
+# ── TDLib + libtg ─────────────────────────────────────────────────────────────
+
+## Step 1: build TDLib from source (≈10-20 min, run once)
+build-tdlib:
+	@echo "🔨 Building TDLib (this takes a while)..."
+	@TDLIB_INSTALL_PREFIX=$(TDLIB_DIR) JOBS=$(JOBS) bash scripts/install_tdlib.sh
+
+## Step 2: build libtg.so using the installed TDLib
+build-telegram:
+	@echo "🔨 Building libtg.so..."
+	@mkdir -p $(TG_BUILD_DIR)
+	@if [ -d "$(TDLIB_DIR)/lib" ]; then \
+	    TDLIB_HINT="-DTDLIB_DIR=$(abspath $(TDLIB_DIR)) -DTDLIB_FETCH=OFF"; \
+	else \
+	    TDLIB_HINT="-DTDLIB_FETCH=OFF"; \
+	fi; \
+	$(CMAKE) -S $(TG_C_DIR) -B $(TG_BUILD_DIR) \
+	    -DCMAKE_BUILD_TYPE=Release \
+	    $$TDLIB_HINT 2>&1 | tail -5
+	@$(CMAKE) --build $(TG_BUILD_DIR) --target tg --parallel $(JOBS) 2>&1 | tail -5
+	@cp $(TG_BUILD_DIR)/libtg.so $(TG_C_DIR)/../libtg.so 2>/dev/null; true
+	@echo "✅ libtg.so built → $(TG_C_DIR)/../libtg.so"
+
+## Shortcut: build TDLib + libtg in one command
+telegram: build-tdlib build-telegram
+
+install-telegram: build-telegram
+	@install -m 755 $(TG_C_DIR)/../libtg.so /usr/local/lib/libtg.so
+	@install -m 644 $(TG_C_DIR)/include/tg.h /usr/local/include/tg.h
+	@ldconfig
+	@echo "✅ libtg.so installed system-wide"
+
+clean-telegram:
+	@rm -rf $(TG_BUILD_DIR) $(TG_C_DIR)/../libtg.so
 
 build-py:
 	@$(PYTHON) setup_core.py build_ext --inplace --quiet
@@ -61,7 +103,7 @@ install-lib: build-lib
 	@install -m 644 zsys/include/zsys_core.h /usr/local/include/zsys_core.h
 	@ldconfig
 
-clean: clean-c clean-py
+clean: clean-c clean-py clean-telegram
 	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null; true
 	@rm -rf $(DOCS_DIR) .pytest_cache .mypy_cache .ruff_cache libzsys.so
 
