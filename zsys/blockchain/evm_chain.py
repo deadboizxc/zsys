@@ -13,7 +13,7 @@ Requires web3::
 from typing import Any, Optional
 from zsys.core.interfaces import IBlockchain, IWallet
 from zsys.core.dataclass_models import BaseWallet, BaseTransaction, TransactionStatus
-from zsys.core.logging import get_logger
+from zsys.log import get_logger
 from zsys.core.exceptions import BlockchainError, TransactionError
 
 try:

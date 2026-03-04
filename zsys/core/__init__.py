@@ -38,7 +38,7 @@ from .dataclass_models import (
 )
 
 from .config import BaseConfig
-from .logging import Logger
+from .logging import ILogger
 from .exceptions import (
     BaseException,
     ConfigError,
@@ -77,7 +77,7 @@ __all__ = [
     "BaseBot",
     # Config & Utilities
     "BaseConfig",
-    "Logger",
+    "ILogger",
     # Exceptions
     "BaseException",
     "ConfigError",

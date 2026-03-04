@@ -9,6 +9,7 @@ feature set including async socket delivery and buffer statistics.
 # RU: Цветной вывод, ротация файлов, потоковая отправка через сокет
 # RU: и управление памятью для очереди логов.
 
+from .base import BaseLogger
 from .printer import (
     Colors,
     ColoredFormatter,
@@ -21,11 +22,12 @@ from .printer import (
 )
 
 __all__ = [
+    "BaseLogger",
+    "get_logger",
     "Colors",
     "ColoredFormatter",
     "ColorLogger",
     "ColorPrinter",
-    "get_logger",
     "logger",
     "printer",
     "unified_logger",

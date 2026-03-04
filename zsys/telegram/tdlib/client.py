@@ -28,7 +28,7 @@ import ctypes
 from typing import Any, AsyncGenerator, Callable, Coroutine, Dict, List, Optional
 
 from zsys.core.interfaces.client import IClient
-from zsys.core.logging import get_logger
+from zsys.log import get_logger
 from zsys.telegram.tdlib.config import TdlibConfig
 from zsys.telegram.tdlib.binding import (
     libtg,

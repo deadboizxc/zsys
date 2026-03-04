@@ -38,7 +38,7 @@ except ImportError:
 
 # Import base Logger from core
 # RU: Импортируем базовый Logger из core
-from zsys.core.logging import BaseLogger
+from .base import BaseLogger
 
 
 # ===== ANSI Colors =====

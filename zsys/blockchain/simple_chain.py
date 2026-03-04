@@ -13,7 +13,7 @@ from datetime import datetime
 import hashlib
 import json
 from zsys.core.interfaces import IBlockchain
-from zsys.core.logging import get_logger
+from zsys.log import get_logger
 
 
 logger = get_logger(__name__)

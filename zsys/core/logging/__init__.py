@@ -1,18 +1,10 @@
-"""ZSYS Core Logging Module.
+"""ZSYS Core Logging Module — pure interface/contract only.
 
-Provides base logging functionality for the ZSYS ecosystem.
-Exports BaseLogger, its Logger alias, and the get_logger factory function.
+Concrete implementations live in zsys.log.
 """
-# RU: Модуль логирования ядра ZSYS — предоставляет BaseLogger, псевдоним Logger и фабрику get_logger.
-# RU: Для создания логгера используйте get_logger("имя") или Logger("имя") напрямую.
+# RU: Модуль логирования ядра ZSYS — только интерфейс (Protocol).
+# RU: Реализация BaseLogger и get_logger находится в zsys.log.
 
-from .base import BaseLogger, get_logger
+from .interface import ILogger, LoggerProtocol
 
-# Backward compatibility alias
-Logger = BaseLogger
-
-__all__ = [
-    "BaseLogger",
-    "Logger",
-    "get_logger",
-]
+__all__ = ["ILogger", "LoggerProtocol"]

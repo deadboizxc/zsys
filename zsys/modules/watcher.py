@@ -31,7 +31,7 @@ try:
 except ImportError:
     WATCHFILES_AVAILABLE = False
 
-from zsys.core.logging import get_logger
+from zsys.log import get_logger
 
 _log = get_logger(__name__)
 
