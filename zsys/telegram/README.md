@@ -4,30 +4,42 @@ Telegram client for zsys built on TDLib (Telegram Database Library).
 
 ## Installation
 
-### 1. Install TDLib
+### Quick Start (автоустановка)
 
 ```bash
-# Using the install script
+# Установить zsys с telegram модулем
+pip install zsys[telegram]
+
+# TDLib скачается автоматически при первом импорте
+# Или установить вручную:
+zsys-tdlib-install
+
+# Или через Python:
+python -m zsys.telegram.tdlib_installer
+```
+
+### Manual Installation
+
+```bash
+# 1. Зависимости (Ubuntu/Debian)
+sudo apt install cmake g++ git gperf libssl-dev zlib1g-dev
+
+# 2. Установить TDLib
 ./scripts/install_tdlib.sh
 
-# Or manually on Ubuntu/Debian
-sudo apt install cmake g++ git gperf libssl-dev zlib1g-dev
-git clone --depth 1 --branch v1.8.29 https://github.com/tdlib/td.git
-cd td && mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . --target install -j$(nproc)
+# 3. Собрать libtg (C wrapper)
+cd c && mkdir build && cd build
+cmake .. && make
 ```
 
-### 2. Install zsys with telegram support
+### Environment Variables
 
 ```bash
-pip install zsys[telegram-tdlib]
-```
+# Указать путь к TDLib (если не в стандартном месте)
+export TDLIB_PATH=/path/to/lib
 
-### 3. Set library path (if not in /usr/local/lib)
-
-```bash
-export TDLIB_PATH=/path/to/libtdjson.so
+# Пропустить проверку TDLib при импорте
+export ZSYS_SKIP_TDLIB_CHECK=1
 ```
 
 ## Usage
