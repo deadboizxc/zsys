@@ -1,3 +1,5 @@
+[🇬🇧 English](CONTRIBUTING.md) | [🇷🇺 Русский](CONTRIBUTING_RU.md)
+
 # Contributing to zsys
 
 Thank you for contributing! Please read this guide before submitting a PR.

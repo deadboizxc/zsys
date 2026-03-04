@@ -1,8 +1,8 @@
 [🇬🇧 English](architecture.md) | [🇷🇺 Русский](architecture_RU.md)
 
-# Architecture
+# Архитектура
 
-## Dependency graph
+## Граф зависимостей
 
 ```
 stdlib / external libs
@@ -15,27 +15,27 @@ zsys. zsys. zsys.   zsys.      zsys.       zsys.
 i18n   log  utils  modules   storage    telegram.*
 ```
 
-All modules have a single direction of dependency — only downward to `zsys.core`.  
-No sibling dependencies. `zsys.services` is the only permitted orchestration layer.
+Все модули имеют единственное направление зависимости — только вниз к `zsys.core`.  
+Нет горизонтальных зависимостей. `zsys.services` — единственный допустимый слой оркестрации.
 
-## Module overview
+## Обзор модулей
 
-| Module | Language | Dependencies |
-|--------|----------|-------------|
-| `zsys.core` | Python | stdlib only |
+| Модуль | Язык | Зависимости |
+|--------|------|-------------|
+| `zsys.core` | Python | только stdlib |
 | `zsys._core` | C (CPython ext) | CPython C API |
 | `zsys.i18n` | Python + Go | zsys.core |
 | `zsys.log` | Python + Go | zsys.core.logging |
-| `zsys.utils` | Python + Go | stdlib only |
+| `zsys.utils` | Python + Go | только stdlib |
 | `zsys.modules` | Python + Go | zsys.core |
-| `zsys.storage` | Python + Go | stdlib only |
+| `zsys.storage` | Python + Go | только stdlib |
 | `zsys.telegram.pyrogram` | Python | zsys.core |
 | `zsys.telegram.aiogram` | Python | zsys.core |
 | `zsys.telegram.telebot` | Python | zsys.core |
 | `zsys.telegram.telethon` | Python | zsys.core |
-| `zsys.services` | Python | multiple (orchestration) |
+| `zsys.services` | Python | несколько (оркестрация) |
 
-## C core layers
+## Слои C-ядра
 
 ```
 Python userbot
@@ -46,18 +46,18 @@ libzsys_core.so (pure C — zsys_core.c)
      │
 zsys/include/zsys_core.h (public API)
 
-Same header:
+Тот же заголовочный файл:
   ← Go    (CGO: #cgo LDFLAGS -lzsys_core)
   ← Rust  (bindgen from zsys_core.h)
   ← Kotlin/JNI (future)
 ```
 
-## Hot-reload flow
+## Поток горячей перезагрузки
 
 ```
-watchfiles detects change
+watchfiles обнаруживает изменение
         │
-ModuleWatcher callback
+обратный вызов ModuleWatcher
         │
 ModuleLoader.reload(module_name)
         │
@@ -68,15 +68,15 @@ ModuleRegistry.update(module_name, new_meta)
 ModuleRouter.rebuild_routes()
 ```
 
-## Routing flow
+## Поток маршрутизации
 
 ```
-incoming message
+входящее сообщение
         │
 ModuleRouter.match(message.text, prefix, triggers)
-        │   uses C: zsys_match_prefix()
+        │   использует C: zsys_match_prefix()
         │
-matched handler coroutine
+сопоставленная корутина обработчика
         │
 await handler(client, message)
 ```

@@ -1,3 +1,5 @@
+[🇬🇧 English](README.md) | [🇷🇺 Русский](README_RU.md)
+
 # ZSYS Examples
 
 Примеры использования ZSYS для различных задач.

@@ -1,13 +1,13 @@
 [🇬🇧 English](c_api.md) | [🇷🇺 Русский](c_api_RU.md)
 
-# C API Reference
+# Справочник C API
 
-All functions declared in `zsys/include/zsys_core.h`.
+Все функции объявлены в `zsys/include/zsys_core.h`.
 
-## Memory model
+## Модель памяти
 
-Functions returning `char*` allocate heap memory.  
-**Always free with `zsys_free(ptr)`.**
+Функции, возвращающие `char*`, выделяют память в куче.  
+**Всегда освобождайте через `zsys_free(ptr)`.**
 
 ```c
 char *result = zsys_escape_html("<b>test</b>", 10);
@@ -15,40 +15,40 @@ printf("%s\n", result);
 zsys_free(result);
 ```
 
-## Text functions
+## Функции для работы с текстом
 
 ### `zsys_escape_html`
 ```c
 char *zsys_escape_html(const char *text, size_t len);
 ```
-Escapes `&`, `<`, `>`, `"` to HTML entities.
+Экранирует `&`, `<`, `>`, `"` в HTML-сущности.
 
 ### `zsys_strip_html`
 ```c
 char *zsys_strip_html(const char *text, size_t len);
 ```
-Removes all HTML tags and unescapes entities.
+Удаляет все HTML-теги и деэкранирует сущности.
 
 ### `zsys_truncate_text`
 ```c
 char *zsys_truncate_text(const char *text, size_t len, size_t max_chars, const char *suffix);
 ```
-UTF-8 aware truncation. Appends `suffix` (e.g. `"…"`) if truncated.
+Обрезка с учётом UTF-8. Добавляет `suffix` (например, `"…"`), если текст был обрезан.
 
 ### `zsys_split_text`
 ```c
 char **zsys_split_text(const char *text, size_t len, size_t max_chars, size_t *out_count);
 ```
-Splits text into chunks of at most `max_chars` characters.  
-Returns array of strings. Free with `zsys_free_array()`.
+Разбивает текст на фрагменты максимум по `max_chars` символов.  
+Возвращает массив строк. Освобождать через `zsys_free_array()`.
 
 ### `zsys_format_bytes`
 ```c
 char *zsys_format_bytes(uint64_t size);
 ```
-Formats byte count: `1536 → "1.5 KB"`, `1073741824 → "1.0 GB"`.
+Форматирует количество байт: `1536 → "1.5 KB"`, `1073741824 → "1.0 GB"`.
 
-## HTML formatting
+## HTML-форматирование
 
 ```c
 char *zsys_format_bold(const char *text, size_t len);     // <b>text</b>
@@ -61,7 +61,7 @@ char *zsys_format_spoiler(const char *text, size_t len);
 char *zsys_format_quote(const char *text, size_t len);
 ```
 
-## Time functions
+## Функции времени
 
 ### `zsys_format_duration`
 ```c
@@ -73,7 +73,7 @@ char *zsys_format_duration(double seconds);
 ```c
 char *zsys_human_time(double seconds, int short_form);
 ```
-Russian human time. `short_form=1`: `"1 ч. 1 мин."`, `short_form=0`: `"1 час 1 минута"`.
+Человекочитаемое время по-русски. `short_form=1`: `"1 ч. 1 мин."`, `short_form=0`: `"1 час 1 минута"`.
 
 ### `zsys_parse_duration`
 ```c
@@ -81,7 +81,7 @@ double zsys_parse_duration(const char *text);
 ```
 `"1h30m" → 5400.0`, `"2d" → 172800.0`
 
-## Routing
+## Маршрутизация
 
 ### `zsys_match_prefix`
 ```c
@@ -89,9 +89,9 @@ int zsys_match_prefix(const char *text, const char **prefixes, const char **trig
                       size_t prefix_count, size_t trigger_count,
                       char **out_cmd, char **out_args);
 ```
-Returns 1 on match. Sets `out_cmd` and `out_args` (must free both).
+Возвращает 1 при совпадении. Устанавливает `out_cmd` и `out_args` (оба нужно освободить).
 
-## Module meta
+## Мета-данные модуля
 
 ### `zsys_parse_meta_comments`
 ```c
@@ -104,18 +104,18 @@ void zsys_free_meta(ZsysMeta *meta);
 char *zsys_build_help_text(const char *name, const char *commands, const char *prefix);
 ```
 
-## Terminal
+## Терминал
 
 ### `zsys_ansi_color`
 ```c
 char *zsys_ansi_color(const char *text, int color_code);
 ```
-Wraps text with ANSI escape codes. `color_code` = standard ANSI color number.
+Оборачивает текст в ANSI escape-коды. `color_code` = стандартный номер ANSI-цвета.
 
-## Logging
+## Логирование
 
 ### `zsys_format_json_log`
 ```c
 char *zsys_format_json_log(const char *level, const char *message, const char *timestamp);
 ```
-Returns JSON string: `{"level":"INFO","msg":"...","ts":"..."}`.
+Возвращает JSON-строку: `{"level":"INFO","msg":"...","ts":"..."}`.

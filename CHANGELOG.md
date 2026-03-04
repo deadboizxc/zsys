@@ -1,3 +1,5 @@
+[🇬🇧 English](CHANGELOG.md) | [🇷🇺 Русский](CHANGELOG_RU.md)
+
 # Changelog
 
 All notable changes to zsys are documented here.  

@@ -1,3 +1,5 @@
+[🇬🇧 English](README.md) | [🇷🇺 Русский](README_RU.md)
+
 # zsys Unified Module System
 
 Write modules once — they work everywhere: Pyrogram, aiogram, telebot.

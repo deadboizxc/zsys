@@ -1,3 +1,5 @@
+[🇬🇧 English](STRUCTURE.md) | [🇷🇺 Русский](STRUCTURE_RU.md)
+
 # ZSYS Architecture & Structure
 
 ## Проект создан согласно требованиям модульной архитектуры

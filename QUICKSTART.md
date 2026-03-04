@@ -1,3 +1,5 @@
+[🇬🇧 English](QUICKSTART.md) | [🇷🇺 Русский](QUICKSTART_RU.md)
+
 # ZSYS Quick Start Guide
 
 ## Установка

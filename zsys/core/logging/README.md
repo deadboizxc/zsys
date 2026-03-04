@@ -4,6 +4,8 @@ README for ZSYS Core Logging Module.
 This module provides the foundational logging system for the entire ZSYS ecosystem.
 """
 
+[🇬🇧 English](README.md) | [🇷🇺 Русский](README_RU.md)
+
 # ===== BaseLogger Overview =====
 
 ## Architecture
