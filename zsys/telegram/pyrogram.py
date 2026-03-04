@@ -3,22 +3,18 @@
 Provides PyrogramClient and PyrogramConfig as drop-in replacements
 that use TDLib under the hood while maintaining Pyrogram API compatibility.
 
-This module enables existing Pyrogram-based userbots (like zxc_userbot)
-to work with zsys.telegram without code changes.
+DEPRECATED: Use TdlibClient and TdlibConfig directly.
+This module is kept for backwards compatibility with existing userbots.
 
 Example::
 
-    from zsys.telegram.pyrogram import PyrogramClient, PyrogramConfig
+    # New way (recommended)
+    from zsys.telegram import TdlibClient, TdlibConfig
 
-    config = PyrogramConfig(
-        api_id=123456,
-        api_hash="abc123",
-        session_name="my_session",
-    )
-    client = PyrogramClient(config)
-    await client.start()
+    # Old way (still works)
+    from zsys.telegram.pyrogram import PyrogramClient, PyrogramConfig
 """
-# RU: Совместимость с Pyrogram. PyrogramClient/PyrogramConfig используют TDLib.
+# RU: УСТАРЕЛО: используйте TdlibClient/TdlibConfig напрямую.
 
 from __future__ import annotations
 

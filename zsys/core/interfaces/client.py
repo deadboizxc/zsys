@@ -18,9 +18,7 @@ class IClient(Protocol):
     every implementation must guarantee.
 
     Concrete implementations include:
-        - ``zsys.telegram.pyrogram``: Pyrogram userbot
-        - ``zsys.telegram.aiogram``: aiogram bot
-        - ``zsys.telegram.telebot``: pyTelegramBotAPI bot
+        - ``zsys.telegram.TdlibClient``: TDLib-based userbot/bot client
     """
 
     # RU: Базовый контракт для всех клиентов платформ обмена сообщениями.
