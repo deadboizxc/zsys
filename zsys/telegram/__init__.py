@@ -7,6 +7,9 @@ Single implementation using TDLib C library.
   errors       — FloodWait, RPCError, MessageDeleteForbidden, ...
   types        — Message, User, Chat, ChatMember, File
 
+For Pyrogram compatibility:
+  from zsys.telegram.pyrogram import PyrogramClient, PyrogramConfig
+
 Quick start::
 
     from zsys.telegram import TdlibClient, TdlibConfig, filters

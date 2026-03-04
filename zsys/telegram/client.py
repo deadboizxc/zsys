@@ -1148,6 +1148,64 @@ class TdlibClient:
         # RU: Вызывается перед загрузкой модулей.
 
     # ─────────────────────────────────────────────────────────────────────────
+    # Extra methods for Pyrogram compatibility
+    # ─────────────────────────────────────────────────────────────────────────
+
+    async def get_chat_members_count(self, chat_id: int) -> int:
+        """Get count of chat members."""
+        chat = await self.get_chat(chat_id)
+        return getattr(chat, "member_count", 0)
+
+    async def get_media_group(self, chat_id: int, message_id: int) -> List[Message]:
+        """Get all messages in a media group."""
+        # TDLib doesn't have a direct API - get message and find related
+        messages = await self.get_messages(chat_id, [message_id])
+        if not messages:
+            return []
+        msg = messages[0]
+        if not hasattr(msg, "media_group_id") or not msg.media_group_id:
+            return [msg]
+        # Fetch surrounding messages to find group
+        history = await self.get_chat_history(chat_id, limit=20, offset_id=message_id + 10)
+        return [m for m in history if getattr(m, "media_group_id", None) == msg.media_group_id]
+
+    async def send_media_group(
+        self, chat_id: int, media: List[Any], **kwargs: Any
+    ) -> List[Message]:
+        """Send a group of media as album."""
+        # Simplified: send each media separately (full impl needs TDLib inputMessageContent array)
+        results = []
+        for item in media:
+            if hasattr(item, "media") and hasattr(item, "type"):
+                path = item.media
+                if item.type == "photo":
+                    await self.send_photo(chat_id, path, getattr(item, "caption", ""))
+                elif item.type == "video":
+                    await self.send_video(chat_id, path, getattr(item, "caption", ""))
+                elif item.type == "document":
+                    await self.send_document(chat_id, path, getattr(item, "caption", ""))
+        return results
+
+    async def set_administrator_title(
+        self, chat_id: int, user_id: int, title: str
+    ) -> None:
+        """Set custom admin title."""
+        libtg.tg_set_admin_title(self._client_ptr, chat_id, user_id, title.encode())
+
+    async def delete_profile_photos(self, photo_ids: List[int]) -> None:
+        """Delete profile photos by IDs."""
+        for pid in photo_ids:
+            libtg.tg_delete_profile_photo(self._client_ptr, pid)
+
+    async def get_current_user(self) -> User:
+        """Alias for get_me (compatibility)."""
+        return await self.get_me()
+
+    async def get_user(self, user_id: int) -> User:
+        """Get user by ID (alias for get_users with single ID)."""
+        return await self.get_users(user_id)
+
+    # ─────────────────────────────────────────────────────────────────────────
     # Module loading (zsys.modules compatible)
     # ─────────────────────────────────────────────────────────────────────────
 
