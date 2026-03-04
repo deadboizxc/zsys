@@ -7,9 +7,6 @@ Single implementation using TDLib C library.
   errors       — FloodWait, RPCError, MessageDeleteForbidden, ...
   types        — Message, User, Chat, ChatMember, File
 
-For Pyrogram compatibility:
-  from zsys.telegram.pyrogram import PyrogramClient, PyrogramConfig
-
 Quick start::
 
     from zsys.telegram import TdlibClient, TdlibConfig, filters
@@ -25,6 +22,9 @@ TDLib auto-install:
     - or: zsys/telegram/scripts/install_tdlib.sh
 """
 import os as _os
+
+__version__ = "1.0.0"
+__tdlib_version__ = "1.8.29"
 
 from zsys.telegram import errors, filters
 from zsys.telegram.config import TdlibConfig
@@ -62,4 +62,6 @@ __all__ = [
     "Chat",
     "ChatMember",
     "File",
+    "__version__",
+    "__tdlib_version__",
 ]

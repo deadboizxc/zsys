@@ -359,4 +359,153 @@ class Message:
         return f"<Message id={self.id} chat_id={self.chat_id} text={self.text!r:.40}>"
 
 
-__all__ = ["MediaType", "User", "Chat", "ChatMember", "File", "Message"]
+# ── Additional Types (Pyrogram compatibility) ─────────────────────────────── #
+
+
+class ChatPermissions:
+    """Chat member permissions."""
+
+    def __init__(
+        self,
+        can_send_messages: bool = False,
+        can_send_media_messages: bool = False,
+        can_send_other_messages: bool = False,
+        can_add_web_page_previews: bool = False,
+        can_send_polls: bool = False,
+        can_change_info: bool = False,
+        can_invite_users: bool = False,
+        can_pin_messages: bool = False,
+    ):
+        self.can_send_messages = can_send_messages
+        self.can_send_media_messages = can_send_media_messages
+        self.can_send_other_messages = can_send_other_messages
+        self.can_add_web_page_previews = can_add_web_page_previews
+        self.can_send_polls = can_send_polls
+        self.can_change_info = can_change_info
+        self.can_invite_users = can_invite_users
+        self.can_pin_messages = can_pin_messages
+
+
+class ChatPrivileges:
+    """Admin privileges."""
+
+    def __init__(
+        self,
+        can_manage_chat: bool = False,
+        can_delete_messages: bool = False,
+        can_manage_video_chats: bool = False,
+        can_restrict_members: bool = False,
+        can_promote_members: bool = False,
+        can_change_info: bool = False,
+        can_invite_users: bool = False,
+        can_pin_messages: bool = False,
+        is_anonymous: bool = False,
+    ):
+        self.can_manage_chat = can_manage_chat
+        self.can_delete_messages = can_delete_messages
+        self.can_manage_video_chats = can_manage_video_chats
+        self.can_restrict_members = can_restrict_members
+        self.can_promote_members = can_promote_members
+        self.can_change_info = can_change_info
+        self.can_invite_users = can_invite_users
+        self.can_pin_messages = can_pin_messages
+        self.is_anonymous = is_anonymous
+
+
+class InlineKeyboardButton:
+    """Inline keyboard button."""
+
+    def __init__(
+        self,
+        text: str,
+        callback_data: Optional[str] = None,
+        url: Optional[str] = None,
+        switch_inline_query: Optional[str] = None,
+    ):
+        self.text = text
+        self.callback_data = callback_data
+        self.url = url
+        self.switch_inline_query = switch_inline_query
+
+    def to_dict(self) -> dict:
+        d = {"text": self.text}
+        if self.url:
+            d["url"] = self.url
+        elif self.callback_data:
+            d["callback_data"] = self.callback_data
+        elif self.switch_inline_query:
+            d["switch_inline_query"] = self.switch_inline_query
+        return d
+
+
+class InlineKeyboardMarkup:
+    """Inline keyboard markup."""
+
+    def __init__(self, inline_keyboard: list[list[InlineKeyboardButton]]):
+        self.inline_keyboard = inline_keyboard
+
+    def to_dict(self) -> dict:
+        return {
+            "inline_keyboard": [
+                [btn.to_dict() for btn in row]
+                for row in self.inline_keyboard
+            ]
+        }
+
+
+class InputMediaPhoto:
+    """Input media photo for media groups."""
+
+    def __init__(self, media: str, caption: str = "", parse_mode: str = ""):
+        self.type = "photo"
+        self.media = media
+        self.caption = caption
+        self.parse_mode = parse_mode
+
+
+class InputMediaVideo:
+    """Input media video for media groups."""
+
+    def __init__(self, media: str, caption: str = "", parse_mode: str = ""):
+        self.type = "video"
+        self.media = media
+        self.caption = caption
+        self.parse_mode = parse_mode
+
+
+class InputMediaAudio:
+    """Input media audio for media groups."""
+
+    def __init__(self, media: str, caption: str = "", parse_mode: str = ""):
+        self.type = "audio"
+        self.media = media
+        self.caption = caption
+        self.parse_mode = parse_mode
+
+
+class InputMediaDocument:
+    """Input media document for media groups."""
+
+    def __init__(self, media: str, caption: str = "", parse_mode: str = ""):
+        self.type = "document"
+        self.media = media
+        self.caption = caption
+        self.parse_mode = parse_mode
+
+
+__all__ = [
+    "MediaType",
+    "User",
+    "Chat",
+    "ChatMember",
+    "File",
+    "Message",
+    "ChatPermissions",
+    "ChatPrivileges",
+    "InlineKeyboardButton",
+    "InlineKeyboardMarkup",
+    "InputMediaPhoto",
+    "InputMediaVideo",
+    "InputMediaAudio",
+    "InputMediaDocument",
+]

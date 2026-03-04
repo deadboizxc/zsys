@@ -57,6 +57,41 @@ class UserIsBlocked(TdlibError):
         super().__init__(403, "USER_IS_BLOCKED")
 
 
+class UserAdminInvalid(TdlibError):
+    def __init__(self) -> None:
+        super().__init__(400, "USER_ADMIN_INVALID")
+
+
+class UsernameInvalid(TdlibError):
+    def __init__(self) -> None:
+        super().__init__(400, "USERNAME_INVALID")
+
+
+class UsernameNotOccupied(TdlibError):
+    def __init__(self) -> None:
+        super().__init__(400, "USERNAME_NOT_OCCUPIED")
+
+
+class BadRequest(TdlibError):
+    def __init__(self, message: str = "BAD_REQUEST") -> None:
+        super().__init__(400, message)
+
+
+class Unauthorized(TdlibError):
+    def __init__(self) -> None:
+        super().__init__(401, "UNAUTHORIZED")
+
+
+class Forbidden(TdlibError):
+    def __init__(self, message: str = "FORBIDDEN") -> None:
+        super().__init__(403, message)
+
+
+class SessionPasswordNeeded(TdlibError):
+    def __init__(self) -> None:
+        super().__init__(401, "SESSION_PASSWORD_NEEDED")
+
+
 class RPCError(TdlibError):
     """Generic TDLib RPC error not matching a specific subclass."""
 
@@ -112,6 +147,13 @@ __all__ = [
     "UserNotParticipant",
     "PeerIdInvalid",
     "UserIsBlocked",
+    "UserAdminInvalid",
+    "UsernameInvalid",
+    "UsernameNotOccupied",
+    "BadRequest",
+    "Unauthorized",
+    "Forbidden",
+    "SessionPasswordNeeded",
     "RPCError",
     "raise_for_error",
 ]
