@@ -12,7 +12,7 @@ import urllib.request
 import shutil
 from pathlib import Path
 
-TDLIB_VERSION = "1.8.29"
+TDLIB_VERSION = "1.8.0"
 TDLIB_DIR = Path.home() / ".zsys" / "tdlib"
 LIBTG_DIR = Path(__file__).parent / "lib"
 

@@ -41,7 +41,7 @@ elseif(TDLIB_FETCH)
     include(FetchContent)
     FetchContent_Declare(td
         GIT_REPOSITORY https://github.com/tdlib/td.git
-        GIT_TAG        v1.8.29
+        GIT_TAG        v1.8.0
         GIT_SHALLOW    TRUE
     )
     # Build only tdjson target, disable tests/docs

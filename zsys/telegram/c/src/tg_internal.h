@@ -6,6 +6,9 @@
 #ifndef TG_INTERNAL_H
 #define TG_INTERNAL_H
 
+#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
+
 #include "../include/tg.h"
 #include <pthread.h>
 #include <string.h>

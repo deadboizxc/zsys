@@ -3,7 +3,7 @@
 # Downloads and builds TDLib library from source
 set -e
 
-TDLIB_VERSION="${TDLIB_VERSION:-1.8.29}"
+TDLIB_VERSION="${TDLIB_VERSION:-1.8.0}"
 TDLIB_DIR="${TDLIB_DIR:-/usr/local}"
 BUILD_DIR="${BUILD_DIR:-/tmp/tdlib-build}"
 JOBS="${JOBS:-$(nproc)}"

@@ -24,7 +24,7 @@ TDLib auto-install:
 import os as _os
 
 __version__ = "1.0.0"
-__tdlib_version__ = "1.8.29"
+__tdlib_version__ = "1.8.0"
 
 from zsys.telegram import errors, filters
 from zsys.telegram.config import TdlibConfig
