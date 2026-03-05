@@ -5,7 +5,7 @@ Single implementation using TDLib C library.
   TdlibConfig  — configuration
   filters      — composable message filters (&, |, ~)
   errors       — FloodWait, RPCError, MessageDeleteForbidden, ...
-  types        — Message, User, Chat, ChatMember, File
+  types        — Message, User, Chat, ChatMember, File, keyboards, reactions
 
 Quick start::
 
@@ -28,7 +28,43 @@ __tdlib_version__ = "1.8.0"
 
 from zsys.telegram import errors, filters
 from zsys.telegram.config import TdlibConfig
-from zsys.telegram.types import Chat, ChatMember, File, Message, User
+from zsys.telegram.types import (
+    Audio,
+    CallbackQuery,
+    Chat,
+    ChatMember,
+    ChatPermissions,
+    ChatPrivileges,
+    Contact,
+    Dice,
+    Document,
+    File,
+    ForceReply,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InlineQuery,
+    InlineQueryResultArticle,
+    InlineQueryResultPhoto,
+    InputMediaAudio,
+    InputMediaDocument,
+    InputMediaPhoto,
+    InputMediaVideo,
+    Location,
+    Message,
+    MessageEntity,
+    PhotoSize,
+    Poll,
+    ReactionTypeCustomEmoji,
+    ReactionTypeEmoji,
+    ReplyKeyboardButton,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    Sticker,
+    User,
+    Video,
+    VideoNote,
+    Voice,
+)
 
 # Auto-check TDLib on import (skip if ZSYS_SKIP_TDLIB_CHECK=1)
 if not _os.environ.get("ZSYS_SKIP_TDLIB_CHECK"):
@@ -53,15 +89,53 @@ if not _os.environ.get("ZSYS_SKIP_TDLIB_CHECK"):
 from zsys.telegram.client import TdlibClient
 
 __all__ = [
+    # Core
     "TdlibClient",
     "TdlibConfig",
     "filters",
     "errors",
+    # Types
     "Message",
     "User",
     "Chat",
     "ChatMember",
     "File",
+    "ChatPermissions",
+    "ChatPrivileges",
+    # Keyboards
+    "InlineKeyboardButton",
+    "InlineKeyboardMarkup",
+    "ReplyKeyboardButton",
+    "ReplyKeyboardMarkup",
+    "ReplyKeyboardRemove",
+    "ForceReply",
+    # Callback / Inline
+    "CallbackQuery",
+    "InlineQuery",
+    "InlineQueryResultArticle",
+    "InlineQueryResultPhoto",
+    # Media types
+    "PhotoSize",
+    "Video",
+    "Audio",
+    "Document",
+    "Sticker",
+    "Voice",
+    "VideoNote",
+    "Location",
+    "Contact",
+    "Poll",
+    "Dice",
+    "MessageEntity",
+    # Input media
+    "InputMediaPhoto",
+    "InputMediaVideo",
+    "InputMediaAudio",
+    "InputMediaDocument",
+    # Reactions
+    "ReactionTypeEmoji",
+    "ReactionTypeCustomEmoji",
+    # Meta
     "__version__",
     "__tdlib_version__",
 ]

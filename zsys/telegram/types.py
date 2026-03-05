@@ -493,6 +493,524 @@ class InputMediaDocument:
         self.parse_mode = parse_mode
 
 
+# ── Reply Keyboard Types ───────────────────────────────────────────────────── #
+
+
+class ReplyKeyboardButton:
+    """Reply keyboard button."""
+
+    def __init__(
+        self,
+        text: str,
+        request_contact: bool = False,
+        request_location: bool = False,
+        request_poll: Optional[str] = None,  # "quiz" or "regular"
+    ):
+        self.text = text
+        self.request_contact = request_contact
+        self.request_location = request_location
+        self.request_poll = request_poll
+
+    def to_dict(self) -> dict:
+        d = {"text": self.text}
+        if self.request_contact:
+            d["request_contact"] = True
+        if self.request_location:
+            d["request_location"] = True
+        if self.request_poll:
+            d["request_poll"] = {"type": self.request_poll}
+        return d
+
+
+class ReplyKeyboardMarkup:
+    """Reply keyboard markup."""
+
+    def __init__(
+        self,
+        keyboard: list[list[ReplyKeyboardButton]],
+        resize_keyboard: bool = True,
+        one_time_keyboard: bool = False,
+        is_persistent: bool = False,
+        input_field_placeholder: Optional[str] = None,
+    ):
+        self.keyboard = keyboard
+        self.resize_keyboard = resize_keyboard
+        self.one_time_keyboard = one_time_keyboard
+        self.is_persistent = is_persistent
+        self.input_field_placeholder = input_field_placeholder
+
+    def to_dict(self) -> dict:
+        d = {
+            "keyboard": [[btn.to_dict() for btn in row] for row in self.keyboard],
+            "resize_keyboard": self.resize_keyboard,
+            "one_time_keyboard": self.one_time_keyboard,
+            "is_persistent": self.is_persistent,
+        }
+        if self.input_field_placeholder:
+            d["input_field_placeholder"] = self.input_field_placeholder
+        return d
+
+
+class ReplyKeyboardRemove:
+    """Remove reply keyboard."""
+
+    def __init__(self, selective: bool = False):
+        self.selective = selective
+
+    def to_dict(self) -> dict:
+        return {"remove_keyboard": True, "selective": self.selective}
+
+
+class ForceReply:
+    """Force reply markup."""
+
+    def __init__(
+        self,
+        selective: bool = False,
+        input_field_placeholder: Optional[str] = None,
+    ):
+        self.selective = selective
+        self.input_field_placeholder = input_field_placeholder
+
+    def to_dict(self) -> dict:
+        d = {"force_reply": True, "selective": self.selective}
+        if self.input_field_placeholder:
+            d["input_field_placeholder"] = self.input_field_placeholder
+        return d
+
+
+# ── Callback Query ─────────────────────────────────────────────────────────── #
+
+
+class CallbackQuery:
+    """Callback query from inline button press."""
+
+    def __init__(
+        self,
+        id: str,
+        from_user: Optional[User],
+        chat_instance: str = "",
+        message: Optional["Message"] = None,
+        inline_message_id: Optional[str] = None,
+        data: Optional[str] = None,
+        game_short_name: Optional[str] = None,
+    ):
+        self.id = id
+        self.from_user = from_user
+        self.chat_instance = chat_instance
+        self.message = message
+        self.inline_message_id = inline_message_id
+        self.data = data
+        self.game_short_name = game_short_name
+
+    async def answer(
+        self,
+        text: Optional[str] = None,
+        show_alert: bool = False,
+        url: Optional[str] = None,
+        cache_time: int = 0,
+    ) -> None:
+        """Answer the callback query. Requires client reference."""
+        pass  # Will be implemented via client method
+
+
+# ── Inline Query ───────────────────────────────────────────────────────────── #
+
+
+class InlineQuery:
+    """Inline query from user."""
+
+    def __init__(
+        self,
+        id: str,
+        from_user: Optional[User],
+        query: str,
+        offset: str = "",
+        chat_type: Optional[str] = None,
+    ):
+        self.id = id
+        self.from_user = from_user
+        self.query = query
+        self.offset = offset
+        self.chat_type = chat_type
+
+
+# ── Inline Query Results ───────────────────────────────────────────────────── #
+
+
+class InlineQueryResultArticle:
+    """Inline query result - article."""
+
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        input_message_content: dict,
+        url: Optional[str] = None,
+        description: Optional[str] = None,
+        thumb_url: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+    ):
+        self.type = "article"
+        self.id = id
+        self.title = title
+        self.input_message_content = input_message_content
+        self.url = url
+        self.description = description
+        self.thumb_url = thumb_url
+        self.reply_markup = reply_markup
+
+    def to_dict(self) -> dict:
+        d = {
+            "type": self.type,
+            "id": self.id,
+            "title": self.title,
+            "input_message_content": self.input_message_content,
+        }
+        if self.url:
+            d["url"] = self.url
+        if self.description:
+            d["description"] = self.description
+        if self.thumb_url:
+            d["thumb_url"] = self.thumb_url
+        if self.reply_markup:
+            d["reply_markup"] = self.reply_markup.to_dict()
+        return d
+
+
+class InlineQueryResultPhoto:
+    """Inline query result - photo."""
+
+    def __init__(
+        self,
+        id: str,
+        photo_url: str,
+        thumb_url: str,
+        photo_width: int = 0,
+        photo_height: int = 0,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+    ):
+        self.type = "photo"
+        self.id = id
+        self.photo_url = photo_url
+        self.thumb_url = thumb_url
+        self.photo_width = photo_width
+        self.photo_height = photo_height
+        self.title = title
+        self.description = description
+        self.caption = caption
+        self.reply_markup = reply_markup
+
+    def to_dict(self) -> dict:
+        d = {
+            "type": self.type,
+            "id": self.id,
+            "photo_url": self.photo_url,
+            "thumb_url": self.thumb_url,
+        }
+        if self.photo_width:
+            d["photo_width"] = self.photo_width
+        if self.photo_height:
+            d["photo_height"] = self.photo_height
+        if self.title:
+            d["title"] = self.title
+        if self.description:
+            d["description"] = self.description
+        if self.caption:
+            d["caption"] = self.caption
+        if self.reply_markup:
+            d["reply_markup"] = self.reply_markup.to_dict()
+        return d
+
+
+# ── Message Entities ───────────────────────────────────────────────────────── #
+
+
+class MessageEntity:
+    """Message entity (bold, link, mention, etc.)."""
+
+    def __init__(
+        self,
+        type: str,
+        offset: int,
+        length: int,
+        url: Optional[str] = None,
+        user: Optional[User] = None,
+        language: Optional[str] = None,
+        custom_emoji_id: Optional[str] = None,
+    ):
+        self.type = type  # "bold", "italic", "url", "mention", "code", etc.
+        self.offset = offset
+        self.length = length
+        self.url = url
+        self.user = user
+        self.language = language
+        self.custom_emoji_id = custom_emoji_id
+
+
+# ── Photo / Video / Audio / Document ───────────────────────────────────────── #
+
+
+class PhotoSize:
+    """Photo size."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        width: int,
+        height: int,
+        file_size: int = 0,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.width = width
+        self.height = height
+        self.file_size = file_size
+
+
+class Video:
+    """Video file."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        width: int,
+        height: int,
+        duration: int,
+        thumb: Optional[PhotoSize] = None,
+        file_name: Optional[str] = None,
+        mime_type: Optional[str] = None,
+        file_size: int = 0,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.width = width
+        self.height = height
+        self.duration = duration
+        self.thumb = thumb
+        self.file_name = file_name
+        self.mime_type = mime_type
+        self.file_size = file_size
+
+
+class Audio:
+    """Audio file."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        duration: int,
+        performer: Optional[str] = None,
+        title: Optional[str] = None,
+        file_name: Optional[str] = None,
+        mime_type: Optional[str] = None,
+        file_size: int = 0,
+        thumb: Optional[PhotoSize] = None,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.duration = duration
+        self.performer = performer
+        self.title = title
+        self.file_name = file_name
+        self.mime_type = mime_type
+        self.file_size = file_size
+        self.thumb = thumb
+
+
+class Document:
+    """Document file."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        file_name: Optional[str] = None,
+        mime_type: Optional[str] = None,
+        file_size: int = 0,
+        thumb: Optional[PhotoSize] = None,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.file_name = file_name
+        self.mime_type = mime_type
+        self.file_size = file_size
+        self.thumb = thumb
+
+
+class Sticker:
+    """Sticker."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        type: str,  # "regular", "mask", "custom_emoji"
+        width: int,
+        height: int,
+        is_animated: bool = False,
+        is_video: bool = False,
+        emoji: Optional[str] = None,
+        set_name: Optional[str] = None,
+        thumb: Optional[PhotoSize] = None,
+        file_size: int = 0,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.type = type
+        self.width = width
+        self.height = height
+        self.is_animated = is_animated
+        self.is_video = is_video
+        self.emoji = emoji
+        self.set_name = set_name
+        self.thumb = thumb
+        self.file_size = file_size
+
+
+class Voice:
+    """Voice message."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        duration: int,
+        mime_type: Optional[str] = None,
+        file_size: int = 0,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.duration = duration
+        self.mime_type = mime_type
+        self.file_size = file_size
+
+
+class VideoNote:
+    """Video note (round video)."""
+
+    def __init__(
+        self,
+        file_id: str,
+        file_unique_id: str,
+        length: int,
+        duration: int,
+        thumb: Optional[PhotoSize] = None,
+        file_size: int = 0,
+    ):
+        self.file_id = file_id
+        self.file_unique_id = file_unique_id
+        self.length = length
+        self.duration = duration
+        self.thumb = thumb
+        self.file_size = file_size
+
+
+class Location:
+    """Location."""
+
+    def __init__(
+        self,
+        latitude: float,
+        longitude: float,
+        horizontal_accuracy: Optional[float] = None,
+        live_period: Optional[int] = None,
+        heading: Optional[int] = None,
+        proximity_alert_radius: Optional[int] = None,
+    ):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.horizontal_accuracy = horizontal_accuracy
+        self.live_period = live_period
+        self.heading = heading
+        self.proximity_alert_radius = proximity_alert_radius
+
+
+class Contact:
+    """Contact."""
+
+    def __init__(
+        self,
+        phone_number: str,
+        first_name: str,
+        last_name: Optional[str] = None,
+        user_id: Optional[int] = None,
+        vcard: Optional[str] = None,
+    ):
+        self.phone_number = phone_number
+        self.first_name = first_name
+        self.last_name = last_name
+        self.user_id = user_id
+        self.vcard = vcard
+
+
+class Poll:
+    """Poll."""
+
+    def __init__(
+        self,
+        id: str,
+        question: str,
+        options: list,
+        total_voter_count: int,
+        is_closed: bool = False,
+        is_anonymous: bool = True,
+        type: str = "regular",  # "regular" or "quiz"
+        allows_multiple_answers: bool = False,
+        correct_option_id: Optional[int] = None,
+        explanation: Optional[str] = None,
+    ):
+        self.id = id
+        self.question = question
+        self.options = options
+        self.total_voter_count = total_voter_count
+        self.is_closed = is_closed
+        self.is_anonymous = is_anonymous
+        self.type = type
+        self.allows_multiple_answers = allows_multiple_answers
+        self.correct_option_id = correct_option_id
+        self.explanation = explanation
+
+
+class Dice:
+    """Dice animation."""
+
+    def __init__(self, emoji: str, value: int):
+        self.emoji = emoji
+        self.value = value
+
+
+# ── Reaction ───────────────────────────────────────────────────────────────── #
+
+
+class ReactionTypeEmoji:
+    """Reaction with emoji."""
+
+    def __init__(self, emoji: str):
+        self.type = "emoji"
+        self.emoji = emoji
+
+    def to_dict(self) -> dict:
+        return {"type": self.type, "emoji": self.emoji}
+
+
+class ReactionTypeCustomEmoji:
+    """Reaction with custom emoji."""
+
+    def __init__(self, custom_emoji_id: str):
+        self.type = "custom_emoji"
+        self.custom_emoji_id = custom_emoji_id
+
+    def to_dict(self) -> dict:
+        return {"type": self.type, "custom_emoji_id": self.custom_emoji_id}
+
+
 __all__ = [
     "MediaType",
     "User",
@@ -504,6 +1022,28 @@ __all__ = [
     "ChatPrivileges",
     "InlineKeyboardButton",
     "InlineKeyboardMarkup",
+    "ReplyKeyboardButton",
+    "ReplyKeyboardMarkup",
+    "ReplyKeyboardRemove",
+    "ForceReply",
+    "CallbackQuery",
+    "InlineQuery",
+    "InlineQueryResultArticle",
+    "InlineQueryResultPhoto",
+    "MessageEntity",
+    "PhotoSize",
+    "Video",
+    "Audio",
+    "Document",
+    "Sticker",
+    "Voice",
+    "VideoNote",
+    "Location",
+    "Contact",
+    "Poll",
+    "Dice",
+    "ReactionTypeEmoji",
+    "ReactionTypeCustomEmoji",
     "InputMediaPhoto",
     "InputMediaVideo",
     "InputMediaAudio",

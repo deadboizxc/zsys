@@ -235,28 +235,100 @@ class TdlibClient:
         text: str,
         parse_mode: str = "html",
         reply_to_message_id: int = 0,
-        reply_markup: Optional[str] = None,
+        reply_markup: Any = None,
+        disable_notification: bool = False,
+        disable_web_page_preview: bool = False,
+        schedule_date: Optional[int] = None,
     ) -> None:
-        """Send a text message with optional reply and inline keyboard."""
-        if reply_to_message_id or reply_markup:
+        """Send a text message with optional reply and keyboard.
+
+        Args:
+            chat_id: Target chat ID.
+            text: Message text.
+            parse_mode: "html", "markdown", or "" for plain text.
+            reply_to_message_id: Message ID to reply to (0 = no reply).
+            reply_markup: InlineKeyboardMarkup, ReplyKeyboardMarkup, or JSON string.
+            disable_notification: Send silently.
+            disable_web_page_preview: Disable link previews.
+            schedule_date: Unix timestamp to schedule message (optional).
+        """
+        import json
+
+        # Convert keyboard object to JSON string
+        markup_str: Optional[str] = None
+        if reply_markup is not None:
+            if hasattr(reply_markup, "to_dict"):
+                markup_str = json.dumps(reply_markup.to_dict())
+            elif isinstance(reply_markup, str):
+                markup_str = reply_markup
+            elif isinstance(reply_markup, dict):
+                markup_str = json.dumps(reply_markup)
+
+        if reply_to_message_id or markup_str:
             libtg.tg_send_text_ex(
                 self._client_ptr,
                 chat_id,
                 text.encode("utf-8"),
                 parse_mode.encode(),
                 reply_to_message_id,
-                reply_markup.encode() if reply_markup else None,
+                markup_str.encode() if markup_str else None,
             )
         else:
             libtg.tg_send_text(
                 self._client_ptr, chat_id, text.encode("utf-8"), parse_mode.encode()
             )
 
-    async def reply(self, msg: Message, text: str, parse_mode: str = "html") -> None:
-        """Reply to a message."""
-        libtg.tg_reply_text(
-            self._client_ptr, msg._ptr, text.encode("utf-8"), parse_mode.encode()
-        )
+    async def reply(
+        self,
+        msg: Message,
+        text: str,
+        parse_mode: str = "html",
+        reply_markup: Any = None,
+        disable_notification: bool = False,
+        disable_web_page_preview: bool = False,
+    ) -> None:
+        """Reply to a message.
+
+        Args:
+            msg: Message to reply to.
+            text: Reply text.
+            parse_mode: "html", "markdown", or "" for plain text.
+            reply_markup: Optional keyboard markup.
+            disable_notification: Send silently.
+            disable_web_page_preview: Disable link previews.
+        """
+        # Use send_message with reply_to for full keyboard support
+        if reply_markup:
+            await self.send_message(
+                msg.chat_id,
+                text,
+                parse_mode=parse_mode,
+                reply_to_message_id=msg.id,
+                reply_markup=reply_markup,
+                disable_notification=disable_notification,
+                disable_web_page_preview=disable_web_page_preview,
+            )
+        else:
+            libtg.tg_reply_text(
+                self._client_ptr, msg._ptr, text.encode("utf-8"), parse_mode.encode()
+            )
+
+    async def send_reaction(
+        self,
+        chat_id: int,
+        message_id: int,
+        emoji: str = "👍",
+        is_big: bool = False,
+    ) -> None:
+        """Add a reaction to a message.
+
+        Args:
+            chat_id: Chat containing the message.
+            message_id: Message to react to.
+            emoji: Reaction emoji (e.g., "👍", "❤️", "🔥").
+            is_big: Use big reaction animation.
+        """
+        libtg.tg_react(self._client_ptr, chat_id, message_id, emoji.encode("utf-8"))
 
     async def edit_message(
         self, chat_id: int, msg_id: int, text: str, parse_mode: str = "html"

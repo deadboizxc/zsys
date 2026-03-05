@@ -181,6 +181,123 @@ contact = create(
         else False
     )
 )
+media = create(
+    lambda _, __, m: any([
+        getattr(m, "has_photo", False),
+        getattr(m, "has_video", False),
+        getattr(m, "has_audio", False),
+        getattr(m, "has_document", False),
+        getattr(m, "has_sticker", False),
+        getattr(m, "has_animation", False),
+        getattr(m, "has_voice", False),
+    ])
+)
+caption = create(lambda _, __, m: bool(getattr(m, "caption", None)))
+voice = create(lambda _, __, m: getattr(m, "has_voice", False))
+animation = create(lambda _, __, m: getattr(m, "has_animation", False))
+location = create(lambda _, __, m: getattr(m, "has_location", False))
+poll = create(lambda _, __, m: getattr(m, "poll", None) is not None)
+dice = create(lambda _, __, m: getattr(m, "dice", None) is not None)
+
+
+def command(commands: str | list, prefixes: str = "/.", case_sensitive: bool = False) -> Filter:
+    """Create a command filter.
+
+    Args:
+        commands: Command name(s) without prefix (e.g., "start" or ["start", "help"]).
+        prefixes: Allowed command prefixes (default: "/.").
+        case_sensitive: Whether to match case-sensitively.
+
+    Example::
+
+        @client.on_message(filters.command("start"))
+        async def start_handler(client, msg):
+            await client.reply(msg, "Hello!")
+
+        @client.on_message(filters.command(["help", "h"]))
+        async def help_handler(client, msg):
+            ...
+    """
+    if isinstance(commands, str):
+        commands = [commands]
+    if not case_sensitive:
+        commands = [c.lower() for c in commands]
+
+    def check(_, __, m):
+        txt = getattr(m, "text", "") or ""
+        if not txt or txt[0] not in prefixes:
+            return False
+        # Extract command (first word without prefix)
+        parts = txt[1:].split(None, 1)
+        if not parts:
+            return False
+        cmd = parts[0].split("@")[0]  # Remove @bot suffix
+        if not case_sensitive:
+            cmd = cmd.lower()
+        return cmd in commands
+
+    return create(check)
+
+
+def regex(pattern: str, flags: int = 0) -> Filter:
+    """Create a regex filter.
+
+    Args:
+        pattern: Regular expression pattern.
+        flags: re module flags (e.g., re.IGNORECASE).
+
+    Example::
+
+        @client.on_message(filters.regex(r"hello", re.IGNORECASE))
+        async def hello_handler(client, msg):
+            ...
+    """
+    import re
+
+    compiled = re.compile(pattern, flags)
+
+    def check(_, __, m):
+        txt = getattr(m, "text", "") or getattr(m, "caption", "") or ""
+        return bool(compiled.search(txt))
+
+    return create(check)
+
+
+def user(user_ids: int | list) -> Filter:
+    """Filter messages from specific users.
+
+    Args:
+        user_ids: User ID(s) to match.
+    """
+    if isinstance(user_ids, int):
+        user_ids = [user_ids]
+    user_set = set(user_ids)
+
+    def check(_, __, m):
+        sender = getattr(m, "sender_id", 0) or (
+            getattr(m.from_user, "id", 0) if getattr(m, "from_user", None) else 0
+        )
+        return sender in user_set
+
+    return create(check)
+
+
+def chat(chat_ids: int | list) -> Filter:
+    """Filter messages from specific chats.
+
+    Args:
+        chat_ids: Chat ID(s) to match.
+    """
+    if isinstance(chat_ids, int):
+        chat_ids = [chat_ids]
+    chat_set = set(chat_ids)
+
+    def check(_, __, m):
+        cid = getattr(m, "chat_id", 0)
+        return cid in chat_set
+
+    return create(check)
+
 
 __all__ = [
     "Filter",
@@ -204,4 +321,15 @@ __all__ = [
     "reply",
     "forwarded",
     "contact",
+    "media",
+    "caption",
+    "voice",
+    "animation",
+    "location",
+    "poll",
+    "dice",
+    "command",
+    "regex",
+    "user",
+    "chat",
 ]
