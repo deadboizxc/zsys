@@ -25,15 +25,14 @@ void _send_tdlib_params(tg_client_t *c)
 {
     const tg_config_t *cfg = c->config;
     char buf[2048];
-    /* TDLib 1.8.x requires nested "parameters" object */
+    /* TDLib 1.8.29+ uses flat parameters (no nested "parameters" object) */
     snprintf(buf, sizeof(buf),
         "{"
         "\"@type\":\"setTdlibParameters\","
-        "\"parameters\":{"
-        "\"@type\":\"tdlibParameters\","
         "\"use_test_dc\":%s,"
         "\"database_directory\":\"%s/%s\","
         "\"files_directory\":\"%s/%s_files\","
+        "\"database_encryption_key\":\"\","
         "\"use_file_database\":true,"
         "\"use_chat_info_database\":true,"
         "\"use_message_database\":true,"
@@ -43,10 +42,7 @@ void _send_tdlib_params(tg_client_t *c)
         "\"system_language_code\":\"%s\","
         "\"device_model\":\"%s\","
         "\"system_version\":\"%s\","
-        "\"application_version\":\"%s\","
-        "\"enable_storage_optimizer\":true,"
-        "\"ignore_file_names\":false"
-        "}"
+        "\"application_version\":\"%s\""
         "}",
         cfg->use_test_dc ? "true" : "false",
         cfg->session_dir  ? cfg->session_dir  : ".",
