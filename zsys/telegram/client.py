@@ -204,10 +204,53 @@ class TdlibClient:
         self._is_stopping = False
 
     async def idle(self) -> None:
-        """Block until the client is stopped (asyncio-friendly)."""
-        # RU: Асинхронный idle — ждём пока клиент работает.
-        while self._is_running:
-            await asyncio.sleep(0.5)
+        """Block until the client is stopped (asyncio-friendly).
+
+        Handles Ctrl+C (SIGINT) gracefully by stopping the client.
+        """
+        # RU: Асинхронный idle — ждём пока клиент работает. Ctrl+C останавливает.
+        import signal
+
+        stop_event = asyncio.Event()
+
+        def _signal_handler():
+            self._logger.info("Received SIGINT, stopping...")
+            stop_event.set()
+
+        # Register signal handler for graceful shutdown
+        loop = asyncio.get_running_loop()
+        try:
+            loop.add_signal_handler(signal.SIGINT, _signal_handler)
+            loop.add_signal_handler(signal.SIGTERM, _signal_handler)
+        except NotImplementedError:
+            # Windows doesn't support add_signal_handler
+            pass
+
+        try:
+            while self._is_running and not stop_event.is_set():
+                await asyncio.sleep(0.5)
+        finally:
+            try:
+                loop.remove_signal_handler(signal.SIGINT)
+                loop.remove_signal_handler(signal.SIGTERM)
+            except (NotImplementedError, ValueError):
+                pass
+
+        if stop_event.is_set():
+            await self.stop()
+
+    async def run(self) -> None:
+        """Start the client and run until stopped (convenience wrapper).
+
+        Equivalent to::
+
+            await client.start()
+            await client.idle()
+
+        Handles Ctrl+C gracefully.
+        """
+        await self.start()
+        await self.idle()
 
     # ─────────────────────────────────────────────────────────────────────────
     # Auth responses (call from ask_phone / ask_code / ask_pass)
