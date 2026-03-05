@@ -21,14 +21,21 @@
 
 /* ── send tdlibParameters ────────────────────────────────────────────────── */
 
-static void _send_tdlib_params(tg_client_t *c)
+void _send_tdlib_params(tg_client_t *c)
 {
     const tg_config_t *cfg = c->config;
     char buf[2048];
+    /* TDLib 1.8.x requires nested "parameters" object */
     snprintf(buf, sizeof(buf),
         "{"
         "\"@type\":\"setTdlibParameters\","
+        "\"parameters\":{"
+        "\"@type\":\"tdlibParameters\","
+        "\"use_test_dc\":%s,"
         "\"database_directory\":\"%s/%s\","
+        "\"files_directory\":\"%s/%s_files\","
+        "\"use_file_database\":true,"
+        "\"use_chat_info_database\":true,"
         "\"use_message_database\":true,"
         "\"use_secret_chats\":false,"
         "\"api_id\":%d,"
@@ -38,8 +45,12 @@ static void _send_tdlib_params(tg_client_t *c)
         "\"system_version\":\"%s\","
         "\"application_version\":\"%s\","
         "\"enable_storage_optimizer\":true,"
-        "\"use_test_dc\":%s"
+        "\"ignore_file_names\":false"
+        "}"
         "}",
+        cfg->use_test_dc ? "true" : "false",
+        cfg->session_dir  ? cfg->session_dir  : ".",
+        cfg->session_name ? cfg->session_name : "session",
         cfg->session_dir  ? cfg->session_dir  : ".",
         cfg->session_name ? cfg->session_name : "session",
         cfg->api_id,
@@ -47,8 +58,7 @@ static void _send_tdlib_params(tg_client_t *c)
         cfg->lang_code    ? cfg->lang_code    : "en",
         cfg->device_model ? cfg->device_model : "Desktop",
         cfg->system_version ? cfg->system_version : "Linux",
-        cfg->app_version  ? cfg->app_version  : "1.0.0",
-        cfg->use_test_dc ? "true" : "false"
+        cfg->app_version  ? cfg->app_version  : "1.0.0"
     );
     _tg_send_raw(c, buf);
 }

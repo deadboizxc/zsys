@@ -262,7 +262,7 @@ int tg_client_start(tg_client_t *c)
     /* Start global polling thread (idempotent via pthread_once) */
     pthread_once(&_poll_once, _start_poll_thread);
 
-    /* Kick TDLib into sending the first auth update */
+    /* Kick TDLib to start sending updates */
     _tg_send_fmt(c, "{\"@type\":\"getOption\",\"name\":\"version\"}");
     return 0;
 }

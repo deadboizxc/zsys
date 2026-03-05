@@ -144,6 +144,11 @@ class _LibTg:
             if candidate.exists():
                 candidates.insert(0, str(candidate))
 
+        # Also check ~/.zsys/tdlib/lib/
+        zsys_lib = Path.home() / ".zsys" / "tdlib" / "lib" / "libtg.so"
+        if zsys_lib.exists():
+            candidates.insert(0, str(zsys_lib))
+
         for name in candidates:
             try:
                 lib = ctypes.CDLL(name)
