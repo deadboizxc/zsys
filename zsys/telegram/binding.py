@@ -17,6 +17,28 @@ import ctypes
 from pathlib import Path
 from typing import Optional
 
+# ── C structures (match tg.h) ────────────────────────────────────────────── #
+
+
+class TgConfig(ctypes.Structure):
+    """ctypes Structure mirroring tg_config_t from tg.h."""
+
+    _fields_ = [
+        ("api_id", ctypes.c_int32),
+        ("api_hash", ctypes.c_char_p),
+        ("session_dir", ctypes.c_char_p),
+        ("session_name", ctypes.c_char_p),
+        ("bot_token", ctypes.c_char_p),
+        ("phone", ctypes.c_char_p),
+        ("device_model", ctypes.c_char_p),
+        ("system_version", ctypes.c_char_p),
+        ("app_version", ctypes.c_char_p),
+        ("lang_code", ctypes.c_char_p),
+        ("use_test_dc", ctypes.c_int),
+        ("log_verbosity", ctypes.c_int),
+    ]
+
+
 # ── callback function types (match tg.h typedefs) ────────────────────────── #
 
 TG_ASK_PHONE_FN = ctypes.CFUNCTYPE(None, ctypes.c_void_p, ctypes.c_void_p)
@@ -169,14 +191,14 @@ class _LibTg:
         # RU: Аннотируем все функции из tg.h для ctypes.
 
         # config
-        lib.tg_config_new.restype = ctypes.c_void_p
+        lib.tg_config_new.restype = ctypes.POINTER(TgConfig)
         lib.tg_config_new.argtypes = [ctypes.c_int32, ctypes.c_char_p]
         lib.tg_config_free.restype = None
-        lib.tg_config_free.argtypes = [ctypes.c_void_p]
+        lib.tg_config_free.argtypes = [ctypes.POINTER(TgConfig)]
 
         # client lifecycle
         lib.tg_client_new.restype = ctypes.c_void_p
-        lib.tg_client_new.argtypes = [ctypes.c_void_p]
+        lib.tg_client_new.argtypes = [ctypes.POINTER(TgConfig)]
         lib.tg_client_free.restype = None
         lib.tg_client_free.argtypes = [ctypes.c_void_p]
 
@@ -761,6 +783,7 @@ libtg = _LibTg()
 
 __all__ = [
     "libtg",
+    "TgConfig",
     "TG_ASK_PHONE_FN",
     "TG_ASK_CODE_FN",
     "TG_ASK_PASS_FN",

@@ -157,8 +157,37 @@ class TdlibClient:
         if not self._cfg_ptr:
             raise RuntimeError("tg_config_new returned NULL")
 
-        # Fill optional config fields directly via struct fields
-        # (For now we set the most important ones; a full setter API can be added)
+        # Keep encoded strings alive (ctypes doesn't copy them)
+        self._cfg_strings: list[bytes] = []
+
+        def _set_str(val: str | None) -> bytes | None:
+            if val:
+                b = val.encode()
+                self._cfg_strings.append(b)
+                return b
+            return None
+
+        # Handle session_name as full path (split dir/name if contains '/')
+        session_dir = cfg.session_dir
+        session_name = cfg.session_name
+        if session_name and "/" in session_name:
+            import os
+            session_dir = os.path.dirname(session_name)
+            session_name = os.path.basename(session_name)
+
+        # Fill optional config fields via struct pointer
+        cfg_struct = self._cfg_ptr.contents
+        cfg_struct.session_dir = _set_str(session_dir)
+        cfg_struct.session_name = _set_str(session_name)
+        cfg_struct.device_model = _set_str(cfg.device_model)
+        cfg_struct.system_version = _set_str(cfg.system_version)
+        cfg_struct.app_version = _set_str(cfg.app_version)
+        cfg_struct.lang_code = _set_str(cfg.lang_code)
+        cfg_struct.use_test_dc = 1 if cfg.use_test_dc else 0
+        cfg_struct.log_verbosity = cfg.log_verbosity
+        cfg_struct.bot_token = _set_str(cfg.bot_token)
+        cfg_struct.phone = _set_str(cfg.phone)
+
         self._client_ptr = libtg.tg_client_new(self._cfg_ptr)
         if not self._client_ptr:
             libtg.tg_config_free(self._cfg_ptr)
