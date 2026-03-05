@@ -370,6 +370,16 @@ void _tg_dispatch(tg_client_t *c, const char *json)
     char type[TG_TYPE_MAX] = {0};
     _json_type(json, type, sizeof(type));
 
+    /* ── error ── */
+    if (strcmp(type, "error") == 0) {
+        int code = (int)_json_int(json, "code");
+        char msg[256] = {0};
+        _json_str(json, "message", msg, sizeof(msg));
+        fprintf(stderr, "[libtg] ERROR %d: %s\n", code, msg);
+        if (c->on_error) c->on_error(c, code, msg, c->auth_ud);
+        return;
+    }
+
     /* ── auth ── */
     if (strcmp(type, "updateAuthorizationState") == 0) {
         const char *auth_state = _json_obj(json, "authorization_state");
